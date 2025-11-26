@@ -75,7 +75,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: isPanning ? 'grabbing' : 'pointer',
+        cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
       };
 
     return (
@@ -110,7 +110,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           key={shape.id}
           data-item-id={shape.id}
           data-item-type="shape"
-          style={{ cursor: isPanning ? 'grabbing' : 'pointer' }}
+          style={{ cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair') }}
         >
             {shape.shape === 'rectangle' && (
                 <rect

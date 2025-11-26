@@ -254,15 +254,47 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
     
-    // Prevent browser context menu
     e.preventDefault();
     setDidDrag(false);
   
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
-    // Priority 1: Handle drawing tools
-    if (activeTool.tool === 'marker' || (activeTool.tool === 'shape' && activeTool.shape === 'polygon')) {
+    // Priority 1: Handle editing handles
+    const handleId = target.dataset.handleId;
+    if (handleId && editingItemId) {
+      const handleIndex = parseInt(handleId, 10);
+      const item = items.find(i => i.id === editingItemId);
+      if (item) {
+        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, offset: {x: 0, y: 0} });
+        e.stopPropagation();
+        return;
+      }
+    }
+    
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+
+    // Priority 2: Handle item dragging (if select tool is active)
+    if (itemId && activeTool.tool === 'select') {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      let dragStartPos: Point = { x: 0, y: 0 };
+      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
+      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
+      else if (item.shape === 'polygon') {
+        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
+      }
+      
+      setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+      e.stopPropagation();
+      return;
+    }
+    
+    // Priority 3: Handle drawing tools
+    if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
       setIsDrawing(true);
       setStartCoords(coords);
 
@@ -282,42 +314,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return; 
     }
     
-    // Priority 2: Handle editing handles
-    const handleId = target.dataset.handleId;
-    if (handleId && editingItemId) {
-      const handleIndex = parseInt(handleId, 10);
-      const item = items.find(i => i.id === editingItemId);
-      if (item) {
-        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, offset: {x: 0, y: 0} });
-        e.stopPropagation();
-        return;
-      }
-    }
-    
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-    
-    // Priority 3: Handle item dragging
-    if (itemId) {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-
-      let dragStartPos: Point = { x: 0, y: 0 };
-      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
-      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
-      else if (item.shape === 'polygon') {
-        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
-      }
-      
-      setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-      e.stopPropagation();
-      return;
-    }
-    
     // Priority 4: Pan the map
-    setIsPanning(true);
-    setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    if (activeTool.tool === 'select') {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
   };
   
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -353,8 +354,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Priority 1: Place marker on simple click (no drag)
-    if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
+    // Priority 1: Finish placing marker on simple click (no drag)
+    if (isDrawing && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
       const { x, y } = getMapCoordinates(e);
       const newMarker: Marker = {
         id: crypto.randomUUID(),
@@ -381,6 +382,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         if (item) handleItemSelect(item);
       } else if (!itemId) {
         handleItemSelect(null);
+        setEditingItemId(null);
       }
     }
 
@@ -405,14 +407,18 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    if (readOnly || didDrag || isDrawing) {
+    if (readOnly || didDrag || isDrawing || draggingItem) {
         return;
     }
-  
-    if (editingItemId) {
-      setSelectedItem(null);
-      setEditingItemId(null);
-      return;
+
+    const target = e.target as HTMLElement;
+    if (!target.closest('[data-item-id]')) {
+        if (editingItemId) {
+            setEditingItemId(null);
+        }
+        if (selectedItem) {
+            setSelectedItem(null);
+        }
     }
   };
   
