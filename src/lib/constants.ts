@@ -1,12 +1,12 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Scale, User, Eye, Ear, Siren, Speaker, VolumeX, Lightbulb, Zap, SprayCan, MessageCircle, Waves, Snowflake, DoorOpen, PlusSquare, Info, Coffee } from 'lucide-react';
+import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
+import { VolumeX, MessageCircle } from 'lucide-react';
 
-export const SENSORY_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'vestibular', 'touch', 'proprioception'];
-
-export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch'];
+export const SENSORY_STIMULI_TYPES: SensoryType[] = ['touch', 'proprioception', 'vestibular', 'vision', 'hearing', 'smell'];
 export const RESPITE_ZONE_TYPES: AmenityType[] = ['quietZone', 'seating'];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food'];
+
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
@@ -14,42 +14,36 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     description: 'Visual stimuli like bright lights, flashing effects, or visual clutter.',
     icon: Eye, 
     color: '#8DAEF3', 
-    className: 'bg-[#8DAEF3]' 
   },
   hearing: { 
     name: 'Hearing', 
     description: 'Auditory stimuli like loud music, sudden noises, or announcements.',
     icon: Ear, 
     color: '#E6ACAC', 
-    className: 'bg-[#E6ACAC]' 
   },
   smell: { 
     name: 'Smell', 
     description: 'Olfactory stimuli like food smells, cleaning products, or perfumes.',
     icon: NoseIcon, 
     color: '#FDDDB1',
-    className: 'bg-[#FDDDB1]' 
   },
   vestibular: { 
-    name: 'Vestibular system', 
-    description: 'Stimuli related to balance and spatial orientation, like spinning or uneven surfaces.',
+    name: 'Balance & Motion', 
+    description: 'Stability & Direction: Tells you if the floor is uneven, if there are elevators, or if the layout is confusing. Helpful if you get dizzy easily.',
     icon: Scale, 
     color: '#007C78', 
-    className: 'bg-[#007C78]' 
   },
   touch: { 
     name: 'Touch', 
     description: 'Tactile stimuli from textures, temperature, or being touched.',
     icon: Hand, 
     color: '#2558D7', 
-    className: 'bg-[#2558D7]' 
   },
   proprioception: { 
-    name: 'Proprioceptive system', 
-    description: 'Stimuli related to body awareness, like crowded spaces or heavy work.',
+    name: 'Body Space', 
+    description: 'Crowding & Squeeze: Tells you if an area is tight, crowded, or if you might bump into things. Helpful if you need personal space.',
     icon: User, 
-    color: '#F37255', 
-    className: 'bg-[#F37255]'
+    color: '#F37255',
   },
 };
 
@@ -63,7 +57,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   seating: {
     name: 'Seating Area',
     description: 'Accessible seating, including benches or other options for rest.',
-    icon: MessageCircle, // Placeholder, find a better one
+    icon: MessageCircle,
     color: '#A7D8A9'
   },
   toilets: {
@@ -98,5 +92,5 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   },
 }
 
-export const ALL_SENSORY_TYPES = [...SENSORY_STIMULI_TYPES, ...RESPITE_ZONE_TYPES, ...PRACTICAL_AMENITY_TYPES];
+export const ALL_SENSORY_TYPES: (SensoryType | AmenityType)[] = [...SENSORY_STIMULI_TYPES, ...RESPITE_ZONE_TYPES, ...PRACTICAL_AMENITY_TYPES];
 export const ALL_SENSORY_DATA = { ...SENSORY_DATA, ...AMENITY_DATA };

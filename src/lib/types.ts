@@ -12,9 +12,7 @@ export type BaseInfo = {
   color: string;
 }
 
-export type SensoryInfo = BaseInfo & {
-  className: string;
-};
+export type SensoryInfo = BaseInfo;
 
 export type AmenityInfo = BaseInfo;
 
