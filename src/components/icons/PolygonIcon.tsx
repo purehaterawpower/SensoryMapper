@@ -9,16 +9,14 @@ export const PolygonIcon = (props: SVGProps<SVGSVGElement>) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="2.5"
     strokeLinecap="round"
     strokeLinejoin="round"
     {...props}
   >
-    <path d="M14 2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
-    <path d="M10 18H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" />
-    <path d="m22 2-2.5 2.5" />
-    <path d="M20 8l-2.5-2.5" />
-    <path d="m14 22 2.5-2.5" />
-    <path d="M16 14l2.5 2.5" />
+    <path d="M16.5 3.5 21 8l-4.5 4.5" />
+    <path d="M16.5 3.5h-9L3 8l4.5 4.5h9L21 8l-4.5-4.5z" />
+    <path d="m7.5 12.5-4.5 4.5 9 4.5 9-4.5-4.5-4.5" />
+    <path d="m16.5 12.5-9 0" />
   </svg>
 )
