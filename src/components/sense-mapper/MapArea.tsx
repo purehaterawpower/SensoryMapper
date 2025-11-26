@@ -1,7 +1,7 @@
 'use client';
 
 import { ALL_SENSORY_DATA } from "@/lib/constants";
-import { Item, Marker, Shape, Point } from "@/lib/types";
+import { Item, Marker, Shape, Point, ActiveTool } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useState, useEffect, useRef } from "react";
 import { EditHandles } from './EditHandles';
@@ -24,6 +24,7 @@ type MapAreaProps = {
   onMapUpload: (file: File) => void;
   transformStyle: React.CSSProperties;
   isPanning: boolean;
+  activeTool: ActiveTool;
   readOnly?: boolean;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'onItemSelect'>;
 
@@ -40,6 +41,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   onMapUpload,
   transformStyle,
   isPanning,
+  activeTool,
   readOnly = false,
   ...props
 }, ref) => {
@@ -55,6 +57,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     }
   };
 
+  const getCursor = () => {
+    if (isPanning) return 'grabbing';
+    if (readOnly) return 'default';
+    if (activeTool.tool === 'select') return 'grab';
+    if (activeTool.tool === 'marker' || activeTool.tool === 'shape') return 'crosshair';
+    return 'default';
+  }
+
   const renderMarker = (marker: Marker) => {
     if (!visibleLayers[marker.type]) return null;
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
@@ -65,7 +75,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: isPanning ? 'grabbing' : (readOnly ? 'default' : 'pointer'),
+        cursor: isPanning ? 'grabbing' : 'pointer',
       };
 
     return (
@@ -100,7 +110,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           key={shape.id}
           data-item-id={shape.id}
           data-item-type="shape"
-          style={{ cursor: isPanning ? 'grabbing' : (readOnly ? 'default' : 'pointer') }}
+          style={{ cursor: isPanning ? 'grabbing' : 'pointer' }}
         >
             {shape.shape === 'rectangle' && (
                 <rect
@@ -109,7 +119,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     width={shape.width}
                     height={shape.height}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
@@ -120,7 +130,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cy={shape.cy}
                     r={shape.radius}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
@@ -129,7 +139,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
@@ -167,7 +177,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 style={{ ...style }}
               />
           )}
-          <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
+          <polyline points={currentPoints} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2, strokeDasharray: 'none'}} />
           <line
             x1={drawingShape.points[drawingShape.points.length - 1].x}
             y1={drawingShape.points[drawingShape.points.length - 1].y}
@@ -204,9 +214,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       ref={ref}
       className={cn(
         "relative flex-1 bg-muted/40 overflow-hidden",
-          readOnly && 'cursor-default',
-          isPanning && 'cursor-grabbing'
       )}
+      style={{ cursor: getCursor() }}
       {...props}
     >
       <TooltipProvider>
@@ -214,11 +223,10 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         className="relative shadow-lg rounded-lg border bg-muted w-full h-full"
       >
         {mapImage && imageDimensions ? (
-          <div className="absolute top-1/2 left-1/2" style={{width: imageDimensions.width, height: imageDimensions.height, transform: `translate(-50%, -50%) ${transformStyle.transform}`}}>
+          <div className="absolute top-0 left-0 w-full h-full transform-container" style={transformStyle}>
             <div 
               className={cn(
-                'absolute inset-0',
-                !readOnly && !drawingShape && 'cursor-grab'
+                'absolute top-0 left-0',
               )}
               style={{ width: imageDimensions.width, height: imageDimensions.height }}
             >
