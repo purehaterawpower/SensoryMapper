@@ -206,7 +206,16 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <Accordion type="single" collapsible className="w-full" defaultValue="view-layers">
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
+                {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
+                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+            </div>
+            
+            <Separator />
+            
+            <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="view-layers" className="border-b-0">
                 <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
                     View Layers
@@ -218,15 +227,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 </AccordionContent>
                 </AccordionItem>
             </Accordion>
-            
-            <Separator />
 
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
-                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
-                {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
-                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
-            </div>
         </div>
       </TooltipProvider>
     </aside>
