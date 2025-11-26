@@ -37,7 +37,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
     if (item) {
       setDescription(item.description);
       setImage(item.imageUrl || null);
-      if(item.shape !== 'marker' && item.type !== 'quietArea') {
+      if(item.shape !== 'marker' && item.type !== 'quietRoom') {
         setIntensity(item.intensity ?? 50);
       }
     }
@@ -76,7 +76,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   const { name: sensoryName, icon: Icon, description: sensoryDescription } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
-  const showIntensitySlider = isShape && item.type !== 'quietArea';
+  const showIntensitySlider = isShape && item.type !== 'quietRoom';
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
   const handleSave = () => {

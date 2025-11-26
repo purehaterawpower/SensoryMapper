@@ -184,7 +184,7 @@ export function PrintableReport({
           {visibleItems.length > 0 ? (
             visibleItems.map((item) => {
               const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
-              const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietArea';
+              const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietRoom';
               return (
                 <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
                   <div className="flex items-start gap-3 mb-2">

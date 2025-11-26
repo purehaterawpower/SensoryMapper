@@ -1,4 +1,5 @@
 
+
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
 import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
@@ -7,8 +8,8 @@ import { ExitIcon } from '@/components/icons/ExitIcon';
 import { SeatingIcon } from '@/components/icons/SeatingIcon';
 
 
-export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space', 'quietArea'];
-export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food', 'seating'];
+export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space'];
+export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['quietRoom', 'toilets', 'exit', 'help', 'firstAid', 'food', 'seating'];
 
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
@@ -51,9 +52,9 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
 };
 
 export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
-  quietArea: {
-    name: 'Quiet Area',
-    description: 'A designated area with low sensory input for calming and regulation.',
+  quietRoom: {
+    name: 'Quiet Room',
+    description: 'A designated room with low sensory input for calming and regulation.',
     icon: VolumeX,
     color: '#A8DADC'
   },

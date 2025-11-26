@@ -217,8 +217,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             type: shapeType,
             description: '',
             imageUrl: '',
-            color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
-            intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
+            color: shapeType === 'quietRoom' ? ALL_SENSORY_DATA.quietRoom.color : interpolateColor(defaultIntensity),
+            intensity: shapeType === 'quietRoom' ? undefined : defaultIntensity,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -372,8 +372,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           type: shapeType,
           description: '',
           imageUrl: '',
-          color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
-          intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
+          color: shapeType === 'quietRoom' ? ALL_SENSORY_DATA.quietRoom.color : interpolateColor(defaultIntensity),
+          intensity: shapeType === 'quietRoom' ? undefined : defaultIntensity,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
