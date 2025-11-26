@@ -25,7 +25,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 
 const LOW_COLOR = '#409AF5';    // Blue
-const MID_LOW_COLOR = '#42FF7B'; // Vibrant Green
+const MID_LOW_COLOR = '#6a994e'; // "Beanstalk" Green
 const MEDIUM_COLOR = '#FFD000'; // Neutral Yellow
 const HIGH_COLOR = '#ff0a0a';   // Hot Red
 
