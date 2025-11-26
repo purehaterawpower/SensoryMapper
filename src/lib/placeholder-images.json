@@ -1,10 +1,3 @@
 {
-  "placeholderImages": [
-    {
-      "id": "floor-plan",
-      "description": "A sample floor plan for the sensory map.",
-      "imageUrl": "https://images.unsplash.com/photo-1724786594096-9c87771b30bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmbG9vciUyMHBsYW4lMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzY0MTE3MDk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "floor plan architecture"
-    }
-  ]
+  "placeholderImages": []
 }

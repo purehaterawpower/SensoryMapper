@@ -9,7 +9,6 @@ import { SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -45,13 +44,6 @@ export function SenseMapper() {
       toast({ variant: "destructive", title: "Error", description: "Failed to load image for map." });
     };
   };
-
-  useEffect(() => {
-    const floorPlanImage = PlaceHolderImages.find(img => img.id === 'floor-plan');
-    if (floorPlanImage) {
-      handleImageLoad(floorPlanImage.imageUrl);
-    }
-  }, []);
 
   const handleMapUpload = (file: File) => {
     const reader = new FileReader();
@@ -126,7 +118,9 @@ export function SenseMapper() {
 
   const handleMapClick = (e: React.MouseEvent) => {
     if (activeTool.tool !== 'marker' || !activeTool.type || !mapImage) {
-      if (e.target === mapRef.current) setSelectedItem(null);
+      if (e.target === mapRef.current || (e.target instanceof HTMLElement && e.target.parentElement === mapRef.current)) {
+          setSelectedItem(null);
+      }
       return;
     }
     const { x, y } = getMapCoordinates(e);
