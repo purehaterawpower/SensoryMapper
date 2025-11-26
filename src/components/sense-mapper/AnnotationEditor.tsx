@@ -105,7 +105,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     <div className={`p-1.5 rounded-md`} style={{backgroundColor: ALL_SENSORY_DATA[item.type].color}}>
                         <Icon className="w-5 h-5 text-white" />
                     </div>
-                    Edit {sensoryName} {isShape ? 'Zone' : 'Marker'}
+                    Edit {sensoryName} {isShape ? 'Area' : 'Marker'}
                 </h4>
                 <p className="text-sm text-muted-foreground">
                     Add or edit the sensory details for this item.
@@ -124,7 +124,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
             {isShape && (
               <div className="grid gap-2">
-                <Label>Zone Category</Label>
+                <Label>Area Category</Label>
                 <TooltipProvider delayDuration={100}>
                 <div className="flex flex-wrap gap-2">
                     {ZONE_COLORS.map((zoneColor: ZoneColor) => (

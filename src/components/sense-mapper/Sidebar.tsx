@@ -1,6 +1,6 @@
 'use client';
 
-import { SENSORY_STIMULI_TYPES, RESPITE_ZONE_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
+import { SENSORY_STIMULI_TYPES, RESPITE_AREA_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
 import { ItemType, ActiveTool } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -135,7 +135,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Rectangle Zone</p>
+                    <p className="font-bold">Draw Rectangle Area</p>
                     <p>Click and drag to draw a rectangular area. (R)</p>
                 </TooltipContent>
               </Tooltip>
@@ -146,7 +146,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Circle Zone</p>
+                    <p className="font-bold">Draw Circle Area</p>
                     <p>Click and drag to draw a circular area. (C)</p>
                 </TooltipContent>
               </Tooltip>
@@ -157,7 +157,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Polygon Zone</p>
+                    <p className="font-bold">Draw Polygon Area</p>
                     <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
                 </TooltipContent>
               </Tooltip>
@@ -175,9 +175,9 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Areas</h3>
               <div className="space-y-1">
-                {renderTypeButtons(RESPITE_ZONE_TYPES)}
+                {renderTypeButtons(RESPITE_AREA_TYPES)}
               </div>
             </div>
             <div>
@@ -201,9 +201,9 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
+                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Areas</h3>
                   <div className="space-y-1">
-                    {renderLayerCheckboxes(RESPITE_ZONE_TYPES)}
+                    {renderLayerCheckboxes(RESPITE_AREA_TYPES)}
                   </div>
                 </div>
                 <div>

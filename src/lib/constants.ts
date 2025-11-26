@@ -6,7 +6,7 @@ import { ExitIcon } from '@/components/icons/ExitIcon';
 
 
 export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'vestibular', 'proprioception'];
-export const RESPITE_ZONE_TYPES: AmenityType[] = ['quietZone', 'seating'];
+export const RESPITE_AREA_TYPES: AmenityType[] = ['quietArea', 'seating'];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food'];
 
 
@@ -19,7 +19,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   },
   hearing: { 
     name: 'Sound', 
-    description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet zones.',
+    description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet areas.',
     icon: Ear,
     color: '#E6ACAC', 
   },
@@ -50,8 +50,8 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
 };
 
 export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
-  quietZone: {
-    name: 'Quiet Zone',
+  quietArea: {
+    name: 'Quiet Area',
     description: 'A designated area with low sensory input for calming and regulation.',
     icon: VolumeX,
     color: '#A7D8A9'
@@ -94,5 +94,5 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   },
 }
 
-export const ALL_SENSORY_TYPES: (SensoryType | AmenityType)[] = [...SENSORY_STIMULI_TYPES, ...RESPITE_ZONE_TYPES, ...PRACTICAL_AMENITY_TYPES];
+export const ALL_SENSORY_TYPES: (SensoryType | AmenityType)[] = [...SENSORY_STIMULI_TYPES, ...RESPITE_AREA_TYPES, ...PRACTICAL_AMENITY_TYPES];
 export const ALL_SENSORY_DATA = { ...SENSORY_DATA, ...AMENITY_DATA };

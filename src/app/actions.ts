@@ -7,7 +7,7 @@ export async function getSensorySummary(description: string) {
     if (!description.trim()) {
       return { error: 'Description cannot be empty.' };
     }
-    const result = await generateSensorySummary({ zoneDescription: description });
+    const result = await generateSensorySummary({ areaDescription: description });
     return { summary: result.summary };
   } catch (e) {
     console.error(e);
