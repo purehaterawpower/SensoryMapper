@@ -5,8 +5,6 @@ import React from 'react';
 
 type EditHandlesProps = {
   shape: Shape;
-  onItemDrag: (id: string, newPos: Point) => void;
-  onHandleDrag: (handleIndex: number, newPos: Point) => void;
 };
 
 export const EditHandles = ({ shape }: EditHandlesProps) => {

@@ -226,7 +226,7 @@ export function SenseMapper() {
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     const itemType = target.closest('[data-item-type]')?.getAttribute('data-item-type');
 
-    if (itemId) {
+    if (itemId && itemType) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 
@@ -236,7 +236,7 @@ export function SenseMapper() {
         return;
       }
 
-      if (itemType === 'shape' || itemType === 'shape-center') {
+      if (itemType === 'shape-center') {
         let dragStartPos: Point = { x: 0, y: 0 };
         const shape = item as Shape;
         
@@ -568,8 +568,6 @@ export function SenseMapper() {
         drawingShape={drawingShape}
         selectedItem={selectedItem}
         editingItemId={editingItemId}
-        onItemDrag={handleItemDrag}
-        onHandleDrag={handleHandleDrag}
         cursorPos={cursorPos}
         showPolygonTooltip={showPolygonTooltip}
       />

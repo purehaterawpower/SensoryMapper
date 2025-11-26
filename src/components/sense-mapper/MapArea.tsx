@@ -20,8 +20,6 @@ type MapAreaProps = {
   drawingShape: any;
   selectedItem: Item | null;
   editingItemId: string | null;
-  onItemDrag: (id: string, newPos: Point) => void;
-  onHandleDrag: (handleIndex: number, newPos: Point) => void;
   cursorPos: Point;
   showPolygonTooltip: boolean;
   onMapUpload: (file: File) => void;
@@ -36,8 +34,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   drawingShape,
   selectedItem,
   editingItemId,
-  onItemDrag,
-  onHandleDrag,
   cursorPos,
   showPolygonTooltip,
   onMapUpload,
@@ -141,7 +137,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     strokeWidth={2}
                 />
             )}
-            {isEditing && <EditHandles shape={shape} onItemDrag={onItemDrag} onHandleDrag={onHandleDrag} />}
+            {isEditing && <EditHandles shape={shape} />}
         </g>
     );
   }
