@@ -200,21 +200,22 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   } : { width: '100%', height: '100%'};
 
   return (
-    <main className="flex-1 p-4 bg-muted/40 overflow-hidden flex items-center justify-center">
+    <div 
+      ref={ref}
+      className={cn(
+        "relative flex-1 bg-muted/40 overflow-hidden",
+          mapImage && !readOnly && !isPanning && 'cursor-crosshair',
+          readOnly && 'cursor-default',
+          isPanning && 'cursor-grab active:cursor-grabbing'
+      )}
+      {...props}
+    >
       <TooltipProvider>
       <div 
-        ref={ref}
-        className={cn(
-          "relative shadow-lg rounded-lg border bg-muted overflow-hidden",
-           mapImage && !readOnly && !isPanning && 'cursor-crosshair',
-           readOnly && 'cursor-default',
-           isPanning && 'cursor-grab active:cursor-grabbing'
-        )}
-        style={mapWrapperStyle}
-        {...props}
+        className="relative shadow-lg rounded-lg border bg-muted w-full h-full"
       >
-        {mapImage ? (
-          <div className="absolute inset-0 w-full h-full" style={transformStyle}>
+        {mapImage && imageDimensions ? (
+          <div className="absolute top-1/2 left-1/2" style={{width: imageDimensions.width, height: imageDimensions.height, transform: `translate(-50%, -50%) ${transformStyle.transform}`}}>
             <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
             <div className="absolute inset-0">
                 <Tooltip open={showPolygonTooltip}>
@@ -255,7 +256,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         )}
       </div>
       </TooltipProvider>
-    </main>
+    </div>
   );
 });
 

@@ -279,7 +279,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
       }
 
-      const dragItemType = itemType === 'shape-center' || activeTool.tool !== 'select' ? 'item' : (item.shape === 'marker' ? 'item' : null);
+      const dragItemType = itemType === 'shape-center' || (activeTool.tool === 'select' && item.shape !== 'marker') ? 'item' : (item.shape === 'marker' ? 'item' : null);
       if(dragItemType){
          setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
       }
@@ -714,46 +714,44 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         isSharing={isSharing}
         readOnly={readOnly}
       />
-      <div className='relative flex-1'>
-        <MapArea
-            ref={mapRef}
-            mapImage={mapImage}
-            imageDimensions={imageDimensions}
-            items={items}
-            visibleLayers={visibleLayers}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onClick={handleMapClick}
-            onDoubleClick={handleDoubleClick}
-            onWheel={handleWheel}
-            onMapUpload={handleMapUpload}
-            drawingShape={drawingShape}
-            selectedItem={selectedItem}
-            editingItemId={editingItemId}
-            cursorPos={cursorPos}
-            showPolygonTooltip={showPolygonTooltip}
-            transformStyle={transformStyle}
-            isPanning={isPanning}
-            readOnly={readOnly}
-        />
-        {mapImage && (
-            <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
-                <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
-                    <Plus className='h-4 w-4'/>
-                </Button>
-                 <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
-                    <Minus className='h-4 w-4'/>
-                </Button>
-            </div>
-        )}
-        {mapImage && !readOnly && (
-            <div className='absolute bottom-4 left-4 flex items-center gap-2 bg-background/80 backdrop-blur-sm p-1 pr-3 rounded-full border shadow-sm'>
-                <Grab className='h-5 w-5 text-muted-foreground'/>
-                <span className='text-sm text-muted-foreground'>Hold <kbd className='px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md'>Space</kbd> to pan</span>
-            </div>
-        )}
-      </div>
+      <MapArea
+          ref={mapRef}
+          mapImage={mapImage}
+          imageDimensions={imageDimensions}
+          items={items}
+          visibleLayers={visibleLayers}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onClick={handleMapClick}
+          onDoubleClick={handleDoubleClick}
+          onWheel={handleWheel}
+          onMapUpload={handleMapUpload}
+          drawingShape={drawingShape}
+          selectedItem={selectedItem}
+          editingItemId={editingItemId}
+          cursorPos={cursorPos}
+          showPolygonTooltip={showPolygonTooltip}
+          transformStyle={transformStyle}
+          isPanning={isPanning}
+          readOnly={readOnly}
+      />
+      {mapImage && (
+          <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
+              <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+                  <Plus className='h-4 w-4'/>
+              </Button>
+                <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+                  <Minus className='h-4 w-4'/>
+              </Button>
+          </div>
+      )}
+      {mapImage && !readOnly && (
+          <div className='absolute bottom-4 left-4 flex items-center gap-2 bg-background/80 backdrop-blur-sm p-1 pr-3 rounded-full border shadow-sm'>
+              <Grab className='h-5 w-5 text-muted-foreground'/>
+              <span className='text-sm text-muted-foreground'>Hold <kbd className='px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md'>Space</kbd> to pan</span>
+          </div>
+      )}
       <AnnotationEditor
         item={selectedItem}
         onClose={() => { 
