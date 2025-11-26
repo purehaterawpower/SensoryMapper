@@ -26,17 +26,10 @@ type SidebarProps = {
 
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
 
-  const handleToolChange = (tool: 'select' | 'shape' | 'marker') => {
+  const handleToolChange = (tool: 'select') => {
     if (readOnly) return;
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
-    } else { 
-      const currentType = activeTool.type || SENSORY_STIMULI_TYPES[0];
-      if (tool === 'marker') {
-        setActiveTool({ tool: 'marker', type: currentType });
-      } else { // shape
-        setActiveTool({ tool: 'shape', type: currentType, shape: 'polygon' });
-      }
     }
   };
 
@@ -45,26 +38,24 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
     if (activeTool.type === type && activeTool.tool !== 'select') {
-        // If the same category is clicked again, switch to select tool
         setActiveTool({ tool: 'select' });
     } else if (isPracticalAmenity) {
       setActiveTool({ tool: 'marker', type });
     } else {
-      // Default to polygon shape for sensory areas
       setActiveTool({ tool: 'shape', shape: 'polygon', type });
     }
   };
   
   const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
 
-  const renderTypeSection = (title: string, types: ItemType[], withTooltips = false) => {
+  const renderTypeSection = (title: string, types: ItemType[]) => {
     if (types.length === 0) return null;
     return (
       <div key={title}>
         <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
         <div className="space-y-1">
           {types.map(type => {
-              const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
+              const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
               const isSelected = selectedItemType === type;
               const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
@@ -85,46 +76,19 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
               return (
                   <div key={type}>
-                      {withTooltips ? (
-                          <Tooltip>
-                              <TooltipTrigger asChild>{categoryButton}</TooltipTrigger>
-                              <TooltipContent side="right" className="max-w-xs">
-                                  <p>{description}</p>
-                              </TooltipContent>
-                          </Tooltip>
-                      ) : categoryButton}
-                      
-                      {isSelected && !readOnly && (
-                        <div className="pl-10 pr-2 py-2">
-                          <div className="flex items-center justify-around bg-muted p-1 rounded-md">
-                            {isAmenity ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('marker')}>
-                                            <MapPin className="w-5 h-5" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="max-w-xs text-center">
-                                        <p className="font-bold">Place Marker</p>
-                                        <p>Click on the map to place an amenity icon. (M)</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape')}>
-                                      <PolygonIcon className="w-5 h-5" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="bottom" className="max-w-xs text-center">
-                                      <p className="font-bold">Draw Custom Area</p>
-                                      <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      <Tooltip>
+                          <TooltipTrigger asChild>{categoryButton}</TooltipTrigger>
+                          <TooltipContent side="right" align="start" className="max-w-xs text-left">
+                            <p className="font-bold mb-1">
+                              {isAmenity ? 'Place Marker' : 'Draw Custom Area'}
+                            </p>
+                             <p className="text-muted-foreground">
+                              {isAmenity 
+                                ? 'Click on the map to place an amenity icon. (M)'
+                                : 'Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)'}
+                            </p>
+                          </TooltipContent>
+                      </Tooltip>
                   </div>
               );
           })}
@@ -200,7 +164,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold px-2">{readOnly ? 'Map Key' : 'Map Categories'}</h2>
-                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
+                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
                 {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
             </div>
             
