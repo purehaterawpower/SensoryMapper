@@ -117,7 +117,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     width={shape.width}
                     height={shape.height}
                     fill={fill}
-                    opacity={isSelected ? 0.6 : 0.4}
+                    fillOpacity={isSelected ? 0.6 : 0.4}
                     stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
@@ -128,7 +128,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cy={shape.cy}
                     r={shape.radius}
                     fill={fill}
-                    opacity={isSelected ? 0.6 : 0.4}
+                    fillOpacity={isSelected ? 0.6 : 0.4}
                     stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
@@ -137,7 +137,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
                     fill={fill}
-                    opacity={isSelected ? 0.6 : 0.4}
+                    fillOpacity={isSelected ? 0.6 : 0.4}
                     stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
@@ -149,12 +149,13 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
   const renderDrawingShape = () => {
     if (!drawingShape) return null;
-    const style: React.CSSProperties = {
+    const style = {
       stroke: 'hsl(var(--primary))',
       strokeWidth: 2,
       strokeDasharray: '5,5',
-      fill: 'hsla(var(--primary), 0.2)',
-      pointerEvents: 'none'
+      fill: 'hsl(var(--primary))',
+      fillOpacity: 0.2,
+      pointerEvents: 'none' as const
     };
     if (drawingShape.shape === 'rectangle') {
       return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={style} />;
@@ -169,7 +170,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
            {drawingShape.points.length > 1 && (
             <polygon
               points={currentPoints}
-              style={{ ...style, strokeDasharray: 'none', fill: 'hsla(var(--primary), 0.2)' }}
+              style={{ ...style, strokeDasharray: 'none' }}
             />
           )}
           <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />

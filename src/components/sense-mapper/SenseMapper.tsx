@@ -124,19 +124,21 @@ export function SenseMapper() {
         dy = newPos.y - centroid.y;
       }
 
+      let updatedItem: Item;
+
       if (item.shape === 'marker') {
-        return { ...item, x: item.x + dx, y: item.y + dy };
+        updatedItem = { ...item, x: item.x + dx, y: item.y + dy };
+      } else if (item.shape === 'rectangle') {
+        updatedItem = { ...item, x: item.x + dx, y: item.y + dy };
+      } else if (item.shape === 'circle') {
+        updatedItem = { ...item, cx: item.cx + dx, cy: item.cy + dy };
+      } else if (item.shape === 'polygon') {
+        updatedItem = { ...item, points: item.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
+      } else {
+        updatedItem = item;
       }
-      if (item.shape === 'rectangle') {
-        return { ...item, x: item.x + dx, y: item.y + dy };
-      }
-      if (item.shape === 'circle') {
-        return { ...item, cx: item.cx + dx, cy: item.cy + dy };
-      }
-      if (item.shape === 'polygon') {
-        return { ...item, points: item.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
-      }
-      return item;
+      setSelectedItem(updatedItem);
+      return updatedItem;
     }));
   };
   
@@ -145,7 +147,7 @@ export function SenseMapper() {
     setItems(prevItems => prevItems.map(item => {
       if (item.id !== editingItemId) return item;
       
-      let updatedShape = {...item};
+      let updatedShape = {...item} as Shape;
 
       if (updatedShape.shape === 'rectangle') {
         const { x, y, width, height } = updatedShape;
@@ -171,6 +173,7 @@ export function SenseMapper() {
         updatedShape.points = newPoints;
       }
 
+      setSelectedItem(updatedShape);
       return updatedShape;
     }));
   }
