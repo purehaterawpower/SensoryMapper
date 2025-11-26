@@ -22,6 +22,8 @@ type MapAreaProps = {
   cursorPos: Point;
   showPolygonTooltip: boolean;
   onMapUpload: (file: File) => void;
+  transformStyle: React.CSSProperties;
+  isPanning: boolean;
   readOnly?: boolean;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'onItemSelect'>;
 
@@ -36,6 +38,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   cursorPos,
   showPolygonTooltip,
   onMapUpload,
+  transformStyle,
+  isPanning,
   readOnly = false,
   ...props
 }, ref) => {
@@ -61,7 +65,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: readOnly ? 'default' : 'pointer',
+        cursor: readOnly || isPanning ? 'grab' : 'pointer',
       };
 
     return (
@@ -96,7 +100,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           key={shape.id}
           data-item-id={shape.id}
           data-item-type="shape"
-          style={{ cursor: readOnly ? 'default' : 'pointer' }}
+          style={{ cursor: readOnly || isPanning ? 'grab' : 'pointer' }}
         >
             {shape.shape === 'rectangle' && (
                 <rect
@@ -141,15 +145,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       stroke: 'hsl(var(--primary))',
       strokeWidth: 2,
       strokeDasharray: '5,5',
-      fill: 'hsl(var(--primary))',
-      fillOpacity: 0.2,
+      fill: 'none',
       pointerEvents: 'none' as const
     };
     if (drawingShape.shape === 'rectangle') {
-      return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={style} />;
+      return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2,}} />;
     }
     if (drawingShape.shape === 'circle') {
-      return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={style} />;
+      return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2,}} />;
     }
     if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
       const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
@@ -161,7 +164,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 y1={drawingShape.points[drawingShape.points.length - 1].y}
                 x2={drawingShape.points[0].x}
                 y2={drawingShape.points[0].y}
-                style={{ ...style, fill: 'none' }}
+                style={{ ...style }}
               />
           )}
           <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
@@ -170,7 +173,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
             y1={drawingShape.points[drawingShape.points.length - 1].y}
             x2={cursorPos.x}
             y2={cursorPos.y}
-            style={{ ...style, fill: 'none'}}
+            style={{ ...style}}
           />
           {drawingShape.points.map((p: Point, i: number) => (
              <rect
@@ -191,26 +194,27 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     return null;
   }
 
-  const mapStyle: React.CSSProperties = imageDimensions ? {
+  const mapWrapperStyle: React.CSSProperties = imageDimensions ? {
     width: imageDimensions.width,
     height: imageDimensions.height,
   } : { width: '100%', height: '100%'};
 
   return (
-    <main className="flex-1 p-4 bg-muted/40 overflow-auto flex items-center justify-center">
+    <main className="flex-1 p-4 bg-muted/40 overflow-hidden flex items-center justify-center">
       <TooltipProvider>
       <div 
         ref={ref}
         className={cn(
-          "relative shadow-lg rounded-lg overflow-hidden border",
-           mapImage && !readOnly && 'cursor-crosshair',
+          "relative shadow-lg rounded-lg border bg-muted overflow-hidden",
+           mapImage && !readOnly && !isPanning && 'cursor-crosshair',
            readOnly && 'cursor-default',
+           isPanning && 'cursor-grab active:cursor-grabbing'
         )}
-        style={mapStyle}
+        style={mapWrapperStyle}
         {...props}
       >
         {mapImage ? (
-          <>
+          <div className="absolute inset-0 w-full h-full" style={transformStyle}>
             <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
             <div className="absolute inset-0">
                 <Tooltip open={showPolygonTooltip}>
@@ -227,7 +231,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 </svg>
             </div>
             {items.filter(item => item.shape === 'marker').map(item => renderMarker(item as Marker))}
-          </>
+          </div>
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
              <div className="flex flex-col items-center gap-4">

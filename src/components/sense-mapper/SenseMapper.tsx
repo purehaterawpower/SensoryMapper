@@ -12,6 +12,8 @@ import { SummaryDialog } from './SummaryDialog';
 import { PrintableReport } from './PrintableReport';
 import { interpolateColor } from '@/lib/color-utils';
 import { ShareDialog } from './ShareDialog';
+import { Button } from '../ui/button';
+import { Plus, Minus, Grab } from 'lucide-react';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -40,6 +42,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'item' | 'handle', handleIndex?: number; offset: Point } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
+
+  // Viewport state
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [panOffset, setPanOffset] = useState<Point>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<Point | null>(null);
 
   const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
@@ -70,6 +78,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setItems([]);
         setSelectedItem(null);
         setEditingItemId(null);
+        setZoomLevel(1);
+        setPanOffset({ x: 0, y: 0 });
       }
     };
     img.onerror = () => {
@@ -106,7 +116,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         return;
     }
     if (editingItemId && item?.id !== editingItemId) {
-        // When in edit mode, don't allow selecting another item, but allow deselecting
         if (!item) {
           setSelectedItem(null);
           setEditingItemId(null);
@@ -119,8 +128,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
     const rect = mapRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left - panOffset.x) / zoomLevel;
+    const y = (e.clientY - rect.top - panOffset.y) / zoomLevel;
     return { x, y };
   };
   
@@ -211,15 +220,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly) return;
     if (drawingShape && drawingShape.shape === 'polygon' && drawingShape.points.length > 2 && activeTool.type) {
         const shapeType = activeTool.type;
-        const defaultIntensity = 50;
         const newShape: Shape = {
             ...drawingShape,
             id: crypto.randomUUID(),
             type: shapeType,
             description: '',
             imageUrl: '',
-            color: shapeType === 'quietRoom' ? ALL_SENSORY_DATA.quietRoom.color : interpolateColor(defaultIntensity),
-            intensity: shapeType === 'quietRoom' ? undefined : defaultIntensity,
+            color: ALL_SENSORY_DATA[shapeType].color,
+            intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -234,6 +242,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
+
+    if (isPanning) {
+        setPanStart({ x: e.clientX, y: e.clientY });
+        return;
+    }
     setDidDrag(false);
 
     const coords = getMapCoordinates(e);
@@ -257,36 +270,34 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 
-      if (itemType === 'marker') {
-        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as Marker).x, y: coords.y - (item as Marker).y }});
-      } else if (itemType === 'shape-center' || (itemType === 'shape' && activeTool.tool === 'select')) {
-        let dragStartPos: Point = { x: 0, y: 0 };
-        const shape = item as Shape;
-        
-        if (shape.shape === 'rectangle') dragStartPos = {x: shape.x + shape.width/2, y: shape.y + shape.height/2};
-        else if (shape.shape === 'circle') dragStartPos = {x: shape.cx, y: shape.cy};
-        else if (shape.shape === 'polygon') {
-            const sum = shape.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-            dragStartPos = { x: sum.x / shape.points.length, y: sum.y / shape.points.length };
-        }
-        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+      let dragStartPos: Point = { x: 0, y: 0 };
+      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
+      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
+      else if (item.shape === 'polygon') {
+        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
+      }
+
+      const dragItemType = itemType === 'shape-center' || activeTool.tool !== 'select' ? 'item' : (item.shape === 'marker' ? 'item' : null);
+      if(dragItemType){
+         setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
       }
       e.stopPropagation();
       return;
     }
     
     if (activeTool.tool === 'shape' && activeTool.type) {
-      if (editingItemId) return; // Don't start drawing if an item is being edited.
+      if (editingItemId) return;
       
       if (activeTool.shape === 'polygon') {
-        setIsDrawing(true); // Keep drawing mode for polygons
+        setIsDrawing(true);
         if (!drawingShape) {
           setDrawingShape({ shape: 'polygon', points: [coords] });
         } else {
-          // Check if user is closing the polygon
           const firstPoint = drawingShape.points[0];
           const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-          if (drawingShape.points.length > 2 && dist < 10) {
+          if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
             finishDrawingPolygon();
           } else {
             setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
@@ -303,6 +314,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const coords = getMapCoordinates(e);
     setCursorPos(coords);
 
+    if (panStart && mapRef.current) {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+        setPanStart({ x: e.clientX, y: e.clientY });
+        return;
+    }
+
     if (draggingItem) {
       setDidDrag(true);
       if (draggingItem.type === 'item') {
@@ -317,7 +336,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (isDrawing && activeTool.tool === 'shape' && activeTool.shape === 'polygon' && drawingShape?.points?.length > 0) {
       const firstPoint = drawingShape.points[0];
       const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-      setShowPolygonTooltip(dist < 10);
+      setShowPolygonTooltip(dist < 10 / zoomLevel);
     } else {
       setShowPolygonTooltip(false);
     }
@@ -337,6 +356,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
+    if (panStart) {
+        setPanStart(null);
+        return;
+    }
+
     if (draggingItem) {
       setDraggingItem(null);
       if (!didDrag) {
@@ -347,8 +371,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     }
 
     if (!isDrawing || !activeTool.type || activeTool.shape === 'polygon') return;
+    if (!drawingShape) {
+        setIsDrawing(false);
+        setStartCoords(null);
+        return;
+    }
 
-    if (activeTool.tool === 'shape' && drawingShape) {
+    if (activeTool.tool === 'shape') {
       if (
         (drawingShape.shape === 'rectangle' && (drawingShape.width < 5 || drawingShape.height < 5)) ||
         (drawingShape.shape === 'circle' && drawingShape.radius < 5)
@@ -356,15 +385,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
          // Ignore tiny shapes
       } else {
         const shapeType = activeTool.type;
-        const defaultIntensity = 50;
         const newShape: Shape = {
           ...drawingShape,
           id: crypto.randomUUID(),
           type: shapeType,
           description: '',
           imageUrl: '',
-          color: shapeType === 'quietRoom' ? ALL_SENSORY_DATA.quietRoom.color : interpolateColor(defaultIntensity),
-          intensity: shapeType === 'quietRoom' ? undefined : defaultIntensity,
+          color: ALL_SENSORY_DATA[shapeType].color,
+          intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -379,7 +407,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    if (readOnly) return;
+    if (readOnly || isPanning) return;
 
     if (didDrag) {
       setDidDrag(false);
@@ -390,7 +418,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
 
     if (activeTool.shape === 'polygon' && isDrawing) {
-        return; // Let mousedown handle adding points
+        return;
     }
 
     if (itemId && activeTool.tool === 'select') {
@@ -472,7 +500,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
-    const type = activeTool.type || ALL_SENSory_TYPES[0];
+    if (event.key === ' ' && !isPanning) {
+        setIsPanning(true);
+        event.preventDefault();
+    }
+    const type = activeTool.type || ALL_SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':
@@ -500,19 +532,27 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setActiveTool({tool: 'select'});
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly, isPanning]);
+
+  const handleKeyUp = useCallback((event: KeyboardEvent) => {
+    if (event.key === ' ') {
+        setIsPanning(false);
+    }
+  }, []);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, handleKeyUp]);
   
   useEffect(() => {
     if (readOnly) return;
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if(draggingItem || isDrawing) {
+      if(draggingItem || isDrawing || panStart) {
         const mapRect = mapRef.current?.getBoundingClientRect();
         if (mapRect) {
             const syntheticEvent = {
@@ -526,7 +566,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
     }
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      if(draggingItem) {
+      if(draggingItem || panStart) {
         const syntheticEvent = {
             target: e.target
         } as unknown as React.MouseEvent;
@@ -542,7 +582,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp, activeTool.shape, readOnly]);
+  }, [draggingItem, isDrawing, panStart, handleMouseMove, handleMouseUp, activeTool.shape, readOnly]);
 
   const handleDoubleClick = () => {
     if (readOnly) return;
@@ -550,6 +590,48 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       finishDrawingPolygon();
     }
   };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!mapRef.current) return;
+    e.preventDefault();
+    const rect = mapRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const scaleAmount = 1 - e.deltaY * 0.001;
+    const newZoom = Math.min(Math.max(0.1, zoomLevel * scaleAmount), 10);
+    
+    const worldX = (mouseX - panOffset.x) / zoomLevel;
+    const worldY = (mouseY - panOffset.y) / zoomLevel;
+
+    const newPanX = mouseX - worldX * newZoom;
+    const newPanY = mouseY - worldY * newZoom;
+
+    setZoomLevel(newZoom);
+    setPanOffset({ x: newPanX, y: newPanY });
+  };
+  
+  const handleZoom = (direction: 'in' | 'out') => {
+    const scaleAmount = direction === 'in' ? 1.2 : 1 / 1.2;
+    const newZoom = Math.min(Math.max(0.1, zoomLevel * scaleAmount), 10);
+    
+    if (mapRef.current) {
+        const rect = mapRef.current.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const worldX = (centerX - panOffset.x) / zoomLevel;
+        const worldY = (centerY - panOffset.y) / zoomLevel;
+
+        const newPanX = centerX - worldX * newZoom;
+        const newPanY = centerY - worldY * newZoom;
+        
+        setZoomLevel(newZoom);
+        setPanOffset({ x: newPanX, y: newPanY });
+    } else {
+        setZoomLevel(newZoom);
+    }
+  }
 
   const handleExportPDF = async () => {
     if (!mapImage) {
@@ -560,13 +642,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setIsPrinting(true);
     setSelectedItem(null);
     setEditingItemId(null);
-
-    // Wait for state to update and UI to re-render
+    
     await new Promise(resolve => setTimeout(resolve, 100));
 
     window.print();
-
-    // The `afterprint` event will set isPrinting to false
   };
 
   const handleShare = async () => {
@@ -616,6 +695,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     };
   }, []);
 
+  const transformStyle: React.CSSProperties = {
+    transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
+    transformOrigin: 'top left',
+  };
+
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
@@ -630,25 +714,46 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         isSharing={isSharing}
         readOnly={readOnly}
       />
-      <MapArea
-        ref={mapRef}
-        mapImage={mapImage}
-        imageDimensions={imageDimensions}
-        items={items}
-        visibleLayers={visibleLayers}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={handleMapClick}
-        onDoubleClick={handleDoubleClick}
-        onMapUpload={handleMapUpload}
-        drawingShape={drawingShape}
-        selectedItem={selectedItem}
-        editingItemId={editingItemId}
-        cursorPos={cursorPos}
-        showPolygonTooltip={showPolygonTooltip}
-        readOnly={readOnly}
-      />
+      <div className='relative flex-1'>
+        <MapArea
+            ref={mapRef}
+            mapImage={mapImage}
+            imageDimensions={imageDimensions}
+            items={items}
+            visibleLayers={visibleLayers}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onClick={handleMapClick}
+            onDoubleClick={handleDoubleClick}
+            onWheel={handleWheel}
+            onMapUpload={handleMapUpload}
+            drawingShape={drawingShape}
+            selectedItem={selectedItem}
+            editingItemId={editingItemId}
+            cursorPos={cursorPos}
+            showPolygonTooltip={showPolygonTooltip}
+            transformStyle={transformStyle}
+            isPanning={isPanning}
+            readOnly={readOnly}
+        />
+        {mapImage && (
+            <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
+                <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+                    <Plus className='h-4 w-4'/>
+                </Button>
+                 <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+                    <Minus className='h-4 w-4'/>
+                </Button>
+            </div>
+        )}
+        {mapImage && !readOnly && (
+            <div className='absolute bottom-4 left-4 flex items-center gap-2 bg-background/80 backdrop-blur-sm p-1 pr-3 rounded-full border shadow-sm'>
+                <Grab className='h-5 w-5 text-muted-foreground'/>
+                <span className='text-sm text-muted-foreground'>Hold <kbd className='px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md'>Space</kbd> to pan</span>
+            </div>
+        )}
+      </div>
       <AnnotationEditor
         item={selectedItem}
         onClose={() => { 
@@ -684,5 +789,3 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     </>
   );
 }
-
-    
