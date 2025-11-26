@@ -192,6 +192,7 @@ export function SenseMapper() {
             id: crypto.randomUUID(),
             type: shapeType,
             description: '',
+            imageUrl: '',
             color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
             intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
         };
@@ -339,6 +340,7 @@ export function SenseMapper() {
           id: crypto.randomUUID(),
           type: shapeType,
           description: '',
+          imageUrl: '',
           color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
           intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
         };
@@ -375,6 +377,7 @@ export function SenseMapper() {
           x,
           y,
           description: '',
+          imageUrl: '',
         };
         setItems(prev => [...prev, newMarker]);
         setSelectedItem(newMarker);
@@ -388,7 +391,7 @@ export function SenseMapper() {
     }
   };
   
-  const handleSaveAnnotation = (itemId: string, data: { description: string, color?: string, intensity?: number }) => {
+  const handleSaveAnnotation = (itemId: string, data: { description: string, imageUrl?: string | null, color?: string, intensity?: number }) => {
     setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
@@ -430,7 +433,7 @@ export function SenseMapper() {
         return;
     }
     const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
-    const type = activeTool.type || ALL_SENSory_TYPES[0];
+    const type = activeTool.type || ALL_SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':

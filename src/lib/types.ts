@@ -24,6 +24,7 @@ export type BaseItem = {
   description: string;
   color?: string;
   intensity?: number;
+  imageUrl?: string;
 };
 
 export type Marker = BaseItem & {

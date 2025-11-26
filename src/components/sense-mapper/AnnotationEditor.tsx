@@ -6,17 +6,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item }from "@/lib/types";
-import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Edit, Upload, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import { interpolateColor, colorToIntensity } from "@/lib/color-utils";
+import Image from "next/image";
+import { Input } from "../ui/input";
 
 type AnnotationEditorProps = {
   item: Item | null;
   onClose: () => void;
-  onSave: (itemId: string, data: { description:string, color?: string, intensity?: number }) => void;
+  onSave: (itemId: string, data: { description:string, imageUrl?: string | null, color?: string, intensity?: number }) => void;
   onDelete: (itemId: string) => void;
   onGenerateSummary: (description: string) => Promise<void>;
   isSummaryLoading: boolean;
@@ -26,11 +27,15 @@ type AnnotationEditorProps = {
 export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
+  const [image, setImage] = useState<string | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   
   useEffect(() => {
     if (item) {
       setDescription(item.description);
+      setImage(item.imageUrl || null);
       if(item.shape !== 'marker') {
         setIntensity(item.intensity ?? colorToIntensity(item.color) ?? 50);
       }
@@ -77,7 +82,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
   const handleSave = () => {
-    const data: { description: string, color?: string, intensity?: number } = { description };
+    const data: { description: string, imageUrl?: string | null, color?: string, intensity?: number } = { description, imageUrl: image };
     if (showColorPicker) {
       data.color = interpolateColor(intensity);
       data.intensity = intensity;
@@ -100,6 +105,21 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const handleSliderChange = (value: number[]) => {
     setIntensity(value[0]);
   }
+  
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({ variant: 'destructive', title: 'File too large', description: 'Please upload an image smaller than 2MB.'});
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <Popover open={!!item} onOpenChange={(open) => !open && onClose()}>
@@ -128,6 +148,33 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     className="min-h-[120px]"
                     placeholder="e.g., 'This area has a loud, constant humming noise...'"
                 />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Image (Optional)</Label>
+              {image ? (
+                <div className="relative">
+                  <Image src={image} alt="Annotation image" width={288} height={162} className="rounded-md object-cover w-full aspect-video" />
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setImage(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                 <Input
+                    type="file"
+                    id="image-upload"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Image
+                  </Button>
+                </>
+              )}
             </div>
 
             {showColorPicker && (

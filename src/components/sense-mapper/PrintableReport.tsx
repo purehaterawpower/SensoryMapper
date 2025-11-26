@@ -2,6 +2,7 @@
 
 import { Item, Marker, Shape } from '@/lib/types';
 import { ALL_SENSORY_DATA } from '@/lib/constants';
+import Image from 'next/image';
 
 type PrintableReportProps = {
   mapImage: string | null;
@@ -127,7 +128,7 @@ export function PrintableReport({
   imageDimensions,
   items,
 }: PrintableReportProps) {
-  const visibleItems = items.filter(item => item.description);
+  const visibleItems = items.filter(item => item.description || item.imageUrl);
 
   return (
     <div className="p-8 bg-white text-black">
@@ -153,7 +154,18 @@ export function PrintableReport({
                     </div>
                     <h3 className="text-lg font-semibold">{categoryName}</h3>
                   </div>
-                  <p className="text-sm">{item.description}</p>
+                  <div className="grid gap-4" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
+                    {item.description && <p className="text-sm">{item.description}</p>}
+                    {item.imageUrl && (
+                       <Image
+                          src={item.imageUrl}
+                          alt={`Annotation image for ${categoryName}`}
+                          width={150}
+                          height={100}
+                          className="rounded-md object-cover"
+                        />
+                    )}
+                  </div>
                 </div>
               );
             })
