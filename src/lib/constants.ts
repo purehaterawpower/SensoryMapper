@@ -1,3 +1,4 @@
+
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
 import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
@@ -34,7 +35,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     name: 'Touch', 
     description: 'Textures, temperature, and surfaces.',
     icon: Hand, 
-    color: '#2A9D8F', _CHANGE_
+    color: '#2A9D8F',
   },
   movement: { 
     name: 'Movement', 
