@@ -194,13 +194,15 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
               />
           )}
           <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
-          <line
-            x1={drawingShape.points[drawingShape.points.length - 1].x}
-            y1={drawingShape.points[drawingShape.points.length - 1].y}
-            x2={cursorPos.x}
-            y2={cursorPos.y}
-            style={{ ...style, fill: 'none'}}
-          />
+          {drawingShape.points.length > 0 && (
+            <line
+                x1={drawingShape.points[drawingShape.points.length - 1].x}
+                y1={drawingShape.points[drawingShape.points.length - 1].y}
+                x2={cursorPos.x}
+                y2={cursorPos.y}
+                style={{ ...style, fill: 'none' }}
+            />
+          )}
           {drawingShape.points.map((p: Point, i: number) => (
              <rect
               key={i}
@@ -229,7 +231,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     <div 
       ref={ref}
       className={cn(
-        "relative flex-1 bg-muted/40 overflow-hidden",
+        "relative flex-1 bg-muted/40 overflow-hidden flex",
       )}
       style={{ cursor: getCursor() }}
       {...props}
