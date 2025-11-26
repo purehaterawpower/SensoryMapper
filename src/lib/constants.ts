@@ -5,7 +5,7 @@ import { ToiletIcon } from '@/components/icons/ToiletIcon';
 import { ExitIcon } from '@/components/icons/ExitIcon';
 
 
-export const SENSORY_STIMULI_TYPES: SensoryType[] = ['touch', 'proprioception', 'vestibular', 'vision', 'hearing', 'smell'];
+export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'vestibular', 'proprioception'];
 export const RESPITE_ZONE_TYPES: AmenityType[] = ['quietZone', 'seating'];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food'];
 
@@ -29,17 +29,17 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     icon: NoseIcon, 
     color: '#FDDDB1',
   },
-  vestibular: { 
-    name: 'Movement', 
-    description: 'Balance & Navigation: Tells you if the floor is uneven, if there are slopes/escalators, or if the layout is confusing to navigate.',
-    icon: Compass, 
-    color: '#007C78', 
-  },
   touch: { 
     name: 'Touch', 
     description: 'Tactile stimuli from textures, temperature, or being touched.',
     icon: Hand, 
     color: '#2558D7', 
+  },
+  vestibular: { 
+    name: 'Movement', 
+    description: 'Balance & Navigation: Tells you if the floor is uneven, if there are slopes/escalators, or if the layout is confusing to navigate.',
+    icon: Compass, 
+    color: '#007C78', 
   },
   proprioception: { 
     name: 'Space', 
