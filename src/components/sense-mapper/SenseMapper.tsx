@@ -541,7 +541,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if(draggingItem || isPanning || isDrawing) {
         const syntheticEvent = {
             target: e.target,
-            button: e.button
+            button: e.button,
+            clientX: e.clientX,
+            clientY: e.clientY
         } as unknown as React.MouseEvent;
         handleMouseUp(syntheticEvent);
       }
@@ -716,8 +718,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         item={selectedItem}
         onClose={() => {
             setSelectedItem(null);
-            setHighlightedItem(null);
-            setEditingItemId(null);
+            if (editingItemId === selectedItem?.id) {
+                setEditingItemId(null);
+            }
         }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}

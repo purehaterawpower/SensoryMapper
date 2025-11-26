@@ -35,11 +35,16 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   
   useEffect(() => {
     if (item) {
-      setDescription(item.description);
+      setDescription(item.description || '');
       setImage(item.imageUrl || null);
       if(item.shape !== 'marker' && item.type !== 'quietRoom') {
         setIntensity(item.intensity ?? 50);
       }
+    } else {
+      // Reset state when no item is selected
+      setDescription('');
+      setImage(null);
+      setIntensity(50);
     }
   }, [item]);
   
@@ -124,7 +129,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         <PopoverTrigger asChild>
             <div ref={triggerRef} />
         </PopoverTrigger>
-      <PopoverContent className="w-80" side="right" align="center" alignOffset={-140} sideOffset={10}>
+      <PopoverContent className="w-80" side="right" align="center" alignOffset={-140} sideOffset={10} onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="grid gap-4">
             <div className="space-y-2">
                 <h4 className="font-medium leading-none flex items-center gap-2">
