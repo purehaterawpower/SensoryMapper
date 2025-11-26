@@ -1,9 +1,11 @@
 import type { LucideProps } from 'lucide-react';
 import type React from 'react';
 
-export type SensoryType = 'touch' | 'vestibular' | 'proprioception' | 'vision' | 'hearing' | 'smell';
-export type AmenityType = 'quietZone' | 'seating' | 'toilets' | 'exit' | 'help' | 'firstAid' | 'food';
-export type ItemType = SensoryType | AmenityType;
+export type SensoryType = 'touch' | 'proprioception' | 'vestibular' | 'vision' | 'hearing' | 'smell';
+export type RespiteZoneType = 'quietZone' | 'seating';
+export type PracticalAmenityType = 'toilets' | 'exit' | 'help' | 'firstAid' | 'food';
+
+export type ItemType = SensoryType | RespiteZoneType | PracticalAmenityType;
 
 export type BaseInfo = {
   name: string;
@@ -13,7 +15,6 @@ export type BaseInfo = {
 }
 
 export type SensoryInfo = BaseInfo;
-
 export type AmenityInfo = BaseInfo;
 
 export type Point = { x: number; y: number };
@@ -57,7 +58,7 @@ export type Item = Marker | Shape;
 
 export type DrawingShape = 'rectangle' | 'circle' | 'polygon';
 export type ActiveTool = {
-  tool: 'select' | 'shape';
+  tool: 'select' | 'shape' | 'marker';
   type?: ItemType;
   shape?: DrawingShape;
 };

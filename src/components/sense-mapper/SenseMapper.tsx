@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Shape, Point, ActiveTool, ItemType } from '@/lib/types';
+import { Item, Shape, Point, ActiveTool, ItemType, Marker } from '@/lib/types';
 import { ALL_SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -249,6 +249,13 @@ export function SenseMapper() {
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId) {
       const item = items.find(i => i.id === itemId);
+      // Logic for dragging markers
+      if (item && item.shape === 'marker') {
+        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - item.x, y: coords.y - item.y }});
+        e.stopPropagation();
+        return;
+      }
+      // Logic for dragging shapes (zones)
       if (item && item.shape !== 'marker') {
         let dragStartPos = { x: 0, y: 0 };
         
@@ -299,7 +306,12 @@ export function SenseMapper() {
       if (draggingItem.type === 'item') {
         const originalItem = items.find(i => i.id === draggingItem.id);
         if (!originalItem) return;
-        const newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
+        let newCenterPos;
+        if(originalItem.shape === 'marker'){
+            newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
+        } else {
+            newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
+        }
         handleItemDrag(draggingItem.id, newCenterPos, originalItem);
       } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
         handleHandleDrag(draggingItem.handleIndex, coords);
@@ -366,7 +378,6 @@ export function SenseMapper() {
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    // If we are in edit mode, a click on the background should NOT deselect the item.
     if (editingItemId) {
         if (!e.defaultPrevented && !(e.target as HTMLElement).closest('[data-item-id]')) {
             setSelectedItem(null);
@@ -379,9 +390,19 @@ export function SenseMapper() {
         return; // Let mousedown handle adding points
     }
 
-    if (activeTool.tool === 'shape' && activeTool.type && mapImage) {
+    if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
         const { x, y } = getMapCoordinates(e);
-        // This is where markers were created. Now we only create shapes.
+        const newMarker: Marker = {
+          id: crypto.randomUUID(),
+          type: activeTool.type,
+          shape: 'marker',
+          x,
+          y,
+          description: '',
+        };
+        setItems(prev => [...prev, newMarker]);
+        setSelectedItem(newMarker);
+        setActiveTool({tool: 'select'});
     } else {
        if (!e.defaultPrevented) {
           setSelectedItem(null);
@@ -420,12 +441,8 @@ export function SenseMapper() {
     setEditingItemId(prev => {
         const newId = prev === itemId ? null : itemId;
         if(newId) {
-            // If we are entering edit mode, make sure the item is selected
             const itemToEdit = items.find(i => i.id === newId);
             if(itemToEdit) setSelectedItem(itemToEdit);
-        } else {
-            // If we are exiting edit mode, deselect the item
-            // setSelectedItem(null); // Keep item selected but exit edit mode
         }
         return newId;
     });
@@ -436,12 +453,14 @@ export function SenseMapper() {
         return;
     }
     const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
-    const shape = activeTool.tool === 'shape' ? activeTool.shape : 'rectangle';
     const type = activeTool.type || ALL_SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':
         setActiveTool({ tool: 'select' });
+        break;
+      case 'm':
+        setActiveTool({ tool: 'marker', type });
         break;
       case 'r':
         setActiveTool({ tool: 'shape', shape: 'rectangle', type });
@@ -484,8 +503,6 @@ export function SenseMapper() {
             const syntheticEvent = {
                 clientX: e.clientX,
                 clientY: e.clientY,
-                // We need to stop propagation to avoid other listeners from firing.
-                // Since this is a synthetic event we'll create a simple mock for it.
                 stopPropagation: () => {},
                 preventDefault: () => {}
             } as React.MouseEvent;

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Circle } from "lucide-react";
+import { MousePointer, Square, Upload, Circle, MapPin } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
@@ -25,21 +25,30 @@ type SidebarProps = {
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onMapUpload }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleToolChange = (tool: 'select' | 'shape', shape?: 'rectangle' | 'circle' | 'polygon') => {
+  const handleToolChange = (tool: 'select' | 'shape' | 'marker', shape?: 'rectangle' | 'circle' | 'polygon') => {
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
-    } else { // shape
+    } else { 
       const currentType = activeTool.type || SENSORY_STIMULI_TYPES[0];
-      setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
+      if (tool === 'marker') {
+        setActiveTool({ tool: 'marker', type: currentType });
+      } else { // shape
+        setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
+      }
     }
   };
 
   const handleSensoryTypeChange = (type: ItemType) => {
-    if (activeTool.tool === 'select') {
-        // If select tool is active, switch to shape tool with the new type
-        setActiveTool({ tool: 'shape', shape: 'rectangle', type });
+    const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
+
+    if (isPracticalAmenity) {
+      setActiveTool({ tool: 'marker', type });
     } else {
-        setActiveTool({ ...activeTool, type });
+      if (activeTool.tool === 'select' || activeTool.tool === 'marker') {
+          setActiveTool({ tool: 'shape', shape: 'rectangle', type });
+      } else {
+          setActiveTool({ ...activeTool, type });
+      }
     }
   };
 
@@ -48,13 +57,13 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     if (file) {
       onMapUpload(file);
     }
-    // Reset file input to allow uploading the same file again
     if(fileInputRef.current) {
         fileInputRef.current.value = '';
     }
   };
   
   const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
+  const isAmenitySelected = selectedItemType ? PRACTICAL_AMENITY_TYPES.includes(selectedItemType as any) : false;
 
   const renderTypeButtons = (types: ItemType[]) => {
     return types.map(type => {
@@ -134,7 +143,15 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'rectangle')}>
+                  <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('marker')} disabled={!isAmenitySelected}>
+                    <MapPin className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>Place Marker</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'rectangle')} disabled={isAmenitySelected}>
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -142,7 +159,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'circle')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'circle')} disabled={isAmenitySelected}>
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -150,7 +167,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'polygon')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'polygon')} disabled={isAmenitySelected}>
                     <PolygonIcon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -164,21 +181,21 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       </TooltipProvider>
 
       <div className="flex-1 overflow-y-auto pr-1 space-y-4">
-        <div>
-            <h2 className="text-lg font-semibold px-2 mb-2">Categories</h2>
+        <div className="space-y-4">
+            <h2 className="text-lg font-semibold px-2">Categories</h2>
             <div>
               <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
               <div className="space-y-1">
                 {renderTypeButtons(SENSORY_STIMULI_TYPES)}
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
               <div className="space-y-1">
                 {renderTypeButtons(RESPITE_ZONE_TYPES)}
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
               <div className="space-y-1">
                 {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
@@ -214,7 +231,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             </AccordionItem>
         </Accordion>
       </div>
-
     </aside>
   );
 }
