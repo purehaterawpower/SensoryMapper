@@ -1,11 +1,12 @@
 
 
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, VolumeX } from 'lucide-react';
+import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee } from 'lucide-react';
 import { SmellIcon } from '@/components/icons/NoseIcon';
 import { ToiletIcon } from '@/components/icons/ToiletIcon';
 import { ExitIcon } from '@/components/icons/ExitIcon';
 import { SeatingIcon } from '@/components/icons/SeatingIcon';
+import { ResetIcon } from '@/components/icons/ResetIcon';
 
 
 export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'space', 'touch', 'movement'];
@@ -53,9 +54,9 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
 
 export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   quietRoom: {
-    name: 'Quiet Room',
+    name: 'Reset Room',
     description: 'A designated room with low sensory input for calming and regulation.',
-    icon: VolumeX,
+    icon: ResetIcon,
     color: '#A8DADC'
   },
   seating: {
