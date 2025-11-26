@@ -7,9 +7,9 @@ import { ExitIcon } from '@/components/icons/ExitIcon';
 import { SeatingIcon } from '@/components/icons/SeatingIcon';
 
 
-export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space'];
-export const RESPITE_AREA_TYPES: AmenityType[] = ['quietArea', 'seating'];
-export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food'];
+export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space', 'quietArea'];
+export const RESPITE_AREA_TYPES: AmenityType[] = [];
+export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food', 'seating'];
 
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
@@ -59,10 +59,10 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
     color: '#A8DADC'
   },
   seating: {
-    name: 'Seating Area',
+    name: 'Seating',
     description: 'Accessible seating, including benches or other options for rest.',
     icon: SeatingIcon,
-    color: '#A8DADC'
+    color: '#BDBDBD'
   },
   toilets: {
     name: 'Toilets',

@@ -1,6 +1,6 @@
 'use client';
 
-import { SENSORY_STIMULI_TYPES, RESPITE_AREA_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
+import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
 import { ItemType, ActiveTool } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -55,6 +55,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
 
   const renderTypeSection = (title: string, types: ItemType[], withTooltips = false) => {
+    if (types.length === 0) return null;
     return (
       <div key={title}>
         <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
@@ -153,6 +154,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   }
 
   const renderLayerCheckboxes = (title: string, types: ItemType[]) => {
+    if (types.length === 0) return null;
     return (
       <div key={title}>
         <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
@@ -209,7 +211,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold px-2">Map Categories</h2>
                 {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
-                {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
                 {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
             </div>
             
@@ -222,7 +223,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 space-y-4">
                     {renderLayerCheckboxes('Sensory', SENSORY_STIMULI_TYPES)}
-                    {renderLayerCheckboxes('Respite Areas', RESPITE_AREA_TYPES)}
                     {renderLayerCheckboxes('Facilities', PRACTICAL_AMENITY_TYPES)}
                 </AccordionContent>
                 </AccordionItem>
