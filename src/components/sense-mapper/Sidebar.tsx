@@ -109,7 +109,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           <div className="flex items-center justify-around">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('select')}>
+                  <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
                     <MousePointer className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -117,7 +117,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'rectangle')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'rectangle')}>
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -125,7 +125,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'circle')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'circle')}>
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -133,7 +133,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'polygon')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'polygon')}>
                     <PolygonIcon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
