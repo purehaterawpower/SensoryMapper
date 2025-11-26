@@ -10,12 +10,19 @@ type PrintableReportProps = {
   items: Item[];
 };
 
+type NumberedItem = Item & { number: number };
+
 const MapRenderer = ({
   mapImage,
   imageDimensions,
   items,
-}: PrintableReportProps) => {
-  const renderMarker = (marker: Marker) => {
+}: {
+  mapImage: string | null;
+  imageDimensions: { width: number; height: number } | null;
+  items: NumberedItem[];
+}) => {
+
+  const renderMarker = (marker: Marker & { number: number }) => {
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const itemStyle: React.CSSProperties = {
       position: 'absolute',
@@ -26,20 +33,34 @@ const MapRenderer = ({
     return (
       <div key={marker.id} style={itemStyle}>
         <div
-          className="p-1.5 rounded-full shadow-lg"
+          className="p-1.5 rounded-full shadow-lg relative"
           style={{
             backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color,
           }}
         >
           <Icon className="w-5 h-5 text-white" />
+           <div className="absolute -top-1 -right-1 bg-background text-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold border">
+            {marker.number}
+          </div>
         </div>
       </div>
     );
   };
 
-  const renderShape = (shape: Shape) => {
+  const renderShape = (shape: Shape & { number: number }) => {
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
+
+    let center: { x: number, y: number } = { x: 0, y: 0 };
+    if (shape.shape === 'rectangle') {
+      center = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+    } else if (shape.shape === 'circle') {
+      center = { x: shape.cx, y: shape.cy };
+    } else if (shape.shape === 'polygon') {
+      let xSum = 0, ySum = 0;
+      shape.points.forEach(p => { xSum += p.x; ySum += p.y; });
+      center = { x: xSum / shape.points.length, y: ySum / shape.points.length };
+    }
 
     return (
       <g key={shape.id}>
@@ -75,6 +96,20 @@ const MapRenderer = ({
             strokeWidth={2}
           />
         )}
+        <text
+            x={center.x}
+            y={center.y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="white"
+            stroke="black"
+            strokeWidth="0.5px"
+            paintOrder="stroke"
+            fontSize="14"
+            fontWeight="bold"
+          >
+            {shape.number}
+        </text>
       </g>
     );
   };
@@ -113,12 +148,12 @@ const MapRenderer = ({
         <svg width="100%" height="100%">
           {items
             .filter((item) => item.shape !== 'marker')
-            .map((item) => renderShape(item as Shape))}
+            .map((item) => renderShape(item as Shape & { number: number }))}
         </svg>
       </div>
       {items
         .filter((item) => item.shape === 'marker')
-        .map((item) => renderMarker(item as Marker))}
+        .map((item) => renderMarker(item as Marker & { number: number }))}
     </div>
   );
 };
@@ -128,7 +163,9 @@ export function PrintableReport({
   imageDimensions,
   items,
 }: PrintableReportProps) {
-  const visibleItems = items.filter(item => item.description || item.imageUrl);
+  const visibleItems: NumberedItem[] = items
+    .filter(item => item.description || item.imageUrl)
+    .map((item, index) => ({ ...item, number: index + 1 }));
 
   return (
     <div className="p-8 bg-white text-black">
@@ -137,7 +174,7 @@ export function PrintableReport({
       </style>
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>
-        <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={items} />
+        <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={visibleItems} />
       </div>
 
       <div className="space-y-8">
@@ -149,12 +186,13 @@ export function PrintableReport({
               return (
                 <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
                   <div className="flex items-center gap-3 mb-2">
+                    <div className="font-bold text-lg w-6 text-center">{item.number}.</div>
                     <div className="p-1.5 rounded-md" style={{ backgroundColor: item.color || color }}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold">{categoryName}</h3>
                   </div>
-                  <div className="grid gap-4" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
+                  <div className="grid gap-4 ml-9" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
                     {item.description && <p className="text-sm">{item.description}</p>}
                     {item.imageUrl && (
                        <Image
