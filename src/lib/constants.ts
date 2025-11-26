@@ -1,8 +1,9 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, MessageCircle, VolumeX } from 'lucide-react';
+import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
 import { ToiletIcon } from '@/components/icons/ToiletIcon';
 import { ExitIcon } from '@/components/icons/ExitIcon';
+import { SeatingIcon } from '@/components/icons/SeatingIcon';
 
 
 export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space'];
@@ -33,7 +34,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     name: 'Touch', 
     description: 'Textures, temperature, and surfaces.',
     icon: Hand, 
-    color: '#2A9D8F', 
+    color: '#2A9D8F', _CHANGE_
   },
   movement: { 
     name: 'Movement', 
@@ -59,7 +60,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   seating: {
     name: 'Seating Area',
     description: 'Accessible seating, including benches or other options for rest.',
-    icon: MessageCircle,
+    icon: SeatingIcon,
     color: '#A8DADC'
   },
   toilets: {
