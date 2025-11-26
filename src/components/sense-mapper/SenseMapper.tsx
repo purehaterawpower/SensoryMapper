@@ -87,22 +87,39 @@ export function SenseMapper() {
     return { x, y };
   };
   
-  const handleItemDrag = (id: string, newPos: Point) => {
+  const handleItemDrag = (id: string, newPos: Point, originalItem: Item) => {
     setItems(prevItems => prevItems.map(item => {
       if (item.id !== id) return item;
 
+      let dx = 0;
+      let dy = 0;
+      if (originalItem.shape === 'marker') {
+        dx = newPos.x - originalItem.x;
+        dy = newPos.y - originalItem.y;
+      } else if (originalItem.shape === 'rectangle') {
+        dx = newPos.x - originalItem.x;
+        dy = newPos.y - originalItem.y;
+      } else if (originalItem.shape === 'circle') {
+        dx = newPos.x - originalItem.cx;
+        dy = newPos.y - originalItem.cy;
+      } else if (originalItem.shape === 'polygon') {
+        // Use centroid for dragging polygon
+        const sum = originalItem.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+        const centroid = { x: sum.x / originalItem.points.length, y: sum.y / originalItem.points.length };
+        dx = newPos.x - centroid.x;
+        dy = newPos.y - centroid.y;
+      }
+
       if (item.shape === 'marker') {
-        return { ...item, x: newPos.x, y: newPos.y };
+        return { ...item, x: item.x + dx, y: item.y + dy };
       }
       if (item.shape === 'rectangle') {
-        return { ...item, x: newPos.x, y: newPos.y };
+        return { ...item, x: item.x + dx, y: item.y + dy };
       }
       if (item.shape === 'circle') {
-        return { ...item, cx: newPos.x, cy: newPos.y };
+        return { ...item, cx: item.cx + dx, cy: item.cy + dy };
       }
       if (item.shape === 'polygon') {
-        const dx = newPos.x - item.points[0].x;
-        const dy = newPos.y - item.points[0].y;
         return { ...item, points: item.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
       }
       return item;
@@ -119,11 +136,14 @@ export function SenseMapper() {
       if (updatedShape.shape === 'rectangle') {
         const { x, y, width, height } = updatedShape;
         const corners = [{x,y}, {x:x+width, y}, {x:x+width, y:y+height}, {x, y:y+height}];
-        corners[handleIndex] = newPos;
-        const newX = Math.min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-        const newY = Math.min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
-        const newMaxX = Math.max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-        const newMaxY = Math.max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+        
+        // This is a naive implementation. A better one would handle which corner is being dragged.
+        const oppositeCorner = corners[(handleIndex + 2) % 4];
+        const newX = Math.min(newPos.x, oppositeCorner.x);
+        const newY = Math.min(newPos.y, oppositeCorner.y);
+        const newMaxX = Math.max(newPos.x, oppositeCorner.x);
+        const newMaxY = Math.max(newPos.y, oppositeCorner.y);
+
         updatedShape.x = newX;
         updatedShape.y = newY;
         updatedShape.width = newMaxX - newX;
@@ -133,7 +153,9 @@ export function SenseMapper() {
         const dy = newPos.y - updatedShape.cy;
         updatedShape.radius = Math.sqrt(dx*dx + dy*dy);
       } else if (updatedShape.shape === 'polygon') {
-        updatedShape.points[handleIndex] = newPos;
+        const newPoints = [...updatedShape.points];
+        newPoints[handleIndex] = newPos;
+        updatedShape.points = newPoints;
       }
 
       return updatedShape;
@@ -146,7 +168,6 @@ export function SenseMapper() {
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
-    // Check if clicking on an edit handle
     const handleId = target.dataset.handleId;
     if (handleId && editingItemId) {
       const handleIndex = parseInt(handleId, 10);
@@ -158,25 +179,29 @@ export function SenseMapper() {
       }
     }
     
-    // Check if clicking on an item
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId) {
       const item = items.find(i => i.id === itemId);
       if (item) {
         if (activeTool.tool === 'select') {
-          if (editingItemId === itemId) { // Already editing, start dragging the whole shape
-             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as any).x || (item as any).cx, y: coords.y - (item as any).y || (item as any).cy }});
-          } else if (item.shape === 'marker') { // Marker dragging
-            setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as Marker).x, y: coords.y - (item as Marker).y }});
+          let dragStartPos = { x: 0, y: 0 };
+          if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
+          else if (item.shape === 'rectangle') dragStartPos = {x: item.x, y: item.y};
+          else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
+          else if (item.shape === 'polygon') {
+             const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+             dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
+          }
+          
+          if (editingItemId === itemId || item.shape === 'marker') {
+             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
           }
         }
       }
-      // Stop propagation to prevent map click handler from deselecting
       e.stopPropagation();
       return;
     }
     
-    // If not clicking an item, and in a drawing tool mode
     if ((activeTool.tool === 'marker' || activeTool.tool === 'shape') && activeTool.type) {
       setIsDrawing(true);
       setStartCoords(coords);
@@ -185,7 +210,6 @@ export function SenseMapper() {
         if (!drawingShape) {
           setDrawingShape({ shape: 'polygon', points: [coords] });
         } else {
-          // Finish polygon on click near first point or double click
           const firstPoint = drawingShape.points[0];
           const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
           if (dist < 10 && drawingShape.points.length > 2) {
@@ -203,23 +227,10 @@ export function SenseMapper() {
 
     if (draggingItem) {
       if (draggingItem.type === 'item') {
-        const newPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
-        handleItemDrag(draggingItem.id, newPos);
-        const draggedItem = items.find(i => i.id === draggingItem.id);
-        if (draggedItem) {
-          let updatedItem;
-          if (draggedItem.shape === 'marker') updatedItem = {...draggedItem, x: newPos.x, y: newPos.y};
-          if (draggedItem.shape === 'rectangle') updatedItem = {...draggedItem, x: newPos.x, y: newPos.y};
-          if (draggedItem.shape === 'circle') updatedItem = {...draggedItem, cx: newPos.x, cy: newPos.y};
-          if (draggedItem.shape === 'polygon') {
-            const dx = newPos.x - (draggedItem as any).points[0].x;
-            const dy = newPos.y - (draggedItem as any).points[0].y;
-            updatedItem = {...draggedItem, points: (draggedItem as any).points.map((p:Point) => ({x: p.x + dx, y: p.y+dy}))}
-          }
-          if (selectedItem?.id === draggingItem.id) {
-            setSelectedItem(updatedItem as Item);
-          }
-        }
+        const originalItem = items.find(i => i.id === draggingItem.id);
+        if (!originalItem) return;
+        const newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
+        handleItemDrag(draggingItem.id, newCenterPos, originalItem);
       } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
         handleHandleDrag(draggingItem.handleIndex, coords);
       }
@@ -267,11 +278,7 @@ export function SenseMapper() {
       }
     }
     
-    if (activeTool.shape !== 'polygon') {
-      setIsDrawing(false);
-      setDrawingShape(null);
-      setStartCoords(null);
-    } else if (drawingShape?.points.length > 2) {
+    if (activeTool.shape !== 'polygon' || (drawingShape?.points && drawingShape.points.length > 2)) {
       setIsDrawing(false);
       setDrawingShape(null);
       setStartCoords(null);
@@ -292,8 +299,7 @@ export function SenseMapper() {
         setItems(prev => [...prev, newMarker]);
     } else {
        if (editingItemId) {
-           setEditingItemId(null);
-           setSelectedItem(null);
+           // This is handled by item selection now
        }
     }
   };
@@ -339,8 +345,14 @@ export function SenseMapper() {
       case 'm':
         setActiveTool(prev => ({ tool: 'marker', type: prev.type || SENSORY_TYPES[0] }));
         break;
-      case 'z':
+      case 'r':
         setActiveTool(prev => ({ tool: 'shape', shape: 'rectangle', type: prev.type || SENSORY_TYPES[0] }));
+        break;
+      case 'c':
+        setActiveTool(prev => ({ tool: 'shape', shape: 'circle', type: prev.type || SENSORY_TYPES[0] }));
+        break;
+      case 'p':
+        setActiveTool(prev => ({ tool: 'shape', shape: 'polygon', type: prev.type || SENSORY_TYPES[0] }));
         break;
       case 'escape':
         setSelectedItem(null);
@@ -359,6 +371,37 @@ export function SenseMapper() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
+  
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if(draggingItem || isDrawing) {
+        // This is a bit of a hack to create a React-like mouse event on the map ref
+        const mapRect = mapRef.current?.getBoundingClientRect();
+        if (mapRect) {
+            const syntheticEvent = {
+                clientX: e.clientX,
+                clientY: e.clientY,
+                // We can add more properties if needed by handleMouseMove
+            } as React.MouseEvent;
+            handleMouseMove(syntheticEvent);
+        }
+      }
+    }
+    const handleGlobalMouseUp = () => {
+      if(draggingItem) {
+          setDraggingItem(null);
+      }
+      if(isDrawing) {
+          handleMouseUp();
+      }
+    }
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp]);
 
   const handleDoubleClick = () => {
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
@@ -395,7 +438,7 @@ export function SenseMapper() {
       />
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => setSelectedItem(null)}
+        onClose={() => { setSelectedItem(null); setEditingItemId(null); }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}

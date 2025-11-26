@@ -102,7 +102,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Rectangle Zone (Z)</p></TooltipContent>
+                <TooltipContent side="right"><p>Rectangle Zone (R)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -110,7 +110,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Circle Zone</p></TooltipContent>
+                <TooltipContent side="right"><p>Circle Zone (C)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -118,7 +118,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Pentagon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Polygon Zone</p></TooltipContent>
+                <TooltipContent side="right"><p>Polygon Zone (P)</p></TooltipContent>
               </Tooltip>
           </div>
         </div>
@@ -158,7 +158,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       <div className="flex-1 space-y-2 overflow-y-auto">
         <h2 className="text-lg font-semibold px-2">View Layers</h2>
         {SENSORY_TYPES.map(type => {
-          const { name, icon: Icon, className } = SENSORY_DATA[type];
+          const { name, icon: Icon, color } = SENSORY_DATA[type];
           return (
             <div key={type} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted">
               <Checkbox
@@ -167,7 +167,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
               />
               <Label htmlFor={type} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                <div className={cn("p-1 rounded-md", className)}>
+                <div className="p-1 rounded-md" style={{ backgroundColor: color }}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
                 {name}

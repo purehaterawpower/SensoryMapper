@@ -144,7 +144,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                 </Button>
                 <div className="flex gap-2">
                     {isShape && (
-                        <Button onClick={handleToggleEditMode} variant="outline" size="icon">
+                        <Button onClick={handleToggleEditMode} variant="outline" size="icon" title="Adjust Shape">
                             <Edit className="h-4 w-4" />
                         </Button>
                     )}
