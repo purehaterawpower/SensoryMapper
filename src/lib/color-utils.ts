@@ -24,7 +24,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 
 const LOW_COLOR = '#409AF5';    // Blue
-const MEDIUM_COLOR = '#E9C46A'; // Neutral Yellow
+const MEDIUM_COLOR = '#FFD000'; // Neutral Yellow
 const HIGH_COLOR = '#E76F51';   // Hot Red
 
 export function interpolateColor(intensity: number): string {
