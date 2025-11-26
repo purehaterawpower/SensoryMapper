@@ -184,7 +184,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       const handleSize = 8 / zoomLevel;
       return (
         <>
-           {drawingShape.points.length > 2 && (
+           {drawingShape.points.length > 3 && (
              <line
                 x1={drawingShape.points[drawingShape.points.length - 1].x}
                 y1={drawingShape.points[drawingShape.points.length - 1].y}
@@ -231,7 +231,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     <div 
       ref={ref}
       className={cn(
-        "relative flex-1 bg-muted/40 overflow-hidden flex",
+        "relative flex-1 bg-muted/40 overflow-hidden flex flex-col",
       )}
       style={{ cursor: getCursor() }}
       {...props}
