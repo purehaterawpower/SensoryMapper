@@ -254,18 +254,16 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
     
-    // Allow right clicks to pass through to context menu handler
     if (e.button === 2) {
       return;
     }
-    e.preventDefault();
+
     setDidDrag(false);
-  
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
-    // Priority 1: Drawing tools
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
+      e.preventDefault();
       setIsDrawing(true);
       setStartCoords(coords);
 
@@ -285,22 +283,20 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return; 
     }
     
-    // Priority 2: Handle editing handles
     const handleId = target.dataset.handleId;
     if (handleId && editingItemId) {
+      e.preventDefault();
       const handleIndex = parseInt(handleId, 10);
       const item = items.find(i => i.id === editingItemId);
       if (item) {
         setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, offset: {x: 0, y: 0} });
-        e.stopPropagation();
         return;
       }
     }
     
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-
-    // Priority 3: Handle item dragging
     if (itemId && activeTool.tool === 'select') {
+      e.preventDefault();
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 
@@ -314,12 +310,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
       
       setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-      e.stopPropagation();
       return;
     }
         
-    // Priority 4: Pan the map
-    if (activeTool.tool === 'select') {
+    if (activeTool.tool === 'select' && !itemId) {
+      e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
@@ -358,7 +353,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Finish placing marker on simple click (no drag)
     if (isDrawing && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
       const { x, y } = getMapCoordinates(e);
       const newMarker: Marker = {
@@ -374,22 +368,19 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setSelectedItem(newMarker);
       setEditingItemId(null);
       setActiveTool({tool: 'select'});
-    }
-
-    // Select an item if we are not dragging or drawing
-    if (!didDrag && !isDrawing) {
-      const target = e.target as HTMLElement;
-      const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-      
-      if (itemId && activeTool.tool === 'select') {
-        const item = items.find(i => i.id === itemId);
-        if (item) {
-          handleItemSelect(item);
+    } else if (!didDrag && !isDrawing) {
+        const target = e.target as HTMLElement;
+        const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+        
+        if (itemId && activeTool.tool === 'select') {
+          const item = items.find(i => i.id === itemId);
+          if (item) {
+            handleItemSelect(item);
+          }
+        } else if (!itemId) {
+          handleItemSelect(null);
+          setEditingItemId(null);
         }
-      } else if (!itemId) {
-        handleItemSelect(null);
-        setEditingItemId(null);
-      }
     }
 
     if (isDrawing && activeTool.shape !== 'polygon') {
@@ -723,11 +714,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       )}
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => { 
-            if (!editingItemId) {
-              setSelectedItem(null); 
-            }
-        }}
+        onClose={() => setSelectedItem(null) }
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}
