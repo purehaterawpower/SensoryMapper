@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Type, Upload } from "lucide-react";
+import { MousePointer, Square, Upload, Landmark } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 
@@ -51,14 +51,14 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   };
 
   return (
-    <aside className="w-80 bg-card border-r flex flex-col">
-      <div className="p-4">
-        <h1 className="text-2xl font-bold font-headline text-primary">SenseMapper</h1>
+    <aside className="w-80 bg-card border-r flex flex-col p-4 gap-4">
+      <div className="p-2">
+        <h1 className="text-2xl font-bold">SenseMapper</h1>
         <p className="text-sm text-muted-foreground">Map and analyze sensory experiences.</p>
       </div>
       <Separator />
 
-      <div className="p-4">
+      <div>
         <Input
           type="file"
           id="map-upload"
@@ -75,8 +75,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
 
       <TooltipProvider delayDuration={100}>
-        <div className="p-4 pt-0 space-y-4">
-          <h2 className="text-lg font-semibold">Tools</h2>
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold px-2">Tools</h2>
           <div className="flex items-center space-x-2">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -89,7 +89,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('marker')}>
-                    <Type className="w-5 h-5" />
+                    <Landmark className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right"><p>Marker (M)</p></TooltipContent>
@@ -108,8 +108,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         {activeTool.tool !== 'select' && (
           <>
             <Separator />
-            <div className="p-4 space-y-4">
-              <h2 className="text-lg font-semibold">Sensory Type</h2>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
               <div className="grid grid-cols-4 gap-2">
                 {SENSORY_TYPES.map(type => {
                   const Icon = SENSORY_DATA[type].icon;
@@ -120,7 +120,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                           variant={activeTool.type === type ? 'secondary' : 'ghost'}
                           size="icon"
                           onClick={() => handleSensoryTypeChange(type)}
-                          className={cn("h-12 w-12", SENSORY_DATA[type].className.replace('bg-', 'hover:bg-'))}
+                          className={cn("h-12 w-12")}
                         >
                           <Icon className="w-6 h-6" />
                         </Button>
@@ -137,12 +137,12 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
       <Separator />
 
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-        <h2 className="text-lg font-semibold">Layers</h2>
+      <div className="flex-1 space-y-2 overflow-y-auto">
+        <h2 className="text-lg font-semibold px-2">Layers</h2>
         {SENSORY_TYPES.map(type => {
           const { name, icon: Icon, className } = SENSORY_DATA[type];
           return (
-            <div key={type} className="flex items-center space-x-3">
+            <div key={type} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted">
               <Checkbox
                 id={type}
                 checked={visibleLayers[type]}
@@ -150,7 +150,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               />
               <Label htmlFor={type} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
                 <div className={cn("p-1 rounded-md", className)}>
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-white" />
                 </div>
                 {name}
               </Label>
