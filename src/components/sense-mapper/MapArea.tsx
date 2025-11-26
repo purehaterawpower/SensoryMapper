@@ -246,14 +246,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
              <div className="flex flex-col items-center gap-4">
               <p className="text-muted-foreground max-w-xs">
-                To get started, upload a floor plan image (PNG, JPG) or PDF. This will be the canvas for your sensory map.
+                To get started, upload a floor plan image (PNG, JPG). This will be the canvas for your sensory map.
               </p>
               <Input
                 type="file"
                 id="map-upload-main"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*,application/pdf"
+                accept="image/*"
                 onChange={handleFileUpload}
               />
               <Button onClick={() => fileInputRef.current?.click()} size="lg">
@@ -270,3 +270,5 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
+
+    
