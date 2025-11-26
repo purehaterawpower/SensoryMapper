@@ -1,7 +1,7 @@
 import type { LucideProps } from 'lucide-react';
 import type React from 'react';
 
-export type SensoryType = 'touch' | 'vestibular' | 'proprioception' | 'vision' | 'hearing' | 'smell' | 'taste';
+export type SensoryType = 'touch' | 'vestibular' | 'proprioception' | 'vision' | 'hearing' | 'smell';
 
 export type SensoryInfo = {
   name: string;

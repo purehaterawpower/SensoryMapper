@@ -1,9 +1,8 @@
 import type { SensoryType, SensoryInfo } from './types';
 import { Hand, Scale, User, Eye, Ear } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
-import { TasteIcon } from '@/components/icons/TasteIcon';
 
-export const SENSORY_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'vestibular', 'taste', 'touch', 'proprioception'];
+export const SENSORY_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'vestibular', 'touch', 'proprioception'];
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
@@ -33,13 +32,6 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     icon: Scale, 
     color: '#007C78', 
     className: 'bg-[#007C78]' 
-  },
-  taste: { 
-    name: 'Taste', 
-    description: 'The capacity to perceive and interpret qualities of food and other materials in the mouth.',
-    icon: TasteIcon, 
-    color: '#8E4180', 
-    className: 'bg-[#8E4180]' 
   },
   touch: { 
     name: 'Touch', 
