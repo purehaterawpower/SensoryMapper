@@ -76,7 +76,6 @@ export function SenseMapper() {
   const handleItemSelect = (item: Item | null) => {
     if (editingItemId && item?.id !== editingItemId) {
         // When in edit mode, don't allow selecting another item.
-        // The user must save or cancel the current edit.
         return; 
     }
     setSelectedItem(item);
@@ -196,7 +195,9 @@ export function SenseMapper() {
              dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
           }
           
-          if (editingItemId === itemId || item.shape === 'marker') {
+          if (editingItemId === itemId || item.shape !== 'marker') {
+             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+          } else if (item.shape === 'marker') {
              setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
           }
         }
@@ -403,6 +404,10 @@ export function SenseMapper() {
             const syntheticEvent = {
                 clientX: e.clientX,
                 clientY: e.clientY,
+                // We need to stop propagation to avoid other listeners from firing.
+                // Since this is a synthetic event we'll create a simple mock for it.
+                stopPropagation: () => {},
+                preventDefault: () => {}
             } as React.MouseEvent;
             handleMouseMove(syntheticEvent);
         }
