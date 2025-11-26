@@ -128,7 +128,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (!mapRef.current) return { x: 0, y: 0 };
     const rect = mapRef.current.getBoundingClientRect();
     
-    // Adjust for the map container's own offset and the current zoom/pan state
     const view = mapRef.current.querySelector<HTMLDivElement>('.transform-container');
     if (!view) return { x: 0, y: 0 };
     const style = window.getComputedStyle(view);
@@ -254,30 +253,33 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
+    
+    // Prevent browser context menu
+    e.preventDefault();
     setDidDrag(false);
   
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
     // Priority 1: Handle drawing tools
-    if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
-        setIsDrawing(true);
-        setStartCoords(coords);
+    if (activeTool.tool === 'marker' || (activeTool.tool === 'shape' && activeTool.shape === 'polygon')) {
+      setIsDrawing(true);
+      setStartCoords(coords);
 
-        if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
-            if (!drawingShape) {
-                setDrawingShape({ shape: 'polygon', points: [coords] });
-            } else {
-                const firstPoint = drawingShape.points[0];
-                const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-                if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
-                    finishDrawingPolygon();
-                } else {
-                    setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
-                }
-            }
-        }
-        return; 
+      if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
+          if (!drawingShape) {
+              setDrawingShape({ shape: 'polygon', points: [coords] });
+          } else {
+              const firstPoint = drawingShape.points[0];
+              const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
+              if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
+                  finishDrawingPolygon();
+              } else {
+                  setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
+              }
+          }
+      }
+      return; 
     }
     
     // Priority 2: Handle editing handles
@@ -351,7 +353,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Place marker on simple click (no drag)
+    // Priority 1: Place marker on simple click (no drag)
     if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
       const { x, y } = getMapCoordinates(e);
       const newMarker: Marker = {
@@ -368,6 +370,20 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setEditingItemId(null);
       setActiveTool({tool: 'select'});
     }
+
+    // Priority 2: Select an item if we are not dragging or drawing
+    if (!didDrag && !isDrawing) {
+      const target = e.target as HTMLElement;
+      const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+      
+      if (itemId && activeTool.tool === 'select') {
+        const item = items.find(i => i.id === itemId);
+        if (item) handleItemSelect(item);
+      } else if (!itemId) {
+        handleItemSelect(null);
+      }
+    }
+
 
     if (isDrawing && activeTool.shape !== 'polygon') {
       setIsDrawing(false);
@@ -392,26 +408,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly || didDrag || isDrawing) {
         return;
     }
-    
-    const target = e.target as HTMLElement;
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-  
-    if (itemId && activeTool.tool === 'select') {
-      const item = items.find(i => i.id === itemId);
-      if (item) {
-        handleItemSelect(item);
-      }
-      return;
-    }
   
     if (editingItemId) {
       setSelectedItem(null);
       setEditingItemId(null);
       return;
-    }
-    
-    if (!itemId) { // Deselect if clicking on empty space
-      handleItemSelect(null);
     }
   };
   
