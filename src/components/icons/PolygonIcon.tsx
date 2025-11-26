@@ -14,11 +14,16 @@ export const PolygonIcon = (props: SVGProps<SVGSVGElement>) => (
         strokeLinejoin="round" 
         {...props}
     >
-        <path d="M20.18 3.34A1.5 1.5 0 0 0 18.5 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V5.5a1.5 1.5 0 0 0-.82-.66Z" />
-        <path d="M8 3v3H6" />
-        <path d="M16 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
-        <path d="m6 21 4.5-4.5" />
-        <path d="M6 3h4" />
-        <path d="M21 21H6" />
+        <path d="M20.3 3.7a.9.9 0 0 0-1.2 0l-2.1 2.1a.9.9 0 0 0 0 1.2l2.1 2.1a.9.9 0 0 0 1.2 0l2.1-2.1a.9.9 0 0 0 0-1.2z" />
+        <path d="m14 10-4.5 4.5" />
+        <path d="M16 16h2" />
+        <path d="M14 14h.01" />
+        <path d="M10 10h.01" />
+        <path d="M18 12h.01" />
+        <path d="M18 8h.01" />
+        <path d="m21.1 9.9-2.1-2.1" />
+        <path d="M3 7v10a2 2 0 0 0 2 2h10" />
+        <path d="M3 10h2" />
+        <path d="M3 14h2" />
     </svg>
 )
