@@ -112,8 +112,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill,
-        stroke: isHighlighted || isEditing ? 'hsl(var(--primary))' : color,
-        strokeWidth: isEditing ? 3 / zoomLevel : 2 / zoomLevel,
+        stroke: color,
+        strokeWidth: isHighlighted || isEditing ? 3 / zoomLevel : 2 / zoomLevel,
         style: {
             cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
         },

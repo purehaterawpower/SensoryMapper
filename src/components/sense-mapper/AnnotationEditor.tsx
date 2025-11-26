@@ -129,6 +129,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
       reader.readAsDataURL(file);
     }
   };
+  
+  const sliderColor = showIntensitySlider ? interpolateColor(intensity) : '';
 
   return (
     <Popover open={!!item} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -139,7 +141,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         <div className="grid gap-4">
             <div className="space-y-2">
                 <h4 className="font-medium leading-none flex items-center gap-2">
-                    <div className={`p-1.5 rounded-md`} style={{backgroundColor: ALL_SENSORY_DATA[item.type].color}}>
+                    <div className={`p-1.5 rounded-md`} style={{backgroundColor: showIntensitySlider ? sliderColor : ALL_SENSORY_DATA[item.type].color}}>
                         <Icon className="w-5 h-5 text-white" />
                     </div>
                     {readOnly ? '' : 'Edit'} {sensoryName} {isShape ? shapeName : 'Marker'}
@@ -203,6 +205,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                   max={100}
                   step={1}
                   disabled={readOnly}
+                  style={{ '--slider-color': sliderColor } as React.CSSProperties}
+                  rangeClassName="bg-[--slider-color]"
                 />
                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Low</span>

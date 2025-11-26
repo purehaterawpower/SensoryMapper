@@ -44,7 +44,7 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           width={handleSize}
           height={handleSize}
           fill="white"
-          stroke="hsl(var(--primary))"
+          stroke={shape.color || "hsl(var(--primary))"}
           strokeWidth="1"
           data-handle-id={index}
           style={{ cursor: 'nwse-resize' }}
@@ -56,7 +56,7 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           cx={center.x}
           cy={center.y}
           r={handleSize / 2}
-          fill="hsl(var(--primary))"
+          fill={shape.color || "hsl(var(--primary))"}
           stroke="white"
           strokeWidth="1"
           data-item-id={shape.id}
