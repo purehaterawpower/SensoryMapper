@@ -223,7 +223,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
         setHighlightedItem(newShape);
-        setEditingItemId(newShape.id);
+        setEditingItemId(null);
     }
     setIsDrawing(false);
     setDrawingShape(null);
@@ -348,7 +348,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (isDrawing && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
+    if (isDrawing && activeTool.shape !== 'polygon' && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
       const coords = getMapCoordinates(e);
       const newMarker: Marker = {
         id: crypto.randomUUID(),
@@ -385,11 +385,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         const item = items.find(i => i.id === itemId);
         if (item) {
           setHighlightedItem(item);
-          setEditingItemId(null);
         }
       } else {
         setHighlightedItem(null);
         setEditingItemId(null);
+        setSelectedItem(null);
       }
     }
 
@@ -402,7 +402,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
     const target = e.target as HTMLElement;
     if (!target.closest('[data-item-id]')) {
-        if (editingItemId) setEditingItemId(null);
         if (highlightedItem) setHighlightedItem(null);
         if (selectedItem) setSelectedItem(null);
     }
@@ -410,9 +409,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
     if (readOnly) return;
-    
+    e.preventDefault();
     const target = e.target as HTMLElement;
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     
@@ -421,7 +419,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if (item) {
         setSelectedItem(item);
         setHighlightedItem(item);
-        setEditingItemId(null);
       }
     }
   };
@@ -468,6 +465,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           setSelectedItem(itemToEdit);
           setHighlightedItem(itemToEdit);
         };
+    } else {
+        setSelectedItem(null);
     }
   }
 
@@ -758,5 +757,3 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     </>
   );
 }
-
-    
