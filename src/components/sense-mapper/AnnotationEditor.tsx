@@ -9,7 +9,7 @@ import { Item }from "@/lib/types";
 import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { ZONE_COLORS, ZoneColor } from "@/lib/zone-colors";
-import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type AnnotationEditorProps = {
