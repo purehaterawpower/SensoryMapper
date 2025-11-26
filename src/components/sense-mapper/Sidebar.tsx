@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Circle, MapPin, FileDown, Loader2 } from "lucide-react";
+import { MousePointer, MapPin, FileDown, Loader2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { PolygonIcon } from "../icons/PolygonIcon";
 import { RectangleIcon } from "../icons/RectangleIcon";
+import { CircleIcon } from "../icons/CircleIcon";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -141,7 +142,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'circle')} disabled={isAmenitySelected}>
-                    <Circle className="w-5 h-5" />
+                    <CircleIcon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
