@@ -10,21 +10,11 @@ import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import type { ViewState } from 'react-map-gl';
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
   return acc;
 }, {} as Record<SensoryType, boolean>);
-
-const INITIAL_VIEW_STATE: ViewState = {
-  longitude: 0,
-  latitude: 0,
-  zoom: 1,
-  pitch: 0,
-  bearing: 0,
-  padding: { top: 0, bottom: 0, left: 0, right: 0 }
-};
 
 export function SenseMapper() {
   const [markers, setMarkers] = useState<Marker[]>([]);
@@ -34,9 +24,9 @@ export function SenseMapper() {
   const [selectedItem, setSelectedItem] = useState<Marker | Zone | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [drawingZone, setDrawingZone] = useState<Omit<Zone, 'id' | 'description'> | null>(null);
+  const [startCoords, setStartCoords] = useState<{ x: number, y: number } | null>(null);
   const [mapImage, setMapImage] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
-  const [viewState, setViewState] = useState<ViewState>(INITIAL_VIEW_STATE);
   
   const [summary, setSummary] = useState<{title: string, content: string} | null>(null);
   const [isSummaryLoading, setSummaryLoading] = useState(false);
@@ -48,12 +38,7 @@ export function SenseMapper() {
     const img = new Image();
     img.src = url;
     img.onload = () => {
-      const aspectRatio = img.width / img.height;
-      const mapWidth = 1000;
-      const mapHeight = mapWidth / aspectRatio;
-      setImageDimensions({ width: mapWidth, height: mapHeight });
-      // Reset view state to a valid initial state when new image loads
-      setViewState(INITIAL_VIEW_STATE);
+      setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
     };
     img.onerror = () => {
@@ -95,32 +80,39 @@ export function SenseMapper() {
       setSelectedItem(item);
     }
   };
+  
+  const getMapCoordinates = (e: React.MouseEvent) => {
+    if (!mapRef.current) return { x: 0, y: 0 };
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    return { x, y };
+  };
 
-  const handleMouseDown = (e: mapboxgl.MapLayerMouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     if (activeTool.tool !== 'zone' || !activeTool.type || !mapImage) return;
-
+    const coords = getMapCoordinates(e);
+    setStartCoords(coords);
     setDrawing(true);
-    const { lng, lat } = e.lngLat;
-    setDrawingZone({ x: lng, y: lat, width: 0, height: 0, type: activeTool.type });
-    e.preventDefault();
+    setDrawingZone({ x: coords.x, y: coords.y, width: 0, height: 0, type: activeTool.type });
   };
   
-  const handleMouseMove = (e: mapboxgl.MapLayerMouseEvent) => {
-    if (!drawing || !drawingZone) return;
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!drawing || !drawingZone || !startCoords) return;
     
-    const { lng, lat } = e.lngLat;
-    const width = Math.abs(lng - drawingZone.x);
-    const height = Math.abs(lat - drawingZone.y);
-    const newX = Math.min(lng, drawingZone.x);
-    const newY = Math.min(lat, drawingZone.y);
+    const { x, y } = getMapCoordinates(e);
+    const width = Math.abs(x - startCoords.x);
+    const height = Math.abs(y - startCoords.y);
+    const newX = Math.min(x, startCoords.x);
+    const newY = Math.min(y, startCoords.y);
 
     setDrawingZone(prev => prev ? { ...prev, x: newX, y: newY, width, height } : null);
   };
   
-  const handleMouseUp = (e: mapboxgl.MapLayerMouseEvent) => {
+  const handleMouseUp = () => {
     if (!drawing || !drawingZone) return;
     setDrawing(false);
-    if (drawingZone.width > 1 && drawingZone.height > 1) { // Threshold to prevent tiny zones
+    if (drawingZone.width > 5 && drawingZone.height > 5) { // Threshold to prevent tiny zones
       const newZone: Zone = {
         ...drawingZone,
         id: crypto.randomUUID(),
@@ -129,20 +121,20 @@ export function SenseMapper() {
       setZones(prev => [...prev, newZone]);
     }
     setDrawingZone(null);
+    setStartCoords(null);
   };
 
-  const handleMapClick = (e: mapboxgl.MapLayerMouseEvent) => {
+  const handleMapClick = (e: React.MouseEvent) => {
     if (activeTool.tool !== 'marker' || !activeTool.type || !mapImage) {
-      if (!e.defaultPrevented) setSelectedItem(null);
+      if (e.target === mapRef.current) setSelectedItem(null);
       return;
     }
-
-    const { lng, lat } = e.lngLat;
+    const { x, y } = getMapCoordinates(e);
 
     const newMarker: Marker = {
       id: crypto.randomUUID(),
-      x: lng,
-      y: lat,
+      x: x,
+      y: y,
       type: activeTool.type,
       description: ''
     };
@@ -223,10 +215,8 @@ export function SenseMapper() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMapClick={handleMapClick}
+        onClick={handleMapClick}
         drawingZone={drawingZone}
-        viewState={viewState}
-        onViewStateChange={(newViewState) => setViewState(newViewState)}
       />
       <AnnotationEditor
         item={selectedItem}

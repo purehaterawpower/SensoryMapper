@@ -1,25 +1,18 @@
 'use client';
 
-import { SENSORY_DATA, SENSORY_TYPES } from "@/lib/constants";
-import { Marker as MarkerType, Zone as ZoneType } from "@/lib/types";
+import { SENSORY_DATA } from "@/lib/constants";
+import { Marker, Zone } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import React, { forwardRef, useEffect, useState } from "react";
-import Map, { Marker, Source, Layer, NavigationControl, FullscreenControl, ViewState } from 'react-map-gl';
+import React, { forwardRef } from "react";
 
 type MapAreaProps = {
   mapImage: string | null;
   imageDimensions: { width: number, height: number } | null;
-  markers: MarkerType[];
-  zones: ZoneType[];
+  markers: Marker[];
+  zones: Zone[];
   visibleLayers: Record<string, boolean>;
-  onItemSelect: (item: MarkerType | ZoneType) => void;
-  drawingZone: Omit<ZoneType, 'id' | 'description'> | null;
-  onMapClick: (e: mapboxgl.MapLayerMouseEvent) => void;
-  onMouseDown: (e: mapboxgl.MapLayerMouseEvent) => void;
-  onMouseMove: (e: mapboxgl.MapLayerMouseEvent) => void;
-  onMouseUp: (e: mapboxgl.MapLayerMouseEvent) => void;
-  viewState: ViewState;
-  onViewStateChange: (viewState: ViewState) => void;
+  onItemSelect: (item: Marker | Zone) => void;
+  drawingZone: Omit<Zone, 'id' | 'description'> | null;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -30,151 +23,84 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   visibleLayers,
   onItemSelect,
   drawingZone,
-  onMapClick,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  viewState,
-  onViewStateChange,
   ...props
 }, ref) => {
 
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  const renderItem = (item: MarkerType | ZoneType, isZone: boolean) => {
+  const renderItem = (item: Marker | Zone, isZone: boolean) => {
     if (!visibleLayers[item.type]) return null;
-    const { icon: Icon, color } = SENSORY_DATA[item.type];
+    const { icon: Icon } = SENSORY_DATA[item.type];
 
-    if (isZone) return null; // Zones are rendered with a fill layer
+    const itemStyle: React.CSSProperties = isZone
+      ? {
+        position: 'absolute',
+        left: item.x,
+        top: item.y,
+        width: (item as Zone).width,
+        height: (item as Zone).height,
+        backgroundColor: SENSORY_DATA[item.type].color,
+        opacity: 0.3,
+        cursor: 'pointer',
+        border: '1px solid ' + SENSORY_DATA[item.type].color,
+      }
+      : {
+        position: 'absolute',
+        left: item.x,
+        top: item.y,
+        transform: 'translate(-50%, -50%)',
+        cursor: 'pointer',
+      };
 
     return (
-      <Marker
+      <div
         key={item.id}
-        longitude={item.x}
-        latitude={item.y}
-        onClick={(e) => { e.originalEvent.stopPropagation(); onItemSelect(item); }}
-        style={{ cursor: 'pointer' }}
+        style={itemStyle}
+        onClick={() => onItemSelect(item)}
       >
-        <div className={cn("p-1.5 rounded-full shadow-lg", SENSORY_DATA[item.type].className)}>
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-      </Marker>
+        {!isZone && (
+          <div className={cn("p-1.5 rounded-full shadow-lg", SENSORY_DATA[item.type].className)}>
+            <Icon className="w-5 h-5 text-white" />
+          </div>
+        )}
+      </div>
     );
   };
-  
-  const zoneFeatures: GeoJSON.Feature[] = zones
-    .filter(zone => visibleLayers[zone.type])
-    .map(zone => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [zone.x, zone.y],
-          [zone.x + zone.width, zone.y],
-          [zone.x + zone.width, zone.y + zone.height],
-          [zone.x, zone.y + zone.height],
-          [zone.x, zone.y]
-        ]]
-      },
-      properties: { id: zone.id, type: zone.type }
-  }));
 
-  const zoneSource: GeoJSON.FeatureCollection = {
-    type: 'FeatureCollection',
-    features: zoneFeatures
-  };
-
-  const drawingZoneFeature: GeoJSON.Feature | null = drawingZone ? {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [[
-        [drawingZone.x, drawingZone.y],
-        [drawingZone.x + drawingZone.width, drawingZone.y],
-        [drawingZone.x + drawingZone.width, drawingZone.y + drawingZone.height],
-        [drawingZone.x, drawingZone.y + drawingZone.height],
-        [drawingZone.x, drawingZone.y]
-      ]]
-    },
-    properties: {}
-  } : null;
-  
-  const imageLayerCoordinates = imageDimensions ? [
-    [viewState.longitude - imageDimensions.width / 2, viewState.latitude + imageDimensions.height / 2],
-    [viewState.longitude + imageDimensions.width / 2, viewState.latitude + imageDimensions.height / 2],
-    [viewState.longitude + imageDimensions.width / 2, viewState.latitude - imageDimensions.height / 2],
-    [viewState.longitude - imageDimensions.width / 2, viewState.latitude - imageDimensions.height / 2]
-  ] : [];
-
+  const mapStyle: React.CSSProperties = imageDimensions ? {
+    width: imageDimensions.width,
+    height: imageDimensions.height,
+  } : {};
 
   return (
-    <main className="flex-1 p-4 bg-muted/40">
+    <main className="flex-1 p-4 bg-muted/40 overflow-auto flex items-center justify-center">
       <div 
         ref={ref}
-        className="relative w-full h-full shadow-lg rounded-lg overflow-hidden border"
+        className="relative shadow-lg rounded-lg overflow-hidden border"
+        style={mapStyle}
         {...props}
       >
-        {!mapboxToken ? (
-           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
+        {mapImage ? (
+          <>
+            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain" />
+            {zones.map(zone => renderItem(zone, true))}
+            {markers.map(marker => renderItem(marker, false))}
+            {drawingZone && (
+              <div style={{
+                position: 'absolute',
+                left: drawingZone.x,
+                top: drawingZone.y,
+                width: drawingZone.width,
+                height: drawingZone.height,
+                border: '2px dashed #8A2BE2',
+                pointerEvents: 'none',
+              }}/>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
             <p className="text-muted-foreground">
-              Mapbox token not found. Please add your Mapbox access token to the <code>.env</code> file as <code>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code>.
+              Upload a floor plan to get started.
             </p>
           </div>
-        ) : (
-          <Map
-            {...viewState}
-            onMove={evt => onViewStateChange(evt.viewState)}
-            mapboxAccessToken={mapboxToken}
-            style={{width: '100%', height: '100%'}}
-            mapStyle="mapbox://styles/mapbox/light-v11"
-            onClick={onMapClick}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            preserveDrawingBuffer={true}
-            onDblClick={(e) => {
-              const clickedZone = zones.find(zone => 
-                e.lngLat.lng >= zone.x && e.lngLat.lng <= zone.x + zone.width &&
-                e.lngLat.lat >= zone.y && e.lngLat.lat <= zone.y + zone.height
-              );
-              if (clickedZone) {
-                onItemSelect(clickedZone);
-              }
-            }}
-          >
-            <FullscreenControl />
-            <NavigationControl />
-            
-            {mapImage && imageDimensions && (
-              <Source id="floor-plan-source" type="image" url={mapImage} coordinates={imageLayerCoordinates}>
-                <Layer id="floor-plan-layer" type="raster" paint={{ "raster-opacity": 0.85 }} />
-              </Source>
-            )}
-
-            {markers.map(marker => renderItem(marker, false))}
-
-            <Source id="zones-source" type="geojson" data={zoneSource}>
-              {SENSORY_TYPES.map(type => (
-                <Layer
-                  key={type}
-                  id={`${type}-zone-layer`}
-                  type="fill"
-                  source="zones-source"
-                  paint={{
-                    'fill-color': SENSORY_DATA[type].color,
-                    'fill-opacity': 0.3
-                  }}
-                  filter={['==', ['get', 'type'], type]}
-                />
-              ))}
-            </Source>
-            
-            {drawingZoneFeature && (
-              <Source id="drawing-zone-source" type="geojson" data={drawingZoneFeature}>
-                <Layer id="drawing-zone-layer" type="line" paint={{ 'line-color': '#8A2BE2', 'line-dasharray': [2, 2], 'line-width': 2 }} />
-              </Source>
-            )}
-          </Map>
         )}
       </div>
     </main>
