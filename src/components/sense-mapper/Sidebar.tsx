@@ -55,10 +55,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
   const isAmenitySelected = selectedItemType ? PRACTICAL_AMENITY_TYPES.includes(selectedItemType as any) : false;
 
-  const renderTypeButtons = (types: ItemType[]) => {
+  const renderTypeButtons = (types: ItemType[], withTooltips = false) => {
     return types.map(type => {
-        const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
-        return (
+        const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
+        const button = (
             <Button
                 key={type}
                 variant={selectedItemType === type ? 'secondary' : 'ghost'}
@@ -71,6 +71,18 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 <span>{name}</span>
             </Button>
         );
+
+        if (withTooltips) {
+            return (
+                <Tooltip key={type}>
+                    <TooltipTrigger asChild>{button}</TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs">
+                        <p>{description}</p>
+                    </TooltipContent>
+                </Tooltip>
+            )
+        }
+        return button;
     });
   }
 
@@ -163,7 +175,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
           </div>
         </div>
-      </TooltipProvider>
 
       <div className="flex-1 overflow-y-auto pr-1 space-y-4">
         <div className="space-y-4">
@@ -171,7 +182,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             <div>
               <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
               <div className="space-y-1">
-                {renderTypeButtons(SENSORY_STIMULI_TYPES)}
+                {renderTypeButtons(SENSORY_STIMULI_TYPES, true)}
               </div>
             </div>
             <div>
@@ -223,6 +234,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             {isExporting ? 'Preparing...' : 'Export to PDF'}
         </Button>
       </div>
+      </TooltipProvider>
     </aside>
   );
 }

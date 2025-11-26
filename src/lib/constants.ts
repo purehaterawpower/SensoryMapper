@@ -13,37 +13,37 @@ export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help'
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
     name: 'Visuals', 
-    description: 'Lights & Patterns: Warns of bright or flashing lights, darkness, or "visually busy" areas with lots of colours and patterns.',
+    description: 'Lighting, glare, and clutter.',
     icon: Eye, 
     color: '#8DAEF3', 
   },
   hearing: { 
     name: 'Sound', 
-    description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet areas.',
+    description: 'Volume, echoes, and sudden noises.',
     icon: Ear,
     color: '#E6ACAC', 
   },
   smell: { 
     name: 'Smell', 
-    description: 'Scents & Odours: Warns of strong smells like food courts, cleaning chemicals, or perfumes. Also marks fresh air areas.',
+    description: 'Strong scents, chemicals, or food.',
     icon: NoseIcon, 
     color: '#FDDDB1',
   },
   touch: { 
     name: 'Touch', 
-    description: 'Tactile stimuli from textures, temperature, or being touched.',
+    description: 'Textures, temperature, and surfaces.',
     icon: Hand, 
     color: '#2558D7', 
   },
   vestibular: { 
     name: 'Movement', 
-    description: 'Balance & Navigation: Tells you if the floor is uneven, if there are slopes/escalators, or if the layout is confusing to navigate.',
+    description: 'Flow, navigation, and stability.',
     icon: Compass, 
     color: '#007C78', 
   },
   proprioception: { 
     name: 'Space', 
-    description: 'Crowding & Proximity: Tells you if an area is tight, usually crowded, or requires squeezing through narrow gaps.',
+    description: 'Crowding, proximity, and layout.',
     icon: Users, 
     color: '#F37255',
   },
