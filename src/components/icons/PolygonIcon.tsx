@@ -5,14 +5,10 @@ export const PolygonIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
     {...props}
   >
-    <path d="m13.74 3.75.83 1.01a2 2 0 0 0 3.01.13l.3-.39a2 2 0 0 1 2.82 2.82l-.4.29a2 2 0 0 0-.12 3.02l1  .82a2 2 0 0 1 0 2.7l-1 .83a2 2 0 0 0 .12 3.01l.4.29a2 2 0 0 1-2.82 2.82l-.3-.39a2 2 0 0 0-3.01.13l-.83 1.01a2 2 0 0 1-2.98 0l-.83-1.01a2 2 0 0 0-3.01-.13l-.3.39a2 2 0 0 1-2.82-2.82l.4-.29a2 2 0 0 0 .12-3.02l-1-.82a2 2 0 0 1 0-2.7l1-.83a2 2 0 0 0-.12-3.01l-.4-.29a2 2 0 0 1 2.82-2.82l.3.39a2 2 0 0 0 3.01-.13l.83-1.01a2 2 0 0 1 2.98 0z" />
-    <path d="M12 12 7.5 10.5l-3-3L6 3l3.5 1.5 3 3L16 11z" />
+    <path d="M20 3.456L12 9.28V9H9v.433l-5-3.31V4H1v3h1v13H1v3h3v-1h16v1h3v-3h-1V4h1V1h-3zM10 10h1v1h-1zM2 5h1v1H2zm0 17v-1h1v1zm20 0h-1v-1h1zm-1-2h-1v1H4v-1H3V7h.512L9 10.632V12h3v-1.483L20.952 4H21zm1-18v1h-1V2z" />
+    <path fill="none" d="M0 0h24v24H0z" />
   </svg>
 );
