@@ -13,6 +13,7 @@ type MapAreaProps = {
   visibleLayers: Record<string, boolean>;
   onItemSelect: (item: Marker | Zone) => void;
   drawingZone: Omit<Zone, 'id' | 'description'> | null;
+  selectedItemId?: string | null;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -23,12 +24,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   visibleLayers,
   onItemSelect,
   drawingZone,
+  selectedItemId,
   ...props
 }, ref) => {
 
   const renderItem = (item: Marker | Zone, isZone: boolean) => {
     if (!visibleLayers[item.type]) return null;
     const { icon: Icon } = SENSORY_DATA[item.type];
+    const isSelected = selectedItemId === item.id;
 
     const itemStyle: React.CSSProperties = isZone
       ? {
@@ -38,9 +41,10 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         width: (item as Zone).width,
         height: (item as Zone).height,
         backgroundColor: SENSORY_DATA[item.type].color,
-        opacity: 0.3,
+        opacity: isSelected ? 0.6 : 0.4,
         cursor: 'pointer',
-        border: '1px solid ' + SENSORY_DATA[item.type].color,
+        border: `2px solid ${isSelected ? 'hsl(var(--primary))' : SENSORY_DATA[item.type].color}`,
+        boxSizing: 'border-box',
       }
       : {
         position: 'absolute',
@@ -54,10 +58,18 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       <div
         key={item.id}
         style={itemStyle}
-        onClick={() => onItemSelect(item)}
+        onClick={(e) => { 
+          e.stopPropagation(); // Prevent map click from firing
+          onItemSelect(item);
+        }}
+        data-marker-id={!isZone ? item.id : undefined}
       >
         {!isZone && (
-          <div className={cn("p-1.5 rounded-full shadow-lg", SENSORY_DATA[item.type].className)}>
+          <div className={cn(
+            "p-1.5 rounded-full shadow-lg transition-all", 
+            SENSORY_DATA[item.type].className,
+            isSelected && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
+            )}>
             <Icon className="w-5 h-5 text-white" />
           </div>
         )}
@@ -74,13 +86,13 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     <main className="flex-1 p-4 bg-muted/40 overflow-auto flex items-center justify-center">
       <div 
         ref={ref}
-        className="relative shadow-lg rounded-lg overflow-hidden border"
+        className="relative shadow-lg rounded-lg overflow-hidden border cursor-crosshair"
         style={mapStyle}
         {...props}
       >
         {mapImage ? (
           <>
-            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain" />
+            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none" />
             {zones.map(zone => renderItem(zone, true))}
             {markers.map(marker => renderItem(marker, false))}
             {drawingZone && (
@@ -90,7 +102,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 top: drawingZone.y,
                 width: drawingZone.width,
                 height: drawingZone.height,
-                border: '2px dashed #8A2BE2',
+                border: '2px dashed hsl(var(--primary))',
+                backgroundColor: 'hsla(var(--primary), 0.1)',
                 pointerEvents: 'none',
               }}/>
             )}

@@ -21,9 +21,15 @@ export function SenseMapper() {
   const [visibleLayers, setVisibleLayers] = useState<Record<SensoryType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Marker | Zone | null>(null);
+  
+  // Drawing state
   const [drawing, setDrawing] = useState(false);
   const [drawingZone, setDrawingZone] = useState<Omit<Zone, 'id' | 'description'> | null>(null);
   const [startCoords, setStartCoords] = useState<{ x: number, y: number } | null>(null);
+
+  // Dragging state
+  const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
+  
   const [mapImage, setMapImage] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
   
@@ -39,6 +45,9 @@ export function SenseMapper() {
     img.onload = () => {
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
+      setMarkers([]);
+      setZones([]);
+      setSelectedItem(null);
     };
     img.onerror = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to load image for map." });
@@ -51,9 +60,6 @@ export function SenseMapper() {
       if (e.target?.result) {
         const imageUrl = e.target.result as string;
         handleImageLoad(imageUrl);
-        setMarkers([]);
-        setZones([]);
-        setSelectedItem(null);
         toast({ title: "Map Uploaded", description: "You can now add markers and zones to your new map." });
       }
     };
@@ -82,17 +88,42 @@ export function SenseMapper() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (activeTool.tool !== 'zone' || !activeTool.type || !mapImage) return;
+    if (!mapImage) return;
+
+    const target = e.target as HTMLElement;
+    const markerId = target.closest('[data-marker-id]')?.getAttribute('data-marker-id');
     const coords = getMapCoordinates(e);
-    setStartCoords(coords);
-    setDrawing(true);
-    setDrawingZone({ x: coords.x, y: coords.y, width: 0, height: 0, type: activeTool.type });
+
+    if (activeTool.tool === 'select' && markerId) {
+      setDraggingMarkerId(markerId);
+      // Prevent selecting the map or other items while dragging
+      e.stopPropagation(); 
+      return;
+    }
+
+    if (activeTool.tool === 'zone' && activeTool.type) {
+      setStartCoords(coords);
+      setDrawing(true);
+      setDrawingZone({ x: coords.x, y: coords.y, width: 0, height: 0, type: activeTool.type });
+    }
   };
   
   const handleMouseMove = (e: React.MouseEvent) => {
+    const { x, y } = getMapCoordinates(e);
+
+    if (draggingMarkerId) {
+      setMarkers(prevMarkers => prevMarkers.map(m => 
+        m.id === draggingMarkerId ? { ...m, x, y } : m
+      ));
+      // also move the selected item if it's the one being dragged
+      if (selectedItem?.id === draggingMarkerId) {
+        setSelectedItem(prev => prev ? {...prev, x, y} as Marker : null)
+      }
+      return;
+    }
+
     if (!drawing || !drawingZone || !startCoords) return;
     
-    const { x, y } = getMapCoordinates(e);
     const width = Math.abs(x - startCoords.x);
     const height = Math.abs(y - startCoords.y);
     const newX = Math.min(x, startCoords.x);
@@ -102,6 +133,11 @@ export function SenseMapper() {
   };
   
   const handleMouseUp = () => {
+    if (draggingMarkerId) {
+      setDraggingMarkerId(null);
+      return;
+    }
+
     if (!drawing || !drawingZone) return;
     setDrawing(false);
     if (drawingZone.width > 5 && drawingZone.height > 5) { // Threshold to prevent tiny zones
@@ -118,11 +154,16 @@ export function SenseMapper() {
 
   const handleMapClick = (e: React.MouseEvent) => {
     if (activeTool.tool !== 'marker' || !activeTool.type || !mapImage) {
+      // If click is on the map background, deselect item
       if (e.target === mapRef.current || (e.target instanceof HTMLElement && e.target.parentElement === mapRef.current)) {
           setSelectedItem(null);
       }
       return;
     }
+
+    // Prevent placing a marker if a drag was just completed
+    if (draggingMarkerId) return;
+
     const { x, y } = getMapCoordinates(e);
 
     const newMarker: Marker = {
@@ -177,6 +218,10 @@ export function SenseMapper() {
         break;
       case 'escape':
         setSelectedItem(null);
+        setDrawing(false);
+        setDrawingZone(null);
+        setStartCoords(null);
+        setDraggingMarkerId(null);
         break;
     }
   }, []);
@@ -211,6 +256,7 @@ export function SenseMapper() {
         onMouseUp={handleMouseUp}
         onClick={handleMapClick}
         drawingZone={drawingZone}
+        selectedItemId={selectedItem?.id}
       />
       <AnnotationEditor
         item={selectedItem}
@@ -219,6 +265,7 @@ export function SenseMapper() {
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}
         isSummaryLoading={isSummaryLoading}
+        mapRef={mapRef}
       />
       <SummaryDialog
         summary={summary}
