@@ -108,21 +108,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleLayerVisibilityChange = (layer: ItemType, visible: boolean) => {
     setVisibleLayers(prev => ({ ...prev, [layer]: visible }));
   };
-
-  const handleItemSelect = (item: Item | null) => {
-    if (readOnly && item) {
-        setSelectedItem(item);
-        return;
-    }
-    if (editingItemId && item?.id !== editingItemId) {
-        if (!item) {
-          setSelectedItem(null);
-          setEditingItemId(null);
-        }
-        return; 
-    }
-    setSelectedItem(item);
-  };
   
   const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
@@ -368,18 +353,18 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setSelectedItem(newMarker);
       setEditingItemId(null);
       setActiveTool({tool: 'select'});
-    } else if (!didDrag && !isDrawing) {
+    } else if (!didDrag && !isDrawing && !draggingItem) {
         const target = e.target as HTMLElement;
         const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
         
         if (itemId && activeTool.tool === 'select') {
           const item = items.find(i => i.id === itemId);
           if (item) {
-            handleItemSelect(item);
+            setSelectedItem(item);
           }
         } else if (!itemId) {
-          handleItemSelect(null);
-          setEditingItemId(null);
+            setSelectedItem(null);
+            setEditingItemId(null);
         }
     }
 
@@ -427,7 +412,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (itemId) {
       const item = items.find(i => i.id === itemId);
       if (item) {
-        handleItemSelect(item);
+        setSelectedItem(item);
       }
     }
   };
@@ -548,10 +533,19 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     };
   }, [draggingItem, isDrawing, panStart, handleMouseMove, handleMouseUp, readOnly, isPanning]);
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
     if (readOnly) return;
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
       finishDrawingPolygon();
+      return;
+    }
+    const target = e.target as HTMLElement;
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+    if (itemId) {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+            setSelectedItem(item);
+        }
     }
   };
 
@@ -714,7 +708,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       )}
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => setSelectedItem(null) }
+        onClose={() => setSelectedItem(null)}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}
