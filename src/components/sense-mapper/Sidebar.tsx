@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, MapPin, FileDown, Loader2, Share2 } from "lucide-react";
+import { MousePointer, FileDown, Loader2, Share2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
-import { PolygonIcon } from "../icons/PolygonIcon";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -26,73 +26,73 @@ type SidebarProps = {
 
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
 
-  const handleToolChange = (tool: 'select') => {
+  const handleToolChange = (tool: 'select' | 'marker' | 'shape', type: ItemType) => {
     if (readOnly) return;
-    if (tool === 'select') {
+
+    if (activeTool.tool === tool && activeTool.type === type) {
       setActiveTool({ tool: 'select' });
-    }
-  };
-
-  const handleSensoryTypeChange = (type: ItemType) => {
-    if (readOnly) return;
-    const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
-
-    if (activeTool.type === type && activeTool.tool !== 'select') {
-        setActiveTool({ tool: 'select' });
-    } else if (isPracticalAmenity) {
-      setActiveTool({ tool: 'marker', type });
     } else {
-      setActiveTool({ tool: 'shape', shape: 'polygon', type });
+      const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
+      if (isAmenity) {
+        setActiveTool({ tool: 'marker', type });
+      } else {
+        setActiveTool({ tool: 'shape', shape: 'polygon', type });
+      }
     }
   };
-  
-  const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
 
   const renderTypeSection = (title: string, types: ItemType[]) => {
     if (types.length === 0) return null;
+
+    const onValueChange = (type: string) => {
+      const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
+      handleToolChange(isAmenity ? 'marker' : 'shape', type as ItemType);
+    };
+
     return (
       <div key={title}>
-        <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
-        <div className="space-y-1">
+        <h3 className="text-sm font-semibold px-2 mb-2 text-muted-foreground">{title}</h3>
+        <RadioGroup
+          value={activeTool.type}
+          onValueChange={onValueChange}
+          className="space-y-1"
+          disabled={readOnly}
+        >
           {types.map(type => {
-              const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
-              const isSelected = selectedItemType === type;
-              const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
-
-              const categoryButton = (
-                <Button
-                  key={type}
-                  variant={isSelected ? 'secondary' : 'ghost'}
-                  onClick={() => handleSensoryTypeChange(type)}
-                  className={cn("h-10 w-full justify-start pl-3 gap-3 rounded-md", readOnly && "cursor-not-allowed")}
-                  disabled={readOnly}
-                >
-                  <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
+            const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
+            const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
+            const toolTipText = isAmenity 
+              ? 'Click on the map to place an amenity icon. (M)'
+              : 'Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)';
+            
+            return (
+              <Tooltip key={type}>
+                <TooltipTrigger asChild>
+                  <Label
+                    htmlFor={`tool-${type}`}
+                    className={cn(
+                      "flex items-center gap-3 w-full h-10 pl-3 rounded-md cursor-pointer transition-colors hover:bg-muted",
+                      activeTool.type === type && "bg-secondary",
+                      readOnly && "cursor-not-allowed opacity-50"
+                    )}
+                  >
+                    <RadioGroupItem value={type} id={`tool-${type}`} className="sr-only" />
+                    <div className="p-1.5 rounded-md flex items-center justify-center" style={{ backgroundColor: color }}>
                       <Icon className="w-4 h-4 text-white" />
-                  </div>
-                  <span>{name}</span>
-                </Button>
-              );
-
-              return (
-                  <div key={type}>
-                      <Tooltip>
-                          <TooltipTrigger asChild>{categoryButton}</TooltipTrigger>
-                          <TooltipContent side="right" align="start" className="max-w-xs text-left">
-                            <p className="font-bold mb-1">
-                              {isAmenity ? 'Place Marker' : 'Draw Custom Area'}
-                            </p>
-                             <p className="text-muted-foreground">
-                              {isAmenity 
-                                ? 'Click on the map to place an amenity icon. (M)'
-                                : 'Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)'}
-                            </p>
-                          </TooltipContent>
-                      </Tooltip>
-                  </div>
-              );
+                    </div>
+                    <span>{name}</span>
+                  </Label>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start" className="max-w-xs text-left">
+                  <p className="font-bold mb-1">
+                    {isAmenity ? 'Place Marker' : 'Draw Custom Area'}
+                  </p>
+                  <p className="text-muted-foreground">{toolTipText}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
           })}
-        </div>
+        </RadioGroup>
       </div>
     );
   }
@@ -108,7 +108,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           return (
             <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
               <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
-                  <Icon className="w-4 h-4 text-white" />
+                <Icon className="w-4 h-4 text-white" />
               </div>
               <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
               <Checkbox
@@ -147,15 +147,21 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         {!readOnly && (
             <div className="p-4 flex items-center justify-around border-b">
                 <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
-                    <MousePointer className="w-5 h-5" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Select</p>
-                    <p>Select, move, and edit items on the map. (V)</p>
-                </TooltipContent>
+                  <TooltipTrigger asChild>
+                      <Button 
+                        variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
+                        size="icon" 
+                        className="rounded-full" 
+                        onClick={() => setActiveTool({ tool: 'select' })}
+                        aria-label="Select Tool (V)"
+                      >
+                        <MousePointer className="w-5 h-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-center">
+                      <p className="font-bold">Select</p>
+                      <p>Select, move, and edit items on the map. (V)</p>
+                  </TooltipContent>
                 </Tooltip>
                 <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
             </div>

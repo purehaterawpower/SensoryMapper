@@ -297,7 +297,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     updatedItem.x = Math.min(coords.x, oppositeCorner.x);
                     updatedItem.y = Math.min(coords.y, oppositeCorner.y);
                     updatedItem.width = Math.abs(coords.x - oppositeCorner.x);
-                    updatedItem.height = Math.abs(coords.x - oppositeCorner.y);
+                    updatedItem.height = Math.abs(coords.y - oppositeCorner.y);
                 } else if (updatedItem.shape === 'circle') {
                     const originalItem = items.find(i => i.id === draggingItem.id) as CircleShape;
                     const newDx = coords.x - originalItem.cx;
@@ -738,57 +738,59 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         isSharing={isSharing}
         readOnly={readOnly}
       />
-      <MapArea
-          ref={mapRef}
-          mapImage={mapImage}
-          imageDimensions={imageDimensions}
-          items={items}
-          visibleLayers={visibleLayers}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onDoubleClick={handleDoubleClick}
-          onWheel={handleWheel}
-          onContextMenu={handleContextMenu}
-          onMapUpload={handleMapUpload}
-          drawingShape={drawingShape}
-          highlightedItem={highlightedItem}
-          editingItemId={editingItemId}
-          cursorPos={cursorPos}
-          showPolygonTooltip={showPolygonTooltip}
-          transformStyle={transformStyle}
-          isPanning={isPanning}
-          readOnly={readOnly}
-          activeTool={activeTool}
-          zoomLevel={zoomLevel}
-      />
-      {mapImage && (
-          <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
-              <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom in">
-                  <Plus className='h-4 w-4'/>
-              </Button>
-                <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom out">
-                  <Minus className='h-4 w-4'/>
-              </Button>
-          </div>
-      )}
-      <div style={annotationEditorContainerStyle}>
-        <AnnotationEditor
-          item={selectedItem}
-          onClose={() => {
-              setSelectedItem(null);
-              if (!items.find(it => it.id === editingItemId)) {
-                  setEditingItemId(null);
-              }
-          }}
-          onSave={handleSaveAnnotation}
-          onDelete={handleDeleteItem}
-          onToggleEditMode={handleToggleEditMode}
-          readOnly={readOnly}
-          panOffset={panOffset}
-          zoomLevel={zoomLevel}
+      <main className="flex-1 relative">
+        <MapArea
+            ref={mapRef}
+            mapImage={mapImage}
+            imageDimensions={imageDimensions}
+            items={items}
+            visibleLayers={visibleLayers}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onDoubleClick={handleDoubleClick}
+            onWheel={handleWheel}
+            onContextMenu={handleContextMenu}
+            onMapUpload={handleMapUpload}
+            drawingShape={drawingShape}
+            highlightedItem={highlightedItem}
+            editingItemId={editingItemId}
+            cursorPos={cursorPos}
+            showPolygonTooltip={showPolygonTooltip}
+            transformStyle={transformStyle}
+            isPanning={isPanning}
+            readOnly={readOnly}
+            activeTool={activeTool}
+            zoomLevel={zoomLevel}
         />
-      </div>
+        {mapImage && (
+            <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
+                <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom in">
+                    <Plus className='h-4 w-4'/>
+                </Button>
+                  <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom out">
+                    <Minus className='h-4 w-4'/>
+                </Button>
+            </div>
+        )}
+        <div style={annotationEditorContainerStyle}>
+          <AnnotationEditor
+            item={selectedItem}
+            onClose={() => {
+                setSelectedItem(null);
+                if (!items.find(it => it.id === editingItemId)) {
+                    setEditingItemId(null);
+                }
+            }}
+            onSave={handleSaveAnnotation}
+            onDelete={handleDeleteItem}
+            onToggleEditMode={handleToggleEditMode}
+            readOnly={readOnly}
+            panOffset={panOffset}
+            zoomLevel={zoomLevel}
+          />
+        </div>
+      </main>
       <ShareDialog
         shareUrl={shareUrl}
         onClose={() => setShareUrl(null)}
