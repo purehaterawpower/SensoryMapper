@@ -8,7 +8,6 @@ import { SeatingIcon } from '@/components/icons/SeatingIcon';
 
 
 export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space', 'quietArea'];
-export const RESPITE_AREA_TYPES: AmenityType[] = [];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food', 'seating'];
 
 
@@ -96,5 +95,5 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   },
 }
 
-export const ALL_SENSORY_TYPES: (SensoryType | AmenityType)[] = [...SENSORY_STIMULI_TYPES, ...RESPITE_AREA_TYPES, ...PRACTICAL_AMENITY_TYPES];
+export const ALL_SENSORY_TYPES: (SensoryType | AmenityType)[] = [...SENSORY_STIMULI_TYPES, ...PRACTICAL_AMENITY_TYPES];
 export const ALL_SENSORY_DATA = { ...SENSORY_DATA, ...AMENITY_DATA };

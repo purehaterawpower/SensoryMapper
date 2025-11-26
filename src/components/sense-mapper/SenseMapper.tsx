@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
 import { Item, Shape, Point, ActiveTool, ItemType, Marker } from '@/lib/types';
-import { ALL_SENSORY_TYPES } from '@/lib/constants';
+import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
@@ -185,12 +185,13 @@ export function SenseMapper() {
 
   const finishDrawingPolygon = () => {
     if (drawingShape && drawingShape.shape === 'polygon' && drawingShape.points.length > 2 && activeTool.type) {
+        const shapeType = activeTool.type;
         const newShape: Shape = {
             ...drawingShape,
             id: crypto.randomUUID(),
-            type: activeTool.type,
+            type: shapeType,
             description: '',
-            color: ZONE_COLORS[0].color,
+            color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : ZONE_COLORS[0].color,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -329,12 +330,13 @@ export function SenseMapper() {
       ) {
          // Ignore tiny shapes
       } else {
+        const shapeType = activeTool.type;
         const newShape: Shape = {
           ...drawingShape,
           id: crypto.randomUUID(),
-          type: activeTool.type,
+          type: shapeType,
           description: '',
-          color: ZONE_COLORS[0].color,
+          color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : ZONE_COLORS[0].color,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);

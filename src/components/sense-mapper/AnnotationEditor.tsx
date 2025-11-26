@@ -72,6 +72,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
+  const showColorPicker = isShape && item.type !== 'quietArea';
 
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
@@ -124,7 +125,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                 />
             </div>
 
-            {isShape && (
+            {showColorPicker && (
               <div className="grid gap-2">
                 <Label>Area Category</Label>
                 <TooltipProvider delayDuration={100}>
