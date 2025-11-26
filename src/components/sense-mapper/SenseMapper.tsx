@@ -10,7 +10,6 @@ import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { PrintableReport } from './PrintableReport';
-import { interpolateColor } from '@/lib/color-utils';
 import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
 import { Plus, Minus } from 'lucide-react';
@@ -128,10 +127,20 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
     const rect = mapRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - panOffset.x) / zoomLevel;
-    const y = (e.clientY - rect.top - panOffset.y) / zoomLevel;
+    
+    // Adjust for the map container's own offset and the current zoom/pan state
+    const view = mapRef.current;
+    const style = window.getComputedStyle(view);
+    const matrix = new DOMMatrix(style.transform);
+    const scale = matrix.a;
+    const panX = matrix.e;
+    const panY = matrix.f;
+    
+    const x = (e.clientX - rect.left - panX) / scale;
+    const y = (e.clientY - rect.top - panY) / scale;
+    
     return { x, y };
-  };
+};
   
   const handleItemDrag = (id: string, newPos: Point) => {
     if (readOnly) return;
@@ -247,6 +256,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
+    // Priority 1: Handle drag for editing
     const handleId = target.dataset.handleId;
     if (handleId && editingItemId) {
       const handleIndex = parseInt(handleId, 10);
@@ -261,6 +271,29 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     const itemType = target.closest('[data-item-type]')?.getAttribute('data-item-type');
   
+    // Priority 2: Handle drawing tools
+    if (activeTool.tool === 'marker' && activeTool.type) {
+        // Marker is placed on MouseUp/Click, so do nothing here to allow for map panning.
+    } else if (activeTool.tool === 'shape' && activeTool.type) {
+        setIsDrawing(true);
+        setStartCoords(coords);
+        if (activeTool.shape === 'polygon') {
+            if (!drawingShape) {
+                setDrawingShape({ shape: 'polygon', points: [coords] });
+            } else {
+                const firstPoint = drawingShape.points[0];
+                const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
+                if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
+                    finishDrawingPolygon();
+                } else {
+                    setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
+                }
+            }
+        }
+        return; // Prevent panning when a shape drawing tool is active
+    }
+
+    // Priority 3: Handle item dragging
     if (activeTool.tool === 'select' && itemId) {
       const item = items.find(i => i.id === itemId);
       if (!item) return;
@@ -283,28 +316,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
     }
     
-    if (activeTool.tool === 'shape' || activeTool.tool === 'marker') {
-      if (editingItemId) return;
-      
-      if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
-        setIsDrawing(true);
-        if (!drawingShape) {
-          setDrawingShape({ shape: 'polygon', points: [coords] });
-        } else {
-          const firstPoint = drawingShape.points[0];
-          const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-          if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
-            finishDrawingPolygon();
-          } else {
-            setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
-          }
-        }
-      }
-    } else if (activeTool.tool === 'select') {
-      if (!itemId) {
-          setIsPanning(true);
-          setPanStart({ x: e.clientX, y: e.clientY });
-      }
+    // Priority 4: Pan the map
+    if (!itemId && !isDrawing) {
+        setIsPanning(true);
+        setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
   };
   
@@ -312,12 +327,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const coords = getMapCoordinates(e);
     setCursorPos(coords);
 
-    if (panStart && isPanning && mapRef.current) {
+    if (isPanning && panStart && mapRef.current) {
         setDidDrag(true);
-        const dx = e.clientX - panStart.x;
-        const dy = e.clientY - panStart.y;
-        setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-        setPanStart({ x: e.clientX, y: e.clientY });
+        const newX = e.clientX - panStart.x;
+        const newY = e.clientY - panStart.y;
+        setPanOffset({ x: newX, y: newY });
         return;
     }
 
@@ -339,19 +353,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     } else {
       setShowPolygonTooltip(false);
     }
-
-    if (!isDrawing || !startCoords || activeTool.tool !== 'shape') return;
-    
-    if (activeTool.shape === 'rectangle') {
-      const width = Math.abs(coords.x - startCoords.x);
-      const height = Math.abs(coords.y - startCoords.y);
-      const newX = Math.min(coords.x, startCoords.x);
-      const newY = Math.min(coords.y, startCoords.y);
-      setDrawingShape({ shape: 'rectangle', x: newX, y: newY, width, height });
-    } else if (activeTool.shape === 'circle') {
-      const radius = Math.hypot(coords.x - startCoords.x, coords.y - startCoords.y);
-      setDrawingShape({ shape: 'circle', cx: startCoords.x, cy: startCoords.y, radius });
-    }
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
@@ -366,58 +367,46 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           if (item) handleItemSelect(item);
       }
       setDraggingItem(null);
-      return;
     }
 
-    if (!isDrawing || !activeTool.type || activeTool.shape === 'polygon') return;
-    if (!drawingShape) {
-        setIsDrawing(false);
-        setStartCoords(null);
-        return;
+    // Place marker on simple click (no drag)
+    if (activeTool.tool === 'marker' && activeTool.type && !didDrag) {
+      const { x, y } = getMapCoordinates(e);
+      const newMarker: Marker = {
+        id: crypto.randomUUID(),
+        type: activeTool.type,
+        shape: 'marker',
+        x,
+        y,
+        description: '',
+        imageUrl: '',
+      };
+      setItems(prev => [...prev, newMarker]);
+      setSelectedItem(newMarker);
+      setEditingItemId(null);
+      setActiveTool({tool: 'select'});
     }
 
-    if (activeTool.tool === 'shape') {
-      if (
-        (drawingShape.shape === 'rectangle' && (drawingShape.width < 5 || drawingShape.height < 5)) ||
-        (drawingShape.shape === 'circle' && drawingShape.radius < 5)
-      ) {
-         // Ignore tiny shapes
-      } else {
-        const shapeType = activeTool.type;
-        const newShape: Shape = {
-          ...drawingShape,
-          id: crypto.randomUUID(),
-          type: shapeType,
-          description: '',
-          imageUrl: '',
-          color: ALL_SENSORY_DATA[shapeType].color,
-          intensity: shapeType === 'quietRoom' ? undefined : 50,
-        };
-        setItems(prev => [...prev, newShape]);
-        setSelectedItem(newShape);
-        setEditingItemId(newShape.id);
-      }
+    if (isDrawing && activeTool.shape !== 'polygon') {
+      setIsDrawing(false);
+      setDrawingShape(null);
+      setStartCoords(null);
     }
     
-    setIsDrawing(false);
-    setDrawingShape(null);
-    setStartCoords(null);
-    setActiveTool({ tool: 'select' });
+    // Reset didDrag after processing mouse up
+    setTimeout(() => setDidDrag(false), 0);
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    if (readOnly) return;
-  
-    if (didDrag) {
-      setDidDrag(false);
-      return;
+    if (readOnly || didDrag) {
+        return;
     }
     
     const target = e.target as HTMLElement;
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
   
     if (activeTool.shape === 'polygon' && isDrawing) {
-      return;
+      return; // Clicks are handled by mouseDown for polygons
     }
   
     if (itemId && activeTool.tool === 'select') {
@@ -434,22 +423,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return;
     }
     
-    if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
-      const { x, y } = getMapCoordinates(e);
-      const newMarker: Marker = {
-        id: crypto.randomUUID(),
-        type: activeTool.type,
-        shape: 'marker',
-        x,
-        y,
-        description: '',
-        imageUrl: '',
-      };
-      setItems(prev => [...prev, newMarker]);
-      setSelectedItem(newMarker);
-      setEditingItemId(null);
-      setActiveTool({tool: 'select'});
-    } else if (!itemId) { // Deselect if clicking on empty space
+    if (!itemId) { // Deselect if clicking on empty space
       handleItemSelect(null);
     }
   };
@@ -554,7 +528,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
     }
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      if(draggingItem || panStart) {
+      if(draggingItem || isPanning) {
         const syntheticEvent = {
             target: e.target
         } as unknown as React.MouseEvent;
@@ -570,7 +544,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingItem, isDrawing, panStart, handleMouseMove, handleMouseUp, activeTool.shape, readOnly]);
+  }, [draggingItem, isDrawing, panStart, handleMouseMove, handleMouseUp, activeTool.shape, readOnly, isPanning]);
 
   const handleDoubleClick = () => {
     if (readOnly) return;
