@@ -245,7 +245,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
             {!readOnly && (
                 <div className="flex justify-between items-center">
-                    <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto" aria-label="Delete item">
+                    <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto" title="Delete item" aria-label="Delete item">
                         <Trash2 className="w-4 h-4" />
                     </Button>
                     <div className="flex gap-2">
