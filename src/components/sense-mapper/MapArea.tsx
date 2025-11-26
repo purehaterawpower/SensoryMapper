@@ -107,9 +107,9 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     
     const Hitbox = () => {
       const props = {
-        fill: 'transparent',
-        stroke: 'transparent',
-        strokeWidth: 20, // Make the stroke wider for easier clicking, but transparent
+        fill: '#000000',
+        fillOpacity: 0,
+        stroke: 'none',
         'data-item-id': shape.id,
         'data-item-type': 'shape'
       };
