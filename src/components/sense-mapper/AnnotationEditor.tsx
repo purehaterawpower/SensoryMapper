@@ -88,12 +88,15 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
   if (!item) return null;
 
-  const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
+  const { name: sensoryName, icon: Icon, description: sensoryDescription } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
   const isFacility = item.shape === 'marker' && PRACTICAL_AMENITY_TYPES.some(t => t === item.type);
   const showIntensitySlider = isShape && item.type !== 'quietRoom';
   const showSizeSlider = isFacility;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
+  const placeholderText = readOnly
+    ? 'No description provided.'
+    : `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
 
   const handleSave = () => {
     const data: Partial<Item> = { description, imageUrl: image };
@@ -134,7 +137,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
       reader.onloadend = () => {
         setImage(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readDataURL(file);
     }
   };
   
@@ -165,7 +168,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="min-h-[120px]"
-                    placeholder={readOnly ? 'No description provided.' : `e.g., Describe the ${sensoryName.toLowerCase()}...`}
+                    placeholder={placeholderText}
                     readOnly={readOnly}
                 />
             </div>
