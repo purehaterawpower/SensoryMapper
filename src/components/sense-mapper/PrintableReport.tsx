@@ -170,9 +170,12 @@ export function PrintableReport({
   imageDimensions,
   items,
 }: PrintableReportProps) {
-  const visibleItems: NumberedItem[] = items
-    .filter(item => item.description || item.imageUrl)
-    .map((item, index) => ({ ...item, number: index + 1 }));
+  // All visible items get a number for the map
+  const numberedMapItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
+
+  // Only items with descriptions get an entry in the list
+  const listItems = numberedMapItems.filter(item => item.description || item.imageUrl);
+
 
   return (
     <div className="p-8 bg-white text-black">
@@ -182,15 +185,15 @@ export function PrintableReport({
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>
         <div style={{width: '100%', maxWidth: '100%'}}>
-          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={visibleItems} />
+          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={numberedMapItems} />
         </div>
       </div>
 
       <div className="space-y-8">
         <h2 className="text-2xl font-bold">Annotations</h2>
         <div className="space-y-6">
-          {visibleItems.length > 0 ? (
-            visibleItems.map((item) => {
+          {listItems.length > 0 ? (
+            listItems.map((item) => {
               const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
               const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietRoom';
               return (
