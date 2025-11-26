@@ -81,31 +81,31 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         </Button>
       </div>
 
-      <TooltipProvider delayDuration={100}>
-        <div className="space-y-2">
-            <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
-            <div className="flex flex-col gap-1">
-            {SENSORY_TYPES.map(type => {
-                const { icon: Icon, name, color } = SENSORY_DATA[type];
-                return (
-                    <Button
-                        key={type}
-                        variant={selectedSensoryType === type ? 'secondary' : 'ghost'}
-                        onClick={() => handleSensoryTypeChange(type)}
-                        className="h-10 w-full justify-start pl-3 gap-3"
-                    >
-                        <div className="p-1.5 rounded-full flex items-center justify-center" style={{backgroundColor: color}}>
-                            <Icon className="w-4 h-4 text-white" />
-                        </div>
-                        <span>{name}</span>
-                    </Button>
-                );
-            })}
-            </div>
-        </div>
-        
-        <Separator />
+      <div className="space-y-2">
+          <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
+          <div className="flex flex-col gap-1">
+          {SENSORY_TYPES.map(type => {
+              const { icon: Icon, name, color } = SENSORY_DATA[type];
+              return (
+                  <Button
+                      key={type}
+                      variant={selectedSensoryType === type ? 'secondary' : 'ghost'}
+                      onClick={() => handleSensoryTypeChange(type)}
+                      className="h-10 w-full justify-start pl-3 gap-3 rounded-full"
+                  >
+                      <div className="p-1.5 rounded-full flex items-center justify-center" style={{backgroundColor: color}}>
+                          <Icon className="w-4 h-4 text-white" />
+                      </div>
+                      <span>{name}</span>
+                  </Button>
+              );
+          })}
+          </div>
+      </div>
+      
+      <Separator />
 
+      <TooltipProvider delayDuration={100}>
         <div className="space-y-2">
           <h2 className="text-lg font-semibold px-2">Tools</h2>
           <div className="flex items-center space-x-2">
@@ -115,7 +115,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <MousePointer className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Select (V)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Select (V)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -123,7 +123,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Landmark className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Marker (M)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Marker (M)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -131,7 +131,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Rectangle Zone (R)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Rectangle Zone (R)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -139,7 +139,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Circle Zone (C)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Circle Zone (C)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -147,7 +147,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Pentagon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Polygon Zone (P)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Polygon Zone (P)</p></TooltipContent>
               </Tooltip>
           </div>
         </div>
@@ -156,7 +156,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
       <Separator />
 
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
         <AccordionItem value="item-1" className="border-b-0">
           <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
               View Layers
