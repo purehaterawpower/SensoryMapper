@@ -3,6 +3,7 @@
 import { Item, Marker, Shape } from '@/lib/types';
 import { ALL_SENSORY_DATA } from '@/lib/constants';
 import Image from 'next/image';
+import { Progress } from '../ui/progress';
 
 type PrintableReportProps = {
   mapImage: string | null;
@@ -185,12 +186,21 @@ export function PrintableReport({
               const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
               return (
                 <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="font-bold text-lg w-6 text-center">{item.number}.</div>
-                    <div className="p-1.5 rounded-md" style={{ backgroundColor: item.color || color }}>
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="font-bold text-lg w-6 text-center pt-1">{item.number}.</div>
+                    <div className="p-1.5 rounded-md mt-1" style={{ backgroundColor: item.color || color }}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold">{categoryName}</h3>
+                    <div className='flex-1'>
+                      <h3 className="text-lg font-semibold">{categoryName}</h3>
+                      {item.intensity !== undefined && item.shape !== 'marker' && item.type !== 'quietArea' && (
+                        <div className='flex items-center gap-2 mt-1'>
+                            <span className="text-xs text-slate-600">Intensity:</span>
+                            <Progress value={item.intensity} className="h-2 w-24" />
+                            <span className="text-xs text-slate-600">{item.intensity}%</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="grid gap-4 ml-9" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
                     {item.description && <p className="text-sm">{item.description}</p>}
