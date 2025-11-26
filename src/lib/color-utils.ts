@@ -1,4 +1,5 @@
 
+
 function lerpColor(color1: string, color2: string, factor: number): string {
     const c1 = hexToRgb(color1);
     const c2 = hexToRgb(color2);
@@ -27,21 +28,22 @@ function rgbToHex(r: number, g: number, b: number): string {
 const LOW_COLOR = '#409AF5';    // Blue
 const MID_LOW_COLOR = '#00E500'; // Vibrant Green
 const MEDIUM_COLOR = '#FFD000'; // Neutral Yellow
+const MID_HIGH_COLOR = '#FFA500'; // Orange
 const HIGH_COLOR = '#ff0a0a';   // Hot Red
 
 export function interpolateColor(intensity: number): string {
     if (intensity <= 25) {
-        // Interpolate between LOW_COLOR and MID_LOW_COLOR
+        // Blue to Green
         return lerpColor(LOW_COLOR, MID_LOW_COLOR, intensity / 25);
     } else if (intensity <= 50) {
-        // Interpolate between MID_LOW_COLOR and MEDIUM_COLOR
+        // Green to Yellow
         return lerpColor(MID_LOW_COLOR, MEDIUM_COLOR, (intensity - 25) / 25);
     } else if (intensity <= 75) {
-        // Stay at MEDIUM_COLOR
-        return MEDIUM_COLOR;
+        // Yellow to Orange
+        return lerpColor(MEDIUM_COLOR, MID_HIGH_COLOR, (intensity - 50) / 25);
     } else {
-        // Interpolate between MEDIUM_COLOR and HIGH_COLOR
-        return lerpColor(MEDIUM_COLOR, HIGH_COLOR, (intensity - 75) / 25);
+        // Orange to Red
+        return lerpColor(MID_HIGH_COLOR, HIGH_COLOR, (intensity - 75) / 25);
     }
 }
 
