@@ -65,7 +65,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: readOnly || isPanning ? 'grab' : 'pointer',
+        cursor: isPanning ? 'grabbing' : (readOnly ? 'default' : 'pointer'),
       };
 
     return (
@@ -100,7 +100,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           key={shape.id}
           data-item-id={shape.id}
           data-item-type="shape"
-          style={{ cursor: readOnly || isPanning ? 'grab' : 'pointer' }}
+          style={{ cursor: isPanning ? 'grabbing' : (readOnly ? 'default' : 'pointer') }}
         >
             {shape.shape === 'rectangle' && (
                 <rect
@@ -204,9 +204,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       ref={ref}
       className={cn(
         "relative flex-1 bg-muted/40 overflow-hidden",
-          mapImage && !readOnly && !isPanning && 'cursor-crosshair',
           readOnly && 'cursor-default',
-          isPanning && 'cursor-grab active:cursor-grabbing'
+          isPanning && 'cursor-grabbing'
       )}
       {...props}
     >
@@ -216,22 +215,30 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       >
         {mapImage && imageDimensions ? (
           <div className="absolute top-1/2 left-1/2" style={{width: imageDimensions.width, height: imageDimensions.height, transform: `translate(-50%, -50%) ${transformStyle.transform}`}}>
-            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
-            <div className="absolute inset-0">
-                <Tooltip open={showPolygonTooltip}>
-                  <TooltipTrigger asChild>
-                     <div style={{ position: 'absolute', left: cursorPos.x, top: cursorPos.y, width: 1, height: 1 }} />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="center">
-                    <p>Click first point to close this shape.</p>
-                  </TooltipContent>
-                </Tooltip>
-                <svg width="100%" height="100%">
-                  {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
-                  {renderDrawingShape()}
-                </svg>
+            <div 
+              className={cn(
+                'absolute inset-0',
+                !readOnly && !drawingShape && 'cursor-grab'
+              )}
+              style={{ width: imageDimensions.width, height: imageDimensions.height }}
+            >
+              <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
+              <div className="absolute inset-0">
+                  <Tooltip open={showPolygonTooltip}>
+                    <TooltipTrigger asChild>
+                      <div style={{ position: 'absolute', left: cursorPos.x, top: cursorPos.y, width: 1, height: 1 }} />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" align="center">
+                      <p>Click first point to close this shape.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <svg width="100%" height="100%">
+                    {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
+                    {renderDrawingShape()}
+                  </svg>
+              </div>
+              {items.filter(item => item.shape === 'marker').map(item => renderMarker(item as Marker))}
             </div>
-            {items.filter(item => item.shape === 'marker').map(item => renderMarker(item as Marker))}
           </div>
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
