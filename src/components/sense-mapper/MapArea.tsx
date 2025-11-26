@@ -107,41 +107,28 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
     
-    const Hitbox = () => {
-      const props = {
-        fill: '#000000',
-        fillOpacity: 0,
+    const commonProps = {
         'data-item-id': shape.id,
-        'data-item-type': 'shape'
-      };
-       if (shape.shape === 'rectangle') {
-        return <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} {...props} />;
-      }
-      if (shape.shape === 'circle') {
-        return <circle cx={shape.cx} cy={shape.cy} r={shape.radius} {...props} />;
-      }
-      if (shape.shape === 'polygon') {
-        return <polygon points={shape.points.map(p => `${p.x},${p.y}`).join(' ')} {...props} />;
-      }
-      return null;
-    }
+        'data-item-type': 'shape',
+        fill,
+        fillOpacity: isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4),
+        stroke: isHighlighted || isEditing ? 'hsl(var(--primary))' : color,
+        strokeWidth: 2,
+        style: {
+            cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
+            pointerEvents: 'all' as const
+        },
+    };
 
     return (
-        <g 
-          key={shape.id}
-          style={{ cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair') }}
-        >
+        <g key={shape.id}>
             {shape.shape === 'rectangle' && (
                 <rect
                     x={shape.x}
                     y={shape.y}
                     width={shape.width}
                     height={shape.height}
-                    fill={fill}
-                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
-                    strokeWidth={2}
-                    style={{pointerEvents: 'none'}}
+                    {...commonProps}
                 />
             )}
             {shape.shape === 'circle' && (
@@ -149,28 +136,19 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cx={shape.cx}
                     cy={shape.cy}
                     r={shape.radius}
-                    fill={fill}
-                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
-                    strokeWidth={2}
-                    style={{pointerEvents: 'none'}}
+                    {...commonProps}
                 />
             )}
             {shape.shape === 'polygon' && (
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
-                    fill={fill}
-                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
-                    strokeWidth={2}
-                    style={{pointerEvents: 'none'}}
+                    {...commonProps}
                 />
             )}
-            <Hitbox />
             {isEditing && <EditHandles shape={shape} />}
         </g>
     );
-  }
+}
 
   const renderDrawingShape = () => {
     if (!drawingShape) return null;
@@ -265,7 +243,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                       <p>Click first point to close this shape.</p>
                     </TooltipContent>
                   </Tooltip>
-                  <svg width="100%" height="100%">
+                  <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
                     {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
                     {renderDrawingShape()}
                   </svg>
@@ -301,5 +279,3 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
-
-    
