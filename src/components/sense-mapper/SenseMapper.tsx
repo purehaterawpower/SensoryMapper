@@ -79,32 +79,27 @@ export function SenseMapper() {
         reader.readAsDataURL(file);
     } else if (file.type === 'application/pdf') {
         try {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                if (e.target?.result) {
-                    const typedArray = new Uint8Array(e.target.result as ArrayBuffer);
-                    const pdf = await pdfjsLib.getDocument(typedArray).promise;
-                    const page = await pdf.getPage(1);
-                    
-                    const viewport = page.getViewport({ scale: 2 });
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    
-                    if (context) {
-                        const renderContext = {
-                            canvasContext: context,
-                            viewport: viewport,
-                        };
-                        await page.render(renderContext).promise;
-                        const dataUrl = canvas.toDataURL('image/png');
-                        handleImageLoad(dataUrl);
-                        toast({ title: "PDF Map Uploaded", description: "You can now add markers and shapes to your new map." });
-                    }
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            const arrayBuffer = await file.arrayBuffer();
+            const typedArray = new Uint8Array(arrayBuffer);
+            const pdf = await pdfjsLib.getDocument(typedArray).promise;
+            const page = await pdf.getPage(1);
+            
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            if (context) {
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport,
+                };
+                await page.render(renderContext).promise;
+                const dataUrl = canvas.toDataURL('image/png');
+                handleImageLoad(dataUrl);
+                toast({ title: "PDF Map Uploaded", description: "You can now add markers and shapes to your new map." });
+            }
         } catch (error) {
             console.error("Error processing PDF:", error);
             toast({ variant: "destructive", title: "Error", description: "Failed to process the PDF file." });
