@@ -60,11 +60,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           disabled={readOnly}
         >
           {types.map(type => {
-            const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
+            const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
             const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
-            const toolTipText = isAmenity 
-              ? 'Click on the map to place an amenity icon. (M)'
-              : 'Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)';
             
             return (
               <Tooltip key={type}>
@@ -86,9 +83,9 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 </TooltipTrigger>
                 <TooltipContent side="right" align="start" className="max-w-xs text-left">
                   <p className="font-bold mb-1">
-                    {isAmenity ? 'Place Marker' : 'Draw Custom Area'}
+                    {name}
                   </p>
-                  <p className="text-muted-foreground">{toolTipText}</p>
+                  <p className="text-muted-foreground">{description}</p>
                 </TooltipContent>
               </Tooltip>
             );
