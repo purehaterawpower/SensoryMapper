@@ -63,19 +63,19 @@ export function SenseMapper() {
 
   const handleMapUpload = async (file: File) => {
     if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            if (e.target?.result) {
-                handleImageLoad(e.target.result as string);
-                toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
-            }
-        };
-        reader.onerror = () => {
-            toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          handleImageLoad(e.target.result as string);
+          toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
         }
-        reader.readAsDataURL(file);
+      };
+      reader.onerror = () => {
+        toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+      };
+      reader.readAsDataURL(file);
     } else {
-        toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
+      toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
   };
 
@@ -543,7 +543,7 @@ export function SenseMapper() {
                     fontSize: 10,
                 },
                 headStyles: {
-                    fillColor: [37, 88, 215], // primary color
+                    fillColor: [37, 54, 94], // primary color
                     textColor: 255,
                     fontStyle: 'bold',
                 },
@@ -617,7 +617,3 @@ export function SenseMapper() {
     </div>
   );
 }
-
-    
-
-    
