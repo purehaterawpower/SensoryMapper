@@ -1,8 +1,16 @@
 import type {Metadata} from 'next';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poppins',
+  weight: ['400', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: 'SenseMapper',
@@ -18,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={cn("min-h-screen bg-background font-body antialiased")}>
+      <body className={cn("min-h-screen bg-background font-body antialiased", poppins.variable)}>
         <FirebaseClientProvider>
           {children}
         </FirebaseClientProvider>

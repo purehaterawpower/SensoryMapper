@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,6 +24,8 @@
     --input: 140 10% 85%;
     --ring: 140 45% 45%;
     --radius: 1rem;
+    --font-body: 'Poppins', sans-serif;
+    --font-headline: 'Poppins', sans-serif;
   }
   .dark {
     --background: 140 30% 15%;
