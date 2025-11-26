@@ -113,14 +113,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
-    
-    const view = mapRef.current.querySelector<HTMLDivElement>('.transform-container');
-    if (!view) return { x: 0, y: 0 };
-
-    const viewRect = view.getBoundingClientRect();
-    const x = (e.clientX - viewRect.left);
-    const y = (e.clientY - viewRect.top);
-    
+    const mapRect = mapRef.current.getBoundingClientRect();
+    const x = (e.clientX - mapRect.left - panOffset.x) / zoomLevel;
+    const y = (e.clientY - mapRect.top - panOffset.y) / zoomLevel;
     return { x, y };
 };
   
@@ -348,8 +343,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (isDrawing && activeTool.shape !== 'polygon' && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
-      const coords = getMapCoordinates(e);
+    const coords = getMapCoordinates(e);
+
+    if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
       const newMarker: Marker = {
         id: crypto.randomUUID(),
         type: activeTool.type,
@@ -359,52 +355,54 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setItems(prev => [...prev, newMarker]);
       setSelectedItem(newMarker);
       setHighlightedItem(newMarker);
-      setEditingItemId(null);
-      setActiveTool({tool: 'select'});
+      setActiveTool({ tool: 'select' });
+    }
+
+    if (isDrawing && activeTool.tool === 'shape' && activeTool.shape !== 'polygon' && startCoords && activeTool.type) {
+      // Logic for rectangle and circle will go here later
     }
     
+    // Stop drawing for non-polygon shapes
     if (isDrawing && activeTool.shape !== 'polygon') {
       setIsDrawing(false);
-      setDrawingShape(null);
       setStartCoords(null);
     }
     
+    // Stop panning
     if (isPanning) {
-        setIsPanning(false);
-        setPanStart(null);
+      setIsPanning(false);
+      setPanStart(null);
     }
-
+    
+    // Stop dragging item/handle
     if (draggingItem) {
       setDraggingItem(null);
     }
-
-    if (!didDrag && activeTool.tool === 'select' && e.button !== 2) {
+    
+    // Handle item selection on click (if not dragging)
+    if (!didDrag && activeTool.tool === 'select') {
       const target = e.target as HTMLElement;
       const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+      
       if (itemId) {
         const item = items.find(i => i.id === itemId);
         if (item) {
           setHighlightedItem(item);
         }
       } else {
+        // Clicked on empty space
         setHighlightedItem(null);
-        setEditingItemId(null);
         setSelectedItem(null);
+        setEditingItemId(null);
       }
     }
-
+    
     setTimeout(() => setDidDrag(false), 0);
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
     if (didDrag || draggingItem || readOnly) return;
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) return;
-  
-    const target = e.target as HTMLElement;
-    if (!target.closest('[data-item-id]')) {
-        if (highlightedItem) setHighlightedItem(null);
-        if (selectedItem) setSelectedItem(null);
-    }
   };
 
 
@@ -459,16 +457,16 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly) return;
     const newId = editingItemId === itemId ? null : itemId;
     setEditingItemId(newId);
-    if(newId) {
+    if (newId) {
         const itemToEdit = items.find(i => i.id === newId);
-        if(itemToEdit) {
-          setSelectedItem(itemToEdit);
-          setHighlightedItem(itemToEdit);
-        };
-    } else {
+        if (itemToEdit) {
+            setSelectedItem(itemToEdit);
+            setHighlightedItem(itemToEdit);
+        }
+    } else if (selectedItem?.id === itemId) {
         setSelectedItem(null);
     }
-  }
+};
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (readOnly) return;
@@ -723,12 +721,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       )}
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => {
-            setSelectedItem(null);
-            if (!editingItemId) {
-              setHighlightedItem(null);
-            }
-        }}
+        onClose={() => setSelectedItem(null)}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}
