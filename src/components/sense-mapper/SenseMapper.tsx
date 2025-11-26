@@ -115,8 +115,12 @@ export function SenseMapper() {
   };
 
   const handleItemSelect = (item: Item | null) => {
-    if (editingItemId && item?.id !== editingItemId && !item) {
-        // When in edit mode, don't allow deselecting
+    if (editingItemId && item?.id !== editingItemId) {
+        // When in edit mode, don't allow selecting another item, but allow deselecting
+        if (!item) {
+          setSelectedItem(null);
+          setEditingItemId(null);
+        }
         return; 
     }
     setSelectedItem(item);
@@ -225,19 +229,19 @@ export function SenseMapper() {
     if (itemId) {
       const item = items.find(i => i.id === itemId);
       if (item) {
-        if (activeTool.tool === 'select' || item.shape !== 'marker') {
-          let dragStartPos = { x: 0, y: 0 };
-          
-          if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
-          else if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
-          else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
-          else if (item.shape === 'polygon') {
-             const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-             dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
-          }
-          
-          setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+        let dragStartPos = { x: 0, y: 0 };
+        
+        if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
+        else if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
+        else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
+        else if (item.shape === 'polygon') {
+            const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+            dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
         }
+        
+        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+        e.stopPropagation();
+        return;
       }
       e.stopPropagation();
       return;
@@ -333,7 +337,7 @@ export function SenseMapper() {
   const handleMapClick = (e: React.MouseEvent) => {
     // If we are in edit mode, a click on the background should NOT deselect the item.
     if (editingItemId) {
-        if (!e.defaultPrevented) {
+        if (!e.defaultPrevented && !(e.target as HTMLElement).closest('[data-item-id]')) {
             setSelectedItem(null);
             setEditingItemId(null);
          }
@@ -405,21 +409,25 @@ export function SenseMapper() {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
+    const tool = activeTool.tool === 'select' ? 'marker' : activeTool.tool;
+    const shape = activeTool.tool === 'shape' ? activeTool.shape : 'rectangle';
+    const type = activeTool.type || SENSORY_TYPES[0];
+
     switch (event.key.toLowerCase()) {
       case 'v':
         setActiveTool({ tool: 'select' });
         break;
       case 'm':
-        setActiveTool(prev => ({ tool: 'marker', type: prev.type || SENSORY_TYPES[0] }));
+        setActiveTool({ tool: 'marker', type });
         break;
       case 'r':
-        setActiveTool(prev => ({ tool: 'shape', shape: 'rectangle', type: prev.type || SENSORY_TYPES[0] }));
+        setActiveTool({ tool: 'shape', shape: 'rectangle', type });
         break;
       case 'c':
-        setActiveTool(prev => ({ tool: 'shape', shape: 'circle', type: prev.type || SENSORY_TYPES[0] }));
+        setActiveTool({ tool: 'shape', shape: 'circle', type });
         break;
       case 'p':
-        setActiveTool(prev => ({ tool: 'shape', shape: 'polygon', type: prev.type || SENSORY_TYPES[0] }));
+        setActiveTool({ tool: 'shape', shape: 'polygon', type });
         break;
       case 'escape':
         if (isDrawing) {
@@ -435,7 +443,7 @@ export function SenseMapper() {
         setDraggingItem(null);
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

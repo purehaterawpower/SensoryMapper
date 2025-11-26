@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Landmark, Circle, Pentagon } from "lucide-react";
-import { useRef } from "react";
+import { MousePointer, Square, Upload, Landmark, Circle, Pentagon, ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
 import { Input } from "../ui/input";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -36,8 +37,11 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   };
 
   const handleSensoryTypeChange = (type: SensoryType) => {
-    if (activeTool.tool !== 'select') {
-      setActiveTool({ ...activeTool, type });
+    if (activeTool.tool === 'select') {
+        // If select tool is active, switch to marker tool with the new type
+        setActiveTool({ tool: 'marker', type });
+    } else {
+        setActiveTool({ ...activeTool, type });
     }
   };
 
@@ -51,6 +55,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         fileInputRef.current.value = '';
     }
   };
+  
+  const selectedSensoryType = activeTool.tool !== 'select' ? activeTool.type : undefined;
 
   return (
     <aside className="w-80 bg-card border-r flex flex-col p-4 gap-4">
@@ -75,8 +81,33 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         </Button>
       </div>
 
-
       <TooltipProvider delayDuration={100}>
+        <div className="space-y-2">
+            <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
+            <div className="grid grid-cols-4 gap-2">
+            {SENSORY_TYPES.map(type => {
+                const { icon: Icon, name } = SENSORY_DATA[type];
+                return (
+                <Tooltip key={type}>
+                    <TooltipTrigger asChild>
+                    <Button
+                        variant={selectedSensoryType === type ? 'secondary' : 'ghost'}
+                        size="icon"
+                        onClick={() => handleSensoryTypeChange(type)}
+                        className={cn("h-12 w-12")}
+                    >
+                        <Icon className="w-6 h-6" />
+                    </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top"><p>{name}</p></TooltipContent>
+                </Tooltip>
+                );
+            })}
+            </div>
+        </div>
+        
+        <Separator />
+
         <div className="space-y-2">
           <h2 className="text-lg font-semibold px-2">Tools</h2>
           <div className="flex items-center space-x-2">
@@ -123,59 +154,37 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           </div>
         </div>
 
-        {activeTool.tool !== 'select' && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {SENSORY_TYPES.map(type => {
-                  const Icon = SENSORY_DATA[type].icon;
-                  return (
-                    <Tooltip key={type}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={activeTool.type === type ? 'secondary' : 'ghost'}
-                          size="icon"
-                          onClick={() => handleSensoryTypeChange(type)}
-                          className={cn("h-12 w-12")}
-                        >
-                          <Icon className="w-6 h-6" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top"><p>{SENSORY_DATA[type].name}</p></TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
       </TooltipProvider>
 
       <Separator />
 
-      <div className="flex-1 space-y-2 overflow-y-auto">
-        <h2 className="text-lg font-semibold px-2">View Layers</h2>
-        {SENSORY_TYPES.map(type => {
-          const { name, icon: Icon, color } = SENSORY_DATA[type];
-          return (
-            <div key={type} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted">
-              <Checkbox
-                id={type}
-                checked={visibleLayers[type]}
-                onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-              />
-              <Label htmlFor={type} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                <div className="p-1 rounded-md" style={{ backgroundColor: color }}>
-                  <Icon className="w-4 h-4 text-white" />
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="item-1" className="border-b-0">
+          <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
+              View Layers
+          </AccordionTrigger>
+          <AccordionContent className="flex-1 space-y-2 overflow-y-auto pt-2">
+            {SENSORY_TYPES.map(type => {
+              const { name, icon: Icon, color } = SENSORY_DATA[type];
+              return (
+                <div key={type} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted">
+                  <Checkbox
+                    id={type}
+                    checked={visibleLayers[type]}
+                    onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+                  />
+                  <Label htmlFor={type} className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                    <div className="p-1 rounded-md" style={{ backgroundColor: color }}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    {name}
+                  </Label>
                 </div>
-                {name}
-              </Label>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </aside>
   );
 }
