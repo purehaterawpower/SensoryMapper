@@ -1,6 +1,6 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase-env';
+import { getAuth, Auth } from 'firebase/auth';
 import { firebaseConfig } from './config';
 
 export * from './client-provider';
@@ -20,5 +20,3 @@ export function initializeFirebase(): FirebaseInstances {
 
   return { firebaseApp, firestore, auth };
 }
-
-    
