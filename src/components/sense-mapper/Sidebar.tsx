@@ -84,23 +84,21 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       <TooltipProvider delayDuration={100}>
         <div className="space-y-2">
             <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex flex-col gap-1">
             {SENSORY_TYPES.map(type => {
-                const { icon: Icon, name } = SENSORY_DATA[type];
+                const { icon: Icon, name, color } = SENSORY_DATA[type];
                 return (
-                <Tooltip key={type}>
-                    <TooltipTrigger asChild>
                     <Button
+                        key={type}
                         variant={selectedSensoryType === type ? 'secondary' : 'ghost'}
-                        size="icon"
                         onClick={() => handleSensoryTypeChange(type)}
-                        className={cn("h-12 w-12")}
+                        className="h-10 w-full justify-start pl-3 gap-3"
                     >
-                        <Icon className="w-6 h-6" />
+                        <div className="p-1.5 rounded-full flex items-center justify-center" style={{backgroundColor: color}}>
+                            <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <span>{name}</span>
                     </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top"><p>{name}</p></TooltipContent>
-                </Tooltip>
                 );
             })}
             </div>
