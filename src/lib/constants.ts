@@ -1,7 +1,7 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee, Users, Compass } from 'lucide-react';
+import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee, Users, Compass, MessageCircle, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
-import { VolumeX, MessageCircle } from 'lucide-react';
+
 
 export const SENSORY_STIMULI_TYPES: SensoryType[] = ['touch', 'proprioception', 'vestibular', 'vision', 'hearing', 'smell'];
 export const RESPITE_ZONE_TYPES: AmenityType[] = ['quietZone', 'seating'];
@@ -18,7 +18,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   hearing: { 
     name: 'Sound', 
     description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet zones.',
-    icon: Ear, 
+    icon: Ear,
     color: '#E6ACAC', 
   },
   smell: { 
@@ -63,7 +63,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   toilets: {
     name: 'Toilets',
     description: 'Location of standard, accessible, and ambulant toilets.',
-    icon: Waves,
+    icon: User,
     color: '#BDBDBD'
   },
   exit: {
