@@ -13,7 +13,7 @@ import { PrintableReport } from './PrintableReport';
 import { interpolateColor } from '@/lib/color-utils';
 import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
-import { Plus, Minus, Grab } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -243,7 +243,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
     setDidDrag(false);
-
+  
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
@@ -260,33 +260,33 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     const itemType = target.closest('[data-item-type]')?.getAttribute('data-item-type');
-
+  
     if (activeTool.tool === 'select' && itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-  
-        let dragStartPos: Point = { x: 0, y: 0 };
-        if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
-        else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-        else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
-        else if (item.shape === 'polygon') {
-          const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-          dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
-        }
-  
-        const isCenterHandle = itemType === 'shape-center';
-        
-        if (isCenterHandle || item.shape === 'marker') {
-            setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-            e.stopPropagation();
-            return;
-        }
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      let dragStartPos: Point = { x: 0, y: 0 };
+      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
+      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
+      else if (item.shape === 'polygon') {
+        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
       }
+
+      const isCenterHandle = itemType === 'shape-center';
+      
+      if (isCenterHandle || item.shape === 'marker') {
+          setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+          e.stopPropagation();
+          return;
+      }
+    }
     
-    if (activeTool.tool === 'shape' && activeTool.type) {
+    if (activeTool.tool === 'shape' || activeTool.tool === 'marker') {
       if (editingItemId) return;
       
-      if (activeTool.shape === 'polygon') {
+      if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
         setIsDrawing(true);
         if (!drawingShape) {
           setDrawingShape({ shape: 'polygon', points: [coords] });
@@ -299,18 +299,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
           }
         }
-      } else {
-        setIsDrawing(true);
-        setStartCoords(coords);
       }
-    } else if (activeTool.tool === 'marker') {
-        // This is handled in handleMapClick to place markers on a simple click
-    } else {
-        // Fallback to panning only when no other tool is active or interaction has occurred
-        if (!itemId) {
-            setIsPanning(true);
-            setPanStart({ x: e.clientX, y: e.clientY });
-        }
+    } else if (activeTool.tool === 'select') {
+      if (!itemId) {
+          setIsPanning(true);
+          setPanStart({ x: e.clientX, y: e.clientY });
+      }
     }
   };
   
