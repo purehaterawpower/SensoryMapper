@@ -173,9 +173,8 @@ export function PrintableReport({
   // All visible items get a number for the map
   const numberedMapItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
 
-  // Only items with descriptions get an entry in the list
+  // Only items with descriptions or images get an entry in the list
   const listItems = numberedMapItems.filter(item => item.description || item.imageUrl);
-
 
   return (
     <div className="p-8 bg-white text-black">
