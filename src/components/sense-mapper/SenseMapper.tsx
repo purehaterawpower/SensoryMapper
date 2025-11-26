@@ -400,11 +400,22 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setTimeout(() => setDidDrag(false), 0);
   };
 
-  const handleMapClick = (e: React.MouseEvent) => {
-    if (didDrag || draggingItem || readOnly) return;
-    if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) return;
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (readOnly) return;
+    if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
+      finishDrawingPolygon();
+      return;
+    }
+    const target = e.target as HTMLElement;
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+    if (itemId) {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+            setSelectedItem(item);
+            setHighlightedItem(item);
+        }
+    }
   };
-
 
   const handleContextMenu = (e: React.MouseEvent) => {
     if (readOnly) return;
@@ -543,23 +554,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     };
   }, [draggingItem, isDrawing, panStart, handleMouseMove, handleMouseUp, readOnly, isPanning]);
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    if (readOnly) return;
-    if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
-      finishDrawingPolygon();
-      return;
-    }
-    const target = e.target as HTMLElement;
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-    if (itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (item) {
-            setSelectedItem(item);
-            setHighlightedItem(item);
-        }
-    }
-  };
-
   const handleWheel = (e: React.WheelEvent) => {
     if (!mapRef.current) return;
     e.preventDefault();
@@ -693,7 +687,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onClick={handleMapClick}
           onDoubleClick={handleDoubleClick}
           onWheel={handleWheel}
           onContextMenu={handleContextMenu}
@@ -721,7 +714,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       )}
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => setSelectedItem(null)}
+        onClose={() => {
+            setSelectedItem(null);
+            setHighlightedItem(null);
+            setEditingItemId(null);
+        }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}
