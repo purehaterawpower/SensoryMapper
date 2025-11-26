@@ -22,13 +22,18 @@ const MapRenderer = ({
   imageDimensions: { width: number; height: number } | null;
   items: NumberedItem[];
 }) => {
+  if (!imageDimensions || !mapImage) {
+    return null;
+  }
+  
+  const aspectRatio = imageDimensions.height / imageDimensions.width;
 
   const renderMarker = (marker: Marker & { number: number }) => {
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const itemStyle: React.CSSProperties = {
       position: 'absolute',
-      left: marker.x,
-      top: marker.y,
+      left: `${(marker.x / imageDimensions.width) * 100}%`,
+      top: `${(marker.y / imageDimensions.height) * 100}%`,
       transform: 'translate(-50%, -50%)',
     };
     return (
@@ -114,47 +119,48 @@ const MapRenderer = ({
       </g>
     );
   };
+  
+  const mapContainerStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    paddingBottom: `${aspectRatio * 100}%`,
+  };
 
-  const mapStyle: React.CSSProperties = imageDimensions
-    ? {
-        width: imageDimensions.width,
-        height: imageDimensions.height,
-        position: 'relative',
-      }
-    : { display: 'none' };
+  const svgStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  };
+
 
   return (
-    <div style={mapStyle}>
-      {mapImage && (
+    <div style={mapContainerStyle}>
         <img
           src={mapImage}
           alt="Floor Plan"
           style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: '100%',
             height: '100%',
-            display: 'block',
             objectFit: 'contain',
           }}
         />
-      )}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        <svg width="100%" height="100%">
-          {items
-            .filter((item) => item.shape !== 'marker')
-            .map((item) => renderShape(item as Shape & { number: number }))}
-        </svg>
-      </div>
-      {items
-        .filter((item) => item.shape === 'marker')
-        .map((item) => renderMarker(item as Marker & { number: number }))}
+        <div style={svgStyle}>
+            <svg width="100%" height="100%" viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}>
+            {items
+                .filter((item) => item.shape !== 'marker')
+                .map((item) => renderShape(item as Shape & { number: number }))}
+            </svg>
+        </div>
+        <div style={svgStyle}>
+            {items
+            .filter((item) => item.shape === 'marker')
+            .map((item) => renderMarker(item as Marker & { number: number }))}
+        </div>
     </div>
   );
 };
@@ -175,7 +181,9 @@ export function PrintableReport({
       </style>
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>
-        <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={visibleItems} />
+        <div style={{width: '100%', maxWidth: '100%'}}>
+          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={visibleItems} />
+        </div>
       </div>
 
       <div className="space-y-8">
