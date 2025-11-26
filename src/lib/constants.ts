@@ -1,7 +1,8 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Users, Compass, Eye, Ear, DoorOpen, PlusSquare, Info, Coffee, MessageCircle, VolumeX } from 'lucide-react';
+import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, MessageCircle, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
 import { ToiletIcon } from '@/components/icons/ToiletIcon';
+import { ExitIcon } from '@/components/icons/ExitIcon';
 
 
 export const SENSORY_STIMULI_TYPES: SensoryType[] = ['touch', 'proprioception', 'vestibular', 'vision', 'hearing', 'smell'];
@@ -70,7 +71,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   exit: {
     name: 'Exit',
     description: 'Emergency exits or quick exit routes for rapid departure.',
-    icon: DoorOpen,
+    icon: ExitIcon,
     color: '#BDBDBD'
   },
   help: {
