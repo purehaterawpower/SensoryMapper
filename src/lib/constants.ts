@@ -5,7 +5,7 @@ import { ToiletIcon } from '@/components/icons/ToiletIcon';
 import { ExitIcon } from '@/components/icons/ExitIcon';
 
 
-export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'vestibular', 'proprioception'];
+export const SENSORY_STIMULI_TYPES: SensoryType[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space'];
 export const RESPITE_AREA_TYPES: AmenityType[] = ['quietArea', 'seating'];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help', 'firstAid', 'food'];
 
@@ -15,37 +15,37 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     name: 'Visuals', 
     description: 'Lighting, glare, and clutter.',
     icon: Eye, 
-    color: '#8DAEF3', 
+    color: '#82B4A1', 
   },
   hearing: { 
     name: 'Sound', 
     description: 'Volume, echoes, and sudden noises.',
     icon: Ear,
-    color: '#E6ACAC', 
+    color: '#F4A261', 
   },
   smell: { 
     name: 'Smell', 
     description: 'Strong scents, chemicals, or food.',
     icon: NoseIcon, 
-    color: '#FDDDB1',
+    color: '#E76F51',
   },
   touch: { 
     name: 'Touch', 
     description: 'Textures, temperature, and surfaces.',
     icon: Hand, 
-    color: '#2558D7', 
+    color: '#2A9D8F', 
   },
-  vestibular: { 
+  movement: { 
     name: 'Movement', 
     description: 'Flow, navigation, and stability.',
     icon: Compass, 
-    color: '#007C78', 
+    color: '#264653', 
   },
-  proprioception: { 
+  space: { 
     name: 'Space', 
     description: 'Crowding, proximity, and layout.',
     icon: Users, 
-    color: '#F37255',
+    color: '#E9C46A',
   },
 };
 
@@ -54,13 +54,13 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
     name: 'Quiet Area',
     description: 'A designated area with low sensory input for calming and regulation.',
     icon: VolumeX,
-    color: '#A7D8A9'
+    color: '#A8DADC'
   },
   seating: {
     name: 'Seating Area',
     description: 'Accessible seating, including benches or other options for rest.',
     icon: MessageCircle,
-    color: '#A7D8A9'
+    color: '#A8DADC'
   },
   toilets: {
     name: 'Toilets',
