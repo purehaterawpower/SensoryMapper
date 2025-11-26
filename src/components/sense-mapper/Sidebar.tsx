@@ -1,6 +1,6 @@
 'use client';
 
-import { SENSORY_STIMULI_TYPES, RESPITE_ZONE_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA, SENSORY_TYPES } from "@/lib/constants";
+import { SENSORY_STIMULI_TYPES, RESPITE_ZONE_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
 import { ItemType, ActiveTool } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -72,6 +72,26 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                 <span>{name}</span>
             </Button>
         );
+    });
+  }
+
+  const renderLayerCheckboxes = (types: ItemType[]) => {
+    return types.map(type => {
+      const { icon: Icon, name } = ALL_SENSORY_DATA[type];
+      const isVisible = visibleLayers[type];
+      return (
+        <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
+          <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
+              <Icon className="w-4 h-4 text-white" />
+          </div>
+          <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
+          <Checkbox
+            id={`layer-${type}`}
+            checked={isVisible}
+            onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+          />
+        </div>
+      );
     });
   }
 
@@ -173,25 +193,24 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
               View Layers
           </AccordionTrigger>
-          <AccordionContent className="pt-2">
-            <div className="space-y-2">
-              {[...SENSORY_STIMULI_TYPES, ...RESPITE_ZONE_TYPES, ...PRACTICAL_AMENITY_TYPES].map(type => {
-                const { icon: Icon, name } = ALL_SENSORY_DATA[type];
-                const isVisible = visibleLayers[type];
-                return (
-                  <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
-                    <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
-                        <Icon className="w-4 h-4 text-white" />
-                    </div>
-                    <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
-                    <Checkbox
-                      id={`layer-${type}`}
-                      checked={isVisible}
-                      onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-                    />
-                  </div>
-                );
-              })}
+          <AccordionContent className="pt-2 space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory Stimuli</h3>
+              <div className="space-y-1">
+                {renderLayerCheckboxes(SENSORY_STIMULI_TYPES)}
+              </div>
+            </div>
+             <div>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
+              <div className="space-y-1">
+                {renderLayerCheckboxes(RESPITE_ZONE_TYPES)}
+              </div>
+            </div>
+             <div>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
+              <div className="space-y-1">
+                {renderLayerCheckboxes(PRACTICAL_AMENITY_TYPES)}
+              </div>
             </div>
           </AccordionContent>
         </AccordionItem>
