@@ -22,9 +22,10 @@ type AnnotationEditorProps = {
   onGenerateSummary: (description: string) => Promise<void>;
   isSummaryLoading: boolean;
   onToggleEditMode: (itemId: string) => void;
+  readOnly?: boolean;
 };
 
-export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode }: AnnotationEditorProps) {
+export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode, readOnly }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
   const [image, setImage] = useState<string | null>(null);
@@ -133,10 +134,10 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     <div className={`p-1.5 rounded-md`} style={{backgroundColor: ALL_SENSORY_DATA[item.type].color}}>
                         <Icon className="w-5 h-5 text-white" />
                     </div>
-                    Edit {sensoryName} {isShape ? shapeName : 'Marker'}
+                    {readOnly ? '' : 'Edit'} {sensoryName} {isShape ? shapeName : 'Marker'}
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                    Add or edit the sensory details for this item.
+                    {readOnly ? 'Details for this annotation.' : 'Add or edit the sensory details for this item.'}
                 </p>
             </div>
             <div className="grid gap-2">
@@ -146,18 +147,21 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="min-h-[120px]"
-                    placeholder={`e.g., Describe the ${sensoryName.toLowerCase()} like ${sensoryDescription.toLowerCase()}`}
+                    placeholder={readOnly ? 'No description provided.' : `e.g., Describe the ${sensoryName.toLowerCase()} like ${sensoryDescription.toLowerCase()}`}
+                    readOnly={readOnly}
                 />
             </div>
             
             <div className="grid gap-2">
-              <Label>Image (Optional)</Label>
+              <Label>Image</Label>
               {image ? (
                 <div className="relative">
                   <Image src={image} alt="Annotation image" width={288} height={162} className="rounded-md object-cover w-full aspect-video" />
-                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setImage(null)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {!readOnly && (
+                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setImage(null)}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <>
@@ -168,11 +172,16 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     className="hidden"
                     accept="image/*"
                     onChange={handleImageUpload}
+                    disabled={readOnly}
                   />
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Image
-                  </Button>
+                  {readOnly ? (
+                     <p className="text-sm text-muted-foreground">No image was uploaded for this annotation.</p>
+                  ) : (
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={readOnly}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Image
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -185,6 +194,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                   onValueChange={handleSliderChange}
                   max={100}
                   step={1}
+                  disabled={readOnly}
                 />
                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Moderate</span>
@@ -193,25 +203,29 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
               </div>
             )}
 
-            <div className="flex justify-between items-center">
-                 <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto">
-                    <Trash2 className="w-4 h-4" />
-                </Button>
-                <div className="flex gap-2">
-                    {isShape && (
-                        <Button onClick={handleToggleEditMode} variant="outline" size="icon" title="Adjust Shape">
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    )}
-                    <Button onClick={handleGenerateSummary} disabled={isSummaryLoading || !description.trim()} variant="outline">
-                        {isSummaryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                        Insights
+            {!readOnly && (
+                <div className="flex justify-between items-center">
+                    <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto">
+                        <Trash2 className="w-4 h-4" />
                     </Button>
-                    <Button onClick={handleSave}>Save</Button>
+                    <div className="flex gap-2">
+                        {isShape && (
+                            <Button onClick={handleToggleEditMode} variant="outline" size="icon" title="Adjust Shape">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        )}
+                        <Button onClick={handleGenerateSummary} disabled={isSummaryLoading || !description.trim()} variant="outline">
+                            {isSummaryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                            Insights
+                        </Button>
+                        <Button onClick={handleSave}>Save</Button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
       </PopoverContent>
     </Popover>
   );
 }
+
+    

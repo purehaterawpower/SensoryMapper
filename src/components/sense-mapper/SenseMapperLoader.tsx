@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MapData } from '@/lib/types';
 
 const SenseMapper = dynamic(() => import('@/components/sense-mapper/SenseMapper').then(mod => mod.SenseMapper), {
   ssr: false,
@@ -15,6 +16,13 @@ const SenseMapper = dynamic(() => import('@/components/sense-mapper/SenseMapper'
   ),
 });
 
-export default function SenseMapperLoader() {
-  return <SenseMapper />;
+type SenseMapperLoaderProps = {
+    initialData?: MapData;
+    readOnly?: boolean;
 }
+
+export default function SenseMapperLoader({ initialData, readOnly }: SenseMapperLoaderProps) {
+  return <SenseMapper initialData={initialData} readOnly={readOnly} />;
+}
+
+    

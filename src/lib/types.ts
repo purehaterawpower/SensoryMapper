@@ -63,3 +63,11 @@ export type ActiveTool = {
   type?: ItemType;
   shape?: DrawingShape;
 };
+
+export type MapData = {
+    mapImage: string;
+    imageDimensions: { width: number, height: number };
+    items: Item[];
+};
+
+    

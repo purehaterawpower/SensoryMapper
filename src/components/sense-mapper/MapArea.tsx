@@ -23,6 +23,7 @@ type MapAreaProps = {
   cursorPos: Point;
   showPolygonTooltip: boolean;
   onMapUpload: (file: File) => void;
+  readOnly?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -37,6 +38,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   cursorPos,
   showPolygonTooltip,
   onMapUpload,
+  readOnly = false,
   ...props
 }, ref) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +63,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: 'pointer',
+        cursor: readOnly ? 'default' : 'pointer',
       };
 
     return (
@@ -103,7 +105,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           onMouseDown={(e) => { e.stopPropagation(); }}
           data-item-id={shape.id}
           data-item-type="shape"
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: readOnly ? 'default' : 'pointer' }}
         >
             {shape.shape === 'rectangle' && (
                 <rect
@@ -207,7 +209,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         ref={ref}
         className={cn(
           "relative shadow-lg rounded-lg overflow-hidden border",
-           mapImage ? 'cursor-crosshair' : ''
+           mapImage && !readOnly && 'cursor-crosshair',
+           readOnly && 'cursor-default',
         )}
         style={mapStyle}
         {...props}
@@ -246,7 +249,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 accept="image/*"
                 onChange={handleFileUpload}
               />
-              <Button onClick={() => fileInputRef.current?.click()} size="lg">
+              <Button onClick={() => fileInputRef.current?.click()} size="lg" disabled={readOnly}>
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Floor Plan
               </Button>
@@ -260,5 +263,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
+
+    
 
     

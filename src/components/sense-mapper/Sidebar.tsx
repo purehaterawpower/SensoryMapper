@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, MapPin, FileDown, Loader2 } from "lucide-react";
+import { MousePointer, MapPin, FileDown, Loader2, Share2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -21,11 +21,15 @@ type SidebarProps = {
   onLayerVisibilityChange: (layer: ItemType, visible: boolean) => void;
   onExportPDF: () => void;
   isExporting: boolean;
+  onShare: () => void;
+  isSharing: boolean;
+  readOnly?: boolean;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting }: SidebarProps) {
+export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
 
   const handleToolChange = (tool: 'select' | 'shape' | 'marker', shape?: 'rectangle' | 'circle' | 'polygon') => {
+    if (readOnly) return;
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
     } else { 
@@ -39,6 +43,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   };
 
   const handleSensoryTypeChange = (type: ItemType) => {
+    if (readOnly) return;
     const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
     if (activeTool.type === type) {
@@ -70,7 +75,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   key={type}
                   variant={isSelected ? 'secondary' : 'ghost'}
                   onClick={() => handleSensoryTypeChange(type)}
-                  className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
+                  className={cn("h-10 w-full justify-start pl-3 gap-3 rounded-md", readOnly && "cursor-not-allowed")}
+                  disabled={readOnly}
                 >
                   <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
                       <Icon className="w-4 h-4 text-white" />
@@ -90,7 +96,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                           </Tooltip>
                       ) : categoryButton}
                       
-                      {isSelected && (
+                      {isSelected && !readOnly && (
                         <div className="pl-10 pr-2 py-2">
                           <div className="flex items-center justify-around bg-muted p-1 rounded-md">
                             {isAmenity ? (
@@ -185,38 +191,48 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         
         <div className="p-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">SenseMapper</h1>
-          <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
-              {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-              Export
-          </Button>
+          <div className="flex gap-2">
+            {!readOnly && (
+              <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm">
+                {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                Share
+              </Button>
+            )}
+            <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
+                {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                Export
+            </Button>
+          </div>
         </div>
         <Separator/>
 
-        <div className="p-4 flex items-center justify-around border-b">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
-                  <MousePointer className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs text-center">
-                  <p className="font-bold">Select</p>
-                  <p>Select, move, and edit items on the map. (V)</p>
-              </TooltipContent>
-            </Tooltip>
-            <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
-        </div>
+        {!readOnly && (
+            <div className="p-4 flex items-center justify-around border-b">
+                <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
+                    <MousePointer className="w-5 h-5" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Select</p>
+                    <p>Select, move, and edit items on the map. (V)</p>
+                </TooltipContent>
+                </Tooltip>
+                <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
+            </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="space-y-4">
-                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                <h2 className="text-lg font-semibold px-2">{readOnly ? 'Map Key' : 'Map Categories'}</h2>
                 {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
                 {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
             </div>
             
             <Separator />
             
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full" defaultValue="view-layers">
                 <AccordionItem value="view-layers" className="border-b-0">
                 <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
                     View Layers
@@ -233,3 +249,5 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     </aside>
   );
 }
+
+    

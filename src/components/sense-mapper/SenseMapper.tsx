@@ -4,21 +4,27 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Shape, Point, ActiveTool, ItemType, Marker } from '@/lib/types';
+import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData } from '@/lib/types';
 import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { PrintableReport } from './PrintableReport';
 import { interpolateColor } from '@/lib/color-utils';
+import { ShareDialog } from './ShareDialog';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
   return acc;
 }, {} as Record<ItemType, boolean>);
 
-export function SenseMapper() {
-  const [items, setItems] = useState<Item[]>([]);
+type SenseMapperProps = {
+    initialData?: MapData;
+    readOnly?: boolean;
+}
+
+export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps) {
+  const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -34,25 +40,36 @@ export function SenseMapper() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'item' | 'handle', handleIndex?: number; offset: Point } | null>(null);
 
-  const [mapImage, setMapImage] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
+  const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
   
   const [summary, setSummary] = useState<{title: string, content: string} | null>(null);
   const [isSummaryLoading, setSummaryLoading] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleImageLoad = (url: string) => {
+  useEffect(() => {
+    if (initialData) {
+        handleImageLoad(initialData.mapImage, false);
+        setItems(initialData.items);
+    }
+  }, [initialData]);
+
+  const handleImageLoad = (url: string, resetState = true) => {
     const img = new Image();
     img.src = url;
     img.onload = () => {
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
-      setItems([]);
-      setSelectedItem(null);
-      setEditingItemId(null);
+      if (resetState) {
+        setItems([]);
+        setSelectedItem(null);
+        setEditingItemId(null);
+      }
     };
     img.onerror = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to load image for map." });
@@ -60,6 +77,7 @@ export function SenseMapper() {
   };
 
   const handleMapUpload = async (file: File) => {
+    if (readOnly) return;
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -82,6 +100,10 @@ export function SenseMapper() {
   };
 
   const handleItemSelect = (item: Item | null) => {
+    if (readOnly) {
+        setSelectedItem(item);
+        return;
+    }
     if (editingItemId && item?.id !== editingItemId) {
         // When in edit mode, don't allow selecting another item, but allow deselecting
         if (!item) {
@@ -102,6 +124,7 @@ export function SenseMapper() {
   };
   
   const handleItemDrag = (id: string, newPos: Point) => {
+    if (readOnly) return;
     setItems(prevItems => prevItems.map(item => {
       if (item.id !== id) return item;
       
@@ -148,7 +171,7 @@ export function SenseMapper() {
   };
   
   const handleHandleDrag = (handleIndex: number, newPos: Point) => {
-    if (!editingItemId) return;
+    if (!editingItemId || readOnly) return;
     setItems(prevItems => prevItems.map(item => {
       if (item.id !== editingItemId) return item;
       
@@ -184,6 +207,7 @@ export function SenseMapper() {
   }
 
   const finishDrawingPolygon = () => {
+    if (readOnly) return;
     if (drawingShape && drawingShape.shape === 'polygon' && drawingShape.points.length > 2 && activeTool.type) {
         const shapeType = activeTool.type;
         const defaultIntensity = 50;
@@ -207,7 +231,7 @@ export function SenseMapper() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!mapImage) return;
+    if (!mapImage || readOnly) return;
 
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
@@ -356,6 +380,7 @@ export function SenseMapper() {
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
+    if (readOnly) return;
     if (editingItemId) {
         if (!e.defaultPrevented && !(e.target as HTMLElement).closest('[data-item-id]')) {
             setSelectedItem(null);
@@ -392,6 +417,7 @@ export function SenseMapper() {
   };
   
   const handleSaveAnnotation = (itemId: string, data: { description: string, imageUrl?: string | null, color?: string, intensity?: number }) => {
+    if (readOnly) return;
     setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
@@ -399,6 +425,7 @@ export function SenseMapper() {
   };
   
   const handleDeleteItem = (itemId: string) => {
+    if (readOnly) return;
     setItems(items.filter(m => m.id !== itemId));
     setSelectedItem(null);
     setEditingItemId(null);
@@ -418,6 +445,7 @@ export function SenseMapper() {
   };
 
   const handleToggleEditMode = (itemId: string) => {
+    if (readOnly) return;
     setEditingItemId(prev => {
         const newId = prev === itemId ? null : itemId;
         if(newId) {
@@ -429,6 +457,7 @@ export function SenseMapper() {
   }
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (readOnly) return;
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
@@ -466,7 +495,7 @@ export function SenseMapper() {
         setDraggingItem(null);
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing, activeTool]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -476,6 +505,7 @@ export function SenseMapper() {
   }, [handleKeyDown]);
   
   useEffect(() => {
+    if (readOnly) return;
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if(draggingItem || isDrawing) {
         const mapRect = mapRef.current?.getBoundingClientRect();
@@ -504,9 +534,10 @@ export function SenseMapper() {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp, activeTool.shape]);
+  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp, activeTool.shape, readOnly]);
 
   const handleDoubleClick = () => {
+    if (readOnly) return;
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
       finishDrawingPolygon();
     }
@@ -530,6 +561,42 @@ export function SenseMapper() {
     // The `afterprint` event will set isPrinting to false
   };
 
+  const handleShare = async () => {
+    if (!mapImage || !imageDimensions) {
+        toast({ variant: 'destructive', title: 'Cannot Share', description: 'Please upload a map before sharing.' });
+        return;
+    }
+    setIsSharing(true);
+    try {
+        const mapData: MapData = {
+            mapImage,
+            imageDimensions,
+            items
+        };
+        const response = await fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mapData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save map to the server.');
+        }
+
+        const { id } = await response.json();
+        const url = `${window.location.origin}/map/${id}`;
+        setShareUrl(url);
+
+        toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
+    } catch (error: any) {
+        console.error("Sharing failed:", error);
+        toast({ variant: 'destructive', title: 'Sharing Failed', description: error.message || 'Could not create a shareable link.' });
+    } finally {
+        setIsSharing(false);
+    }
+  };
+
+
   useEffect(() => {
     const handleAfterPrint = () => {
       setIsPrinting(false);
@@ -551,6 +618,9 @@ export function SenseMapper() {
         onLayerVisibilityChange={handleLayerVisibilityChange}
         onExportPDF={handleExportPDF}
         isExporting={isPrinting}
+        onShare={handleShare}
+        isSharing={isSharing}
+        readOnly={readOnly}
       />
       <MapArea
         ref={mapRef}
@@ -570,6 +640,7 @@ export function SenseMapper() {
         editingItemId={editingItemId}
         cursorPos={cursorPos}
         showPolygonTooltip={showPolygonTooltip}
+        readOnly={readOnly}
       />
       <AnnotationEditor
         item={selectedItem}
@@ -583,10 +654,15 @@ export function SenseMapper() {
         onGenerateSummary={handleGenerateSummary}
         isSummaryLoading={isSummaryLoading}
         onToggleEditMode={handleToggleEditMode}
+        readOnly={readOnly}
       />
       <SummaryDialog
         summary={summary}
         onClose={() => setSummary(null)}
+      />
+      <ShareDialog
+        shareUrl={shareUrl}
+        onClose={() => setShareUrl(null)}
       />
     </div>
     {isPrinting && (
@@ -601,3 +677,5 @@ export function SenseMapper() {
     </>
   );
 }
+
+    
