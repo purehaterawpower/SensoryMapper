@@ -3,7 +3,7 @@
 import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item, Marker, Shape, Point, ActiveTool } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import React, { forwardRef, useState, useEffect, useRef } from "react";
+import React, { forwardRef, useRef } from "react";
 import { EditHandles } from './EditHandles';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
@@ -86,6 +86,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         style={itemStyle}
         data-item-id={marker.id}
         data-item-type="marker"
+        className="pointer-events-auto"
       >
         <div className={cn(
             "p-1.5 rounded-full shadow-lg transition-all", 
@@ -111,41 +112,41 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill,
-        fillOpacity: isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4),
         stroke: isHighlighted || isEditing ? 'hsl(var(--primary))' : color,
-        strokeWidth: 2,
+        strokeWidth: isEditing ? 3 / zoomLevel : 2 / zoomLevel,
         style: {
             cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
         },
     };
 
     return (
-        <g key={shape.id} data-item-id={shape.id} data-item-type="shape" style={{pointerEvents: 'all'}}>
-             <g style={{pointerEvents: 'none'}}>
-                {shape.shape === 'rectangle' && (
-                    <rect
-                        x={shape.x}
-                        y={shape.y}
-                        width={shape.width}
-                        height={shape.height}
-                        {...commonProps}
-                    />
-                )}
-                {shape.shape === 'circle' && (
-                    <circle
-                        cx={shape.cx}
-                        cy={shape.cy}
-                        r={shape.radius}
-                        {...commonProps}
-                    />
-                )}
-                {shape.shape === 'polygon' && (
-                    <polygon
-                        points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
-                        {...commonProps}
-                    />
-                )}
-            </g>
+        <g key={shape.id} data-item-id={shape.id} data-item-type="shape" className="pointer-events-auto">
+              {shape.shape === 'rectangle' && (
+                  <rect
+                      x={shape.x}
+                      y={shape.y}
+                      width={shape.width}
+                      height={shape.height}
+                      {...commonProps}
+                      fillOpacity={isHighlighted || isEditing ? 0.5 : 0.3}
+                  />
+              )}
+              {shape.shape === 'circle' && (
+                  <circle
+                      cx={shape.cx}
+                      cy={shape.cy}
+                      r={shape.radius}
+                      {...commonProps}
+                      fillOpacity={isHighlighted || isEditing ? 0.5 : 0.3}
+                  />
+              )}
+              {shape.shape === 'polygon' && (
+                  <polygon
+                      points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
+                      {...commonProps}
+                      fillOpacity={isHighlighted || isEditing ? 0.5 : 0.3}
+                  />
+              )}
             {isEditing && <EditHandles shape={shape} />}
         </g>
     );
@@ -155,7 +156,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     if (!drawingShape) return null;
     const style = {
       stroke: 'hsl(var(--primary))',
-      strokeWidth: 2,
+      strokeWidth: 2 / zoomLevel,
       strokeDasharray: '5,5',
       fill: 'hsl(var(--primary))',
       fillOpacity: 0.2,
@@ -235,7 +236,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
               style={{ width: imageDimensions.width, height: imageDimensions.height, transformOrigin: 'top left' }}
             >
               <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
-              <div className="absolute inset-0">
+              <div className="absolute inset-0 pointer-events-none">
                   <Tooltip open={showPolygonTooltip}>
                     <TooltipTrigger asChild>
                       <div style={{ position: 'absolute', left: cursorPos.x, top: cursorPos.y, width: 1, height: 1 }} />

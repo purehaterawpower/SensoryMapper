@@ -125,7 +125,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   };
 
   return (
-    <Popover open={!!item} onOpenChange={(open) => !open && onClose()}>
+    <Popover open={!!item} onOpenChange={(open) => { if (!open) onClose() }}>
         <PopoverTrigger asChild>
             <div ref={triggerRef} />
         </PopoverTrigger>
