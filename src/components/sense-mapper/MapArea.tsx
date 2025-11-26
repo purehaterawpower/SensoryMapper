@@ -107,10 +107,12 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     
     const Hitbox = () => {
       const props = {
-        fill: '#000',
-        fillOpacity: 0,
-        strokeOpacity: 0,
-      }
+        fill: 'transparent',
+        stroke: 'transparent',
+        strokeWidth: 20, // Make the stroke wider for easier clicking, but transparent
+        'data-item-id': shape.id,
+        'data-item-type': 'shape'
+      };
        if (shape.shape === 'rectangle') {
         return <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} {...props} />;
       }
@@ -126,11 +128,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     return (
         <g 
           key={shape.id}
-          data-item-id={shape.id}
-          data-item-type="shape"
           style={{ cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair') }}
         >
-            <Hitbox />
             {shape.shape === 'rectangle' && (
                 <rect
                     x={shape.x}
@@ -166,6 +165,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     style={{pointerEvents: 'none'}}
                 />
             )}
+            <Hitbox />
             {isEditing && <EditHandles shape={shape} />}
         </g>
     );

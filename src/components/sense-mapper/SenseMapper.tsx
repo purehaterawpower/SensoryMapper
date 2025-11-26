@@ -110,7 +110,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleItemSelect = (item: Item | null) => {
-    if (readOnly) {
+    if (readOnly && item) {
         setSelectedItem(item);
         return;
     }
@@ -254,46 +254,17 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
     
+    // Allow right clicks to pass through to context menu handler
+    if (e.button === 2) {
+      return;
+    }
     e.preventDefault();
     setDidDrag(false);
   
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
-    // Priority 1: Handle editing handles
-    const handleId = target.dataset.handleId;
-    if (handleId && editingItemId) {
-      const handleIndex = parseInt(handleId, 10);
-      const item = items.find(i => i.id === editingItemId);
-      if (item) {
-        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, offset: {x: 0, y: 0} });
-        e.stopPropagation();
-        return;
-      }
-    }
-    
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-
-    // Priority 2: Handle item dragging (if select tool is active)
-    if (itemId && activeTool.tool === 'select') {
-      const item = items.find(i => i.id === itemId);
-      if (!item) return;
-
-      let dragStartPos: Point = { x: 0, y: 0 };
-      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
-      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
-      else if (item.shape === 'polygon') {
-        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
-      }
-      
-      setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-      e.stopPropagation();
-      return;
-    }
-    
-    // Priority 3: Handle drawing tools
+    // Priority 1: Drawing tools
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
       setIsDrawing(true);
       setStartCoords(coords);
@@ -314,6 +285,39 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return; 
     }
     
+    // Priority 2: Handle editing handles
+    const handleId = target.dataset.handleId;
+    if (handleId && editingItemId) {
+      const handleIndex = parseInt(handleId, 10);
+      const item = items.find(i => i.id === editingItemId);
+      if (item) {
+        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, offset: {x: 0, y: 0} });
+        e.stopPropagation();
+        return;
+      }
+    }
+    
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+
+    // Priority 3: Handle item dragging
+    if (itemId && activeTool.tool === 'select') {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      let dragStartPos: Point = { x: 0, y: 0 };
+      if (item.shape === 'marker') dragStartPos = { x: item.x, y: item.y };
+      else if (item.shape === 'rectangle') dragStartPos = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+      else if (item.shape === 'circle') dragStartPos = { x: item.cx, y: item.cy };
+      else if (item.shape === 'polygon') {
+        const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+        dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
+      }
+      
+      setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+      e.stopPropagation();
+      return;
+    }
+        
     // Priority 4: Pan the map
     if (activeTool.tool === 'select') {
       setIsPanning(true);
@@ -354,7 +358,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Priority 1: Finish placing marker on simple click (no drag)
+    // Finish placing marker on simple click (no drag)
     if (isDrawing && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
       const { x, y } = getMapCoordinates(e);
       const newMarker: Marker = {
@@ -372,20 +376,21 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setActiveTool({tool: 'select'});
     }
 
-    // Priority 2: Select an item if we are not dragging or drawing
+    // Select an item if we are not dragging or drawing
     if (!didDrag && !isDrawing) {
       const target = e.target as HTMLElement;
       const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
       
       if (itemId && activeTool.tool === 'select') {
         const item = items.find(i => i.id === itemId);
-        if (item) handleItemSelect(item);
+        if (item) {
+          handleItemSelect(item);
+        }
       } else if (!itemId) {
         handleItemSelect(null);
         setEditingItemId(null);
       }
     }
-
 
     if (isDrawing && activeTool.shape !== 'polygon') {
       setIsDrawing(false);
@@ -402,12 +407,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setDraggingItem(null);
     }
 
-    // Reset didDrag after processing mouse up
     setTimeout(() => setDidDrag(false), 0);
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    if (readOnly || didDrag || isDrawing || draggingItem) {
+    if (didDrag || isDrawing || draggingItem || readOnly) {
         return;
     }
 
@@ -419,6 +423,21 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         if (selectedItem) {
             setSelectedItem(null);
         }
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (readOnly) return;
+    
+    const target = e.target as HTMLElement;
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+    
+    if (itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (item) {
+        handleItemSelect(item);
+      }
     }
   };
   
@@ -496,7 +515,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setActiveTool({tool: 'select'});
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly, isPanning]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -524,7 +543,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const handleGlobalMouseUp = (e: MouseEvent) => {
       if(draggingItem || isPanning || isDrawing) {
         const syntheticEvent = {
-            target: e.target
+            target: e.target,
+            button: e.button
         } as unknown as React.MouseEvent;
         handleMouseUp(syntheticEvent);
       }
@@ -679,6 +699,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           onClick={handleMapClick}
           onDoubleClick={handleDoubleClick}
           onWheel={handleWheel}
+          onContextMenu={handleContextMenu}
           onMapUpload={handleMapUpload}
           drawingShape={drawingShape}
           selectedItem={selectedItem}
