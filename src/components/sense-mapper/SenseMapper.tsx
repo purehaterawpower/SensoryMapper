@@ -111,20 +111,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
-    const rect = mapRef.current.getBoundingClientRect();
     
     const view = mapRef.current.querySelector<HTMLDivElement>('.transform-container');
     if (!view) return { x: 0, y: 0 };
-    const style = window.getComputedStyle(view);
-    const matrix = new DOMMatrix(style.transform);
-    const scale = matrix.a;
-    
-    const mapImageEl = view.querySelector('img');
-    if (!mapImageEl || !imageDimensions) return {x: 0, y: 0};
 
-    const imgRect = mapImageEl.getBoundingClientRect();
-    const x = (e.clientX - imgRect.left) / scale;
-    const y = (e.clientY - imgRect.top) / scale;
+    const viewRect = view.getBoundingClientRect();
+    const x = (e.clientX - viewRect.left);
+    const y = (e.clientY - viewRect.top);
     
     return { x, y };
 };
@@ -238,7 +231,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly || e.button === 2) return;
-
     setDidDrag(false);
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
@@ -269,24 +261,27 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     // Priority 2: Start drawing if a tool is active
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
-      e.preventDefault();
-      setIsDrawing(true);
-      setStartCoords(coords);
-
-      if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
-          if (!drawingShape) {
-              setDrawingShape({ shape: 'polygon', points: [coords] });
-          } else {
-              const firstPoint = drawingShape.points[0];
-              const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-              if (drawingShape.points.length > 2 && dist < 10 / zoomLevel) {
-                  finishDrawingPolygon();
-              } else {
-                  setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
-              }
-          }
-      }
-      return; 
+        e.preventDefault();
+        
+        if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
+            if (!isDrawing) {
+                setIsDrawing(true);
+                setDrawingShape({ shape: 'polygon', points: [coords] });
+            } else if (drawingShape) {
+                const firstPoint = drawingShape.points[0];
+                const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
+                const clickRadius = 10 / zoomLevel; 
+                if (drawingShape.points.length > 2 && dist < clickRadius) {
+                    finishDrawingPolygon();
+                } else {
+                    setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
+                }
+            }
+        } else {
+            setIsDrawing(true);
+            setStartCoords(coords);
+        }
+        return;
     }
     
     // Priority 3: Start dragging an existing item if select tool is active
@@ -350,14 +345,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    // Finish drawing a marker on simple click
     if (isDrawing && !didDrag && activeTool.tool === 'marker' && activeTool.type) {
-      const { x, y } = getMapCoordinates(e);
+      const coords = getMapCoordinates(e);
       const newMarker: Marker = {
         id: crypto.randomUUID(),
         type: activeTool.type,
         shape: 'marker',
-        x, y, description: '', imageUrl: '',
+        x: coords.x, y: coords.y, description: '', imageUrl: '',
       };
       setItems(prev => [...prev, newMarker]);
       setSelectedItem(newMarker);
@@ -380,29 +374,27 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setDraggingItem(null);
     }
 
-    // Handle item selection on click (if not dragging)
-    if (!didDrag && !isDrawing && !draggingItem && e.button !== 2) {
-        const target = e.target as HTMLElement;
-        const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-        
-        if (itemId) {
-          const item = items.find(i => i.id === itemId);
-          if (item) {
-            setSelectedItem(item);
-            setEditingItemId(null); // Deselect any shape being edited
-          }
-        } else {
-            // Clicked on empty space
-            setSelectedItem(null);
-            setEditingItemId(null);
+    if (!didDrag && activeTool.tool === 'select' && e.button !== 2) {
+      const target = e.target as HTMLElement;
+      const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+      if (itemId) {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+          setSelectedItem(item);
+          setEditingItemId(null);
         }
+      } else {
+        setSelectedItem(null);
+        setEditingItemId(null);
+      }
     }
 
     setTimeout(() => setDidDrag(false), 0);
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
-    if (didDrag || isDrawing || draggingItem || readOnly) return;
+    if (didDrag || draggingItem || readOnly) return;
+    if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) return;
   
     const target = e.target as HTMLElement;
     if (!target.closest('[data-item-id]')) {
@@ -703,6 +695,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           isPanning={isPanning}
           readOnly={readOnly}
           activeTool={activeTool}
+          zoomLevel={zoomLevel}
       />
       {mapImage && (
           <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
@@ -716,7 +709,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       )}
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => setSelectedItem(null)}
+        onClose={() => {
+            setSelectedItem(null);
+            setEditingItemId(null);
+        }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}

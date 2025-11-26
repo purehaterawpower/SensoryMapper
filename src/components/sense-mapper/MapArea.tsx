@@ -26,6 +26,7 @@ type MapAreaProps = {
   isPanning: boolean;
   activeTool: ActiveTool;
   readOnly?: boolean;
+  zoomLevel: number;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'onItemSelect'>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -43,6 +44,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   isPanning,
   activeTool,
   readOnly = false,
+  zoomLevel,
   ...props
 }, ref) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,7 +111,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       const props = {
         fill: '#000000',
         fillOpacity: 0,
-        stroke: 'none',
         'data-item-id': shape.id,
         'data-item-type': 'shape'
       };
@@ -189,6 +190,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     }
     if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
       const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
+      const handleSize = 8 / zoomLevel;
       return (
         <>
            {drawingShape.points.length > 2 && (
@@ -211,13 +213,13 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           {drawingShape.points.map((p: Point, i: number) => (
              <rect
               key={i}
-              x={p.x - 4}
-              y={p.y - 4}
-              width={8}
-              height={8}
+              x={p.x - handleSize/2}
+              y={p.y - handleSize/2}
+              width={handleSize}
+              height={handleSize}
               fill={i === 0 ? "hsl(var(--primary))" : "white"}
               stroke="hsl(var(--primary))"
-              strokeWidth="1"
+              strokeWidth={1 / zoomLevel}
               style={{pointerEvents: 'none'}}
             />
           ))}
@@ -251,7 +253,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
               className={cn(
                 'absolute top-0 left-0',
               )}
-              style={{ width: imageDimensions.width, height: imageDimensions.height }}
+              style={{ width: imageDimensions.width, height: imageDimensions.height, transformOrigin: 'top left' }}
             >
               <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
               <div className="absolute inset-0">
