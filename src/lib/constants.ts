@@ -2,7 +2,7 @@
 
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
 import { Hand, Users, Compass, Eye, Ear, PlusSquare, Info, Coffee, VolumeX } from 'lucide-react';
-import { NoseIcon } from '@/components/icons/NoseIcon';
+import { SmellIcon } from '@/components/icons/NoseIcon';
 import { ToiletIcon } from '@/components/icons/ToiletIcon';
 import { ExitIcon } from '@/components/icons/ExitIcon';
 import { SeatingIcon } from '@/components/icons/SeatingIcon';
@@ -28,7 +28,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   smell: { 
     name: 'Smell', 
     description: 'Strong scents, chemicals, or food.',
-    icon: NoseIcon, 
+    icon: SmellIcon, 
     color: '#E76F51',
   },
   touch: { 
