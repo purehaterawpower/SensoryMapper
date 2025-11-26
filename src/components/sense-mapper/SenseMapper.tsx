@@ -4,11 +4,12 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Marker, Shape, Point, ActiveTool, SensoryType, DrawingShape } from '@/lib/types';
+import { Item, Marker, Shape, Point, ActiveTool, SensoryType } from '@/lib/types';
 import { SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
+import { ZONE_COLORS } from '@/lib/zone-colors';
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -74,7 +75,9 @@ export function SenseMapper() {
 
   const handleItemSelect = (item: Item | null) => {
     if (editingItemId && item?.id !== editingItemId) {
-        return; // Don't allow deselection while editing a shape
+        // When in edit mode, don't allow selecting another item.
+        // The user must save or cancel the current edit.
+        return; 
     }
     setSelectedItem(item);
   };
@@ -273,7 +276,8 @@ export function SenseMapper() {
           ...drawingShape,
           id: crypto.randomUUID(),
           type: activeTool.type,
-          description: ''
+          description: '',
+          color: ZONE_COLORS[0].color,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -289,8 +293,9 @@ export function SenseMapper() {
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
+    // If we are in edit mode, a click on the background should NOT deselect the item.
     if (editingItemId) {
-        return; // Prevent deselection or new item creation while editing
+        return;
     }
 
     if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
@@ -340,7 +345,15 @@ export function SenseMapper() {
   };
 
   const handleToggleEditMode = (itemId: string) => {
-      setEditingItemId(prev => (prev === itemId ? null : itemId));
+    setEditingItemId(prev => {
+        const newId = prev === itemId ? null : itemId;
+        if(newId) {
+            // If we are entering edit mode, make sure the item is selected
+            const itemToEdit = items.find(i => i.id === newId);
+            if(itemToEdit) setSelectedItem(itemToEdit);
+        }
+        return newId;
+    });
   }
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -364,15 +377,16 @@ export function SenseMapper() {
         setActiveTool(prev => ({ tool: 'shape', shape: 'polygon', type: prev.type || SENSORY_TYPES[0] }));
         break;
       case 'escape':
-        setSelectedItem(null);
+        if (!editingItemId) {
+            setSelectedItem(null);
+        }
         setIsDrawing(false);
         setDrawingShape(null);
         setStartCoords(null);
         setDraggingItem(null);
-        setEditingItemId(null);
         break;
     }
-  }, []);
+  }, [editingItemId]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -384,13 +398,11 @@ export function SenseMapper() {
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if(draggingItem || isDrawing) {
-        // This is a bit of a hack to create a React-like mouse event on the map ref
         const mapRect = mapRef.current?.getBoundingClientRect();
         if (mapRect) {
             const syntheticEvent = {
                 clientX: e.clientX,
                 clientY: e.clientY,
-                // We can add more properties if needed by handleMouseMove
             } as React.MouseEvent;
             handleMouseMove(syntheticEvent);
         }
@@ -437,12 +449,7 @@ export function SenseMapper() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onClick={(e) => {
-          if (!editingItemId) {
-            setSelectedItem(null);
-          }
-          handleMapClick(e);
-        }}
+        onClick={handleMapClick}
         onDoubleClick={handleDoubleClick}
         drawingShape={drawingShape}
         selectedItem={selectedItem}
@@ -452,7 +459,7 @@ export function SenseMapper() {
       />
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => { setSelectedItem(null); setEditingItemId(null); }}
+        onClose={() => { if (!editingItemId) setSelectedItem(null); }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}

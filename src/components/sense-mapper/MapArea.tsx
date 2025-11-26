@@ -5,6 +5,7 @@ import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef } from "react";
 import { EditHandles } from './EditHandles';
+import { ZONE_COLORS } from "@/lib/zone-colors";
 
 type MapAreaProps = {
   mapImage: string | null;
@@ -60,7 +61,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       >
         <div className={cn(
             "p-1.5 rounded-full shadow-lg transition-all", 
-            marker.color ? '' : SENSORY_DATA[marker.type].className,
+            !marker.color && SENSORY_DATA[marker.type].className,
             isSelected && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
             )}
             style={{ backgroundColor: marker.color }}
@@ -76,7 +77,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
     const isSelected = selectedItem?.id === shape.id;
     const isEditing = editingItemId === shape.id;
-    const color = shape.color || SENSORY_DATA[shape.type].color;
+    const color = shape.color || ZONE_COLORS[0].color;
+    const fill = color === 'url(#extreme-pattern)' ? color : color;
     
     return (
         <g 
@@ -93,9 +95,9 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     y={shape.y}
                     width={shape.width}
                     height={shape.height}
-                    fill={color}
+                    fill={fill}
                     opacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}
@@ -104,18 +106,18 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cx={shape.cx}
                     cy={shape.cy}
                     r={shape.radius}
-                    fill={color}
+                    fill={fill}
                     opacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}
             {shape.shape === 'polygon' && (
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
-                    fill={color}
+                    fill={fill}
                     opacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}
@@ -171,6 +173,12 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
             <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
             <div className="absolute inset-0">
                 <svg width="100%" height="100%">
+                    <defs>
+                        <pattern id="extreme-pattern" patternUnits="userSpaceOnUse" width="8" height="8">
+                            <rect width="8" height="8" fill="#DC2626"/>
+                            <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="black" strokeWidth="1" />
+                        </pattern>
+                    </defs>
                   {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
                   {renderDrawingShape()}
                 </svg>

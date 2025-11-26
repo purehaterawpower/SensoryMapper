@@ -1,14 +1,16 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { SENSORY_DATA } from "@/lib/constants";
-import { Item, Shape, Marker } from "@/lib/types";
+import { Item }from "@/lib/types";
 import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { ZONE_COLORS, ZoneColor } from "@/lib/zone-colors";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type AnnotationEditorProps = {
   item: Item | null;
@@ -28,8 +30,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   useEffect(() => {
     if (item) {
       setDescription(item.description);
-      if(item.shape !== 'marker' && item.color) {
-        setColor(item.color);
+      if(item.shape !== 'marker') {
+        setColor(item.color || ZONE_COLORS[0].color);
       } else {
         setColor(SENSORY_DATA[item.type].color);
       }
@@ -124,17 +126,41 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
             {isShape && (
               <div className="grid gap-2">
-                <Label htmlFor="color">Color</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="color"
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="p-1 h-8 w-14"
-                  />
-                  <span className="text-sm text-muted-foreground">{color}</span>
+                <Label>Zone Category</Label>
+                <TooltipProvider delayDuration={100}>
+                <div className="flex flex-wrap gap-2">
+                    {ZONE_COLORS.map((zoneColor: ZoneColor) => (
+                        <Tooltip key={zoneColor.id}>
+                            <TooltipTrigger asChild>
+                                <button
+                                    onClick={() => setColor(zoneColor.color)}
+                                    className={cn("w-8 h-8 rounded-full border-2 transition-all",
+                                        color === zoneColor.color ? 'border-primary' : 'border-transparent'
+                                    )}
+                                >
+                                    {zoneColor.id === 'extreme' ? (
+                                        <svg width="100%" height="100%" className="rounded-full">
+                                            <defs>
+                                                <pattern id="extreme-pattern-preview" patternUnits="userSpaceOnUse" width="8" height="8">
+                                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="black" strokeWidth="1" />
+                                                </pattern>
+                                            </defs>
+                                            <rect x="0" y="0" width="100%" height="100%" fill="#DC2626" />
+                                            <rect x="0" y="0" width="100%" height="100%" fill="url(#extreme-pattern-preview)" />
+                                        </svg>
+                                    ) : (
+                                        <div className="w-full h-full rounded-full" style={{backgroundColor: zoneColor.color}}></div>
+                                    )}
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs text-center">
+                                <p className="font-bold">{zoneColor.name}</p>
+                                <p>{zoneColor.description}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    ))}
                 </div>
+                </TooltipProvider>
               </div>
             )}
 
