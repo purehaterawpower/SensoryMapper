@@ -379,8 +379,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                         y: p.y + dy,
                     }));
                 }
-            } else {
-              // Handle resize commit - logic is mostly in mousemove for realtime feedback
+            } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
+              if (updatedItem.shape === 'polygon') {
+                const newPoints = [...(updatedItem as PolygonShape).points];
+                newPoints[draggingItem.handleIndex] = finalCoords;
+                (updatedItem as PolygonShape).points = newPoints;
+              }
             }
             return updatedItem;
         }));
