@@ -10,6 +10,8 @@ import { MousePointer, Square, Upload, Landmark, Circle, Pentagon } from "lucide
 import { useRef } from "react";
 import { Input } from "../ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -162,29 +164,25 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               View Layers
           </AccordionTrigger>
           <AccordionContent className="pt-2">
-            <TooltipProvider delayDuration={100}>
-              <div className="grid grid-cols-4 gap-2">
-                {SENSORY_TYPES.map(type => {
-                  const { icon: Icon, name } = SENSORY_DATA[type];
-                  const isVisible = visibleLayers[type];
-                  return (
-                    <Tooltip key={type}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={isVisible ? 'secondary' : 'ghost'}
-                          size="icon"
-                          onClick={() => onLayerVisibilityChange(type, !isVisible)}
-                          className={cn("h-12 w-12")}
-                        >
-                          <Icon className="w-6 h-6" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top"><p>{isVisible ? 'Hide' : 'Show'} {name}</p></TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            </TooltipProvider>
+            <div className="space-y-2">
+              {SENSORY_TYPES.map(type => {
+                const { icon: Icon, name } = SENSORY_DATA[type];
+                const isVisible = visibleLayers[type];
+                return (
+                  <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
+                    <div className={`p-1 rounded-md`} style={{ backgroundColor: SENSORY_DATA[type].color }}>
+                        <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
+                    <Checkbox
+                      id={`layer-${type}`}
+                      checked={isVisible}
+                      onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
