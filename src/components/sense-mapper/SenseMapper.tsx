@@ -10,6 +10,13 @@ import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { ZONE_COLORS } from '@/lib/zone-colors';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set worker source for pdf.js
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+}
+
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -55,18 +62,52 @@ export function SenseMapper() {
     };
   };
 
-  const handleMapUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        handleImageLoad(e.target.result as string);
-        toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
-      }
-    };
-    reader.onerror = () => {
-      toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+  const handleMapUpload = async (file: File) => {
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                handleImageLoad(e.target.result as string);
+                toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
+            }
+        };
+        reader.onerror = () => {
+            toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+        }
+        reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                if (e.target?.result) {
+                    const typedArray = new Uint8Array(e.target.result as ArrayBuffer);
+                    const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                    const page = await pdf.getPage(1);
+                    
+                    const viewport = page.getViewport({ scale: 2 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    if (context) {
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport,
+                        };
+                        await page.render(renderContext).promise;
+                        const dataUrl = canvas.toDataURL('image/png');
+                        handleImageLoad(dataUrl);
+                        toast({ title: "PDF Map Uploaded", description: "You can now add markers and shapes to your new map." });
+                    }
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error("Error processing PDF:", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to process the PDF file." });
+        }
     }
-    reader.readAsDataURL(file);
   };
 
   const handleLayerVisibilityChange = (layer: SensoryType, visible: boolean) => {
@@ -74,8 +115,8 @@ export function SenseMapper() {
   };
 
   const handleItemSelect = (item: Item | null) => {
-    if (editingItemId && item?.id !== editingItemId) {
-        // When in edit mode, don't allow selecting another item.
+    if (editingItemId && item?.id !== editingItemId && !item) {
+        // When in edit mode, don't allow deselecting
         return; 
     }
     setSelectedItem(item);
@@ -184,7 +225,7 @@ export function SenseMapper() {
     if (itemId) {
       const item = items.find(i => i.id === itemId);
       if (item) {
-        if (activeTool.tool === 'select') {
+        if (activeTool.tool === 'select' || item.shape !== 'marker') {
           let dragStartPos = { x: 0, y: 0 };
           
           if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
@@ -195,11 +236,7 @@ export function SenseMapper() {
              dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
           }
           
-          if (editingItemId === itemId || item.shape !== 'marker') {
-             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-          } else if (item.shape === 'marker') {
-             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
-          }
+          setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
         }
       }
       e.stopPropagation();
@@ -272,7 +309,7 @@ export function SenseMapper() {
         (drawingShape.shape === 'circle' && drawingShape.radius < 5)
       ) {
          // Ignore tiny shapes
-      } else {
+      } else if (activeTool.shape !== 'polygon' || (drawingShape?.points && drawingShape.points.length > 2)) {
         const newShape: Shape = {
           ...drawingShape,
           id: crypto.randomUUID(),
@@ -296,6 +333,10 @@ export function SenseMapper() {
   const handleMapClick = (e: React.MouseEvent) => {
     // If we are in edit mode, a click on the background should NOT deselect the item.
     if (editingItemId) {
+        if (!e.defaultPrevented) {
+            setSelectedItem(null);
+            setEditingItemId(null);
+         }
         return;
     }
 
@@ -352,6 +393,9 @@ export function SenseMapper() {
             // If we are entering edit mode, make sure the item is selected
             const itemToEdit = items.find(i => i.id === newId);
             if(itemToEdit) setSelectedItem(itemToEdit);
+        } else {
+            // If we are exiting edit mode, deselect the item
+            setSelectedItem(null);
         }
         return newId;
     });
@@ -378,16 +422,20 @@ export function SenseMapper() {
         setActiveTool(prev => ({ tool: 'shape', shape: 'polygon', type: prev.type || SENSORY_TYPES[0] }));
         break;
       case 'escape':
-        if (!editingItemId) {
+        if (isDrawing) {
+            setIsDrawing(false);
+            setDrawingShape(null);
+            setStartCoords(null);
+        } else if (editingItemId) {
+            setEditingItemId(null);
+            setSelectedItem(null);
+        } else if (selectedItem) {
             setSelectedItem(null);
         }
-        setIsDrawing(false);
-        setDrawingShape(null);
-        setStartCoords(null);
         setDraggingItem(null);
         break;
     }
-  }, [editingItemId]);
+  }, [editingItemId, selectedItem, isDrawing]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -464,7 +512,10 @@ export function SenseMapper() {
       />
       <AnnotationEditor
         item={selectedItem}
-        onClose={() => { if (!editingItemId) setSelectedItem(null); }}
+        onClose={() => { 
+            if (editingItemId) return;
+            setSelectedItem(null); 
+        }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
         onGenerateSummary={handleGenerateSummary}

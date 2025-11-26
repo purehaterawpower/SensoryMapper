@@ -66,7 +66,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           id="map-upload"
           ref={fileInputRef}
           className="hidden"
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={handleFileUpload}
         />
         <Button onClick={() => fileInputRef.current?.click()} className="w-full">
