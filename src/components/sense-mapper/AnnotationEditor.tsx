@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA } from "@/lib/constants";
-import { Item }from "@/lib/types";
+import { Item, Point }from "@/lib/types";
 import { Loader2, Sparkles, Trash2, Edit, Upload, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -23,9 +23,11 @@ type AnnotationEditorProps = {
   isSummaryLoading: boolean;
   onToggleEditMode: (itemId: string) => void;
   readOnly?: boolean;
+  panOffset: Point;
+  zoomLevel: number;
 };
 
-export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode, readOnly }: AnnotationEditorProps) {
+export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
   const [image, setImage] = useState<string | null>(null);
@@ -53,29 +55,33 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         const style = triggerRef.current.style;
         style.position = 'absolute';
         
-        let targetX = 0, targetY = 0;
+        let targetMapX = 0, targetMapY = 0;
 
         if (item.shape === 'marker') {
-            targetX = item.x;
-            targetY = item.y;
+            targetMapX = item.x;
+            targetMapY = item.y;
         } else if (item.shape === 'rectangle') {
-            targetX = item.x + item.width / 2;
-            targetY = item.y + item.height / 2;
+            targetMapX = item.x + item.width / 2;
+            targetMapY = item.y + item.height / 2;
         } else if (item.shape === 'circle') {
-            targetX = item.cx;
-            targetY = item.cy;
+            targetMapX = item.cx;
+            targetMapY = item.cy;
         } else if (item.shape === 'polygon') {
             let cx = 0, cy = 0;
             item.points.forEach(p => { cx += p.x; cy += p.y; });
-            targetX = cx / item.points.length;
-            targetY = cy / item.points.length;
+            targetMapX = cx / item.points.length;
+            targetMapY = cy / item.points.length;
         }
-        style.left = `${targetX}px`;
-        style.top = `${targetY}px`;
+        
+        const screenX = (targetMapX * zoomLevel) + panOffset.x;
+        const screenY = (targetMapY * zoomLevel) + panOffset.y;
+
+        style.left = `${screenX}px`;
+        style.top = `${screenY}px`;
         style.width = `0px`;
         style.height = `0px`;
     }
-  }, [item]);
+  }, [item, panOffset, zoomLevel]);
 
   if (!item) return null;
 

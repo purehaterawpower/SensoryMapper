@@ -719,6 +719,15 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     transformOrigin: 'top left',
   };
 
+  const annotationEditorContainerStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+  };
+
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
@@ -767,21 +776,25 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
               </Button>
           </div>
       )}
-      <AnnotationEditor
-        item={selectedItem}
-        onClose={() => {
-            setSelectedItem(null);
-            if (!items.find(it => it.id === editingItemId)) {
-                setEditingItemId(null);
-            }
-        }}
-        onSave={handleSaveAnnotation}
-        onDelete={handleDeleteItem}
-        onGenerateSummary={handleGenerateSummary}
-        isSummaryLoading={isSummaryLoading}
-        onToggleEditMode={handleToggleEditMode}
-        readOnly={readOnly}
-      />
+      <div style={annotationEditorContainerStyle}>
+        <AnnotationEditor
+          item={selectedItem}
+          onClose={() => {
+              setSelectedItem(null);
+              if (!items.find(it => it.id === editingItemId)) {
+                  setEditingItemId(null);
+              }
+          }}
+          onSave={handleSaveAnnotation}
+          onDelete={handleDeleteItem}
+          onGenerateSummary={handleGenerateSummary}
+          isSummaryLoading={isSummaryLoading}
+          onToggleEditMode={handleToggleEditMode}
+          readOnly={readOnly}
+          panOffset={panOffset}
+          zoomLevel={zoomLevel}
+        />
+      </div>
       <SummaryDialog
         summary={summary}
         onClose={() => setSummary(null)}
