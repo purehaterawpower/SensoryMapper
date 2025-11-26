@@ -6,9 +6,7 @@ import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
 import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape } from '@/lib/types';
 import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
-import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { SummaryDialog } from './SummaryDialog';
 import { PrintableReport } from './PrintableReport';
 import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
@@ -52,8 +50,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
   
-  const [summary, setSummary] = useState<{title: string, content: string} | null>(null);
-  const [isSummaryLoading, setSummaryLoading] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -301,7 +297,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     updatedItem.x = Math.min(coords.x, oppositeCorner.x);
                     updatedItem.y = Math.min(coords.y, oppositeCorner.y);
                     updatedItem.width = Math.abs(coords.x - oppositeCorner.x);
-                    updatedItem.height = Math.abs(coords.y - oppositeCorner.y);
+                    updatedItem.height = Math.abs(coords.x - oppositeCorner.y);
                 } else if (updatedItem.shape === 'circle') {
                     const originalItem = items.find(i => i.id === draggingItem.id) as CircleShape;
                     const newDx = coords.x - originalItem.cx;
@@ -507,18 +503,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setHighlightedItem(null);
     setEditingItemId(null);
     toast({ title: "Deleted!", description: "The item has been removed from the map." });
-  };
-
-  const handleGenerateSummary = async (description: string) => {
-    setSummaryLoading(true);
-    const result = await getSensorySummary(description);
-    setSummaryLoading(false);
-
-    if (result.error) {
-      toast({ variant: "destructive", title: "Error", description: result.error });
-    } else if (result.summary) {
-      setSummary({ title: 'Generated Sensory Summary', content: result.summary });
-    }
   };
 
   const handleToggleEditMode = (itemId: string) => {
@@ -799,18 +783,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           }}
           onSave={handleSaveAnnotation}
           onDelete={handleDeleteItem}
-          onGenerateSummary={handleGenerateSummary}
-          isSummaryLoading={isSummaryLoading}
           onToggleEditMode={handleToggleEditMode}
           readOnly={readOnly}
           panOffset={panOffset}
           zoomLevel={zoomLevel}
         />
       </div>
-      <SummaryDialog
-        summary={summary}
-        onClose={() => setSummary(null)}
-      />
       <ShareDialog
         shareUrl={shareUrl}
         onClose={() => setShareUrl(null)}

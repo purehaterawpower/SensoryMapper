@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
 import { Item, Point, Marker }from "@/lib/types";
-import { Loader2, Sparkles, Trash2, Edit, Upload, X } from "lucide-react";
+import { Trash2, Edit, Upload, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
@@ -19,15 +19,13 @@ type AnnotationEditorProps = {
   onClose: () => void;
   onSave: (itemId: string, data: Partial<Item>) => void;
   onDelete: (itemId: string) => void;
-  onGenerateSummary: (description: string) => Promise<void>;
-  isSummaryLoading: boolean;
   onToggleEditMode: (itemId: string) => void;
   readOnly?: boolean;
   panOffset: Point;
   zoomLevel: number;
 };
 
-export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
+export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
   const [iconSize, setIconSize] = useState(50);
@@ -112,10 +110,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const handleDelete = () => {
     onDelete(item.id);
   };
-  
-  const handleGenerateSummary = async () => {
-    await onGenerateSummary(description);
-  }
 
   const handleToggleEditMode = () => {
     onToggleEditMode(item.id);
@@ -260,10 +254,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                                 <Edit className="h-4 w-4" />
                             </Button>
                         )}
-                        <Button onClick={handleGenerateSummary} disabled={isSummaryLoading || !description.trim()} variant="outline">
-                            {isSummaryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                            Insights
-                        </Button>
                         <Button onClick={handleSave}>Save</Button>
                     </div>
                 </div>
