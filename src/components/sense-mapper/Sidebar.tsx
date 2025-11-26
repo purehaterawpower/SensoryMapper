@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Circle, MapPin } from "lucide-react";
+import { MousePointer, Square, Upload, Circle, MapPin, FileDown } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
@@ -19,9 +19,11 @@ type SidebarProps = {
   setActiveTool: (tool: ActiveTool) => void;
   visibleLayers: Record<string, boolean>;
   onLayerVisibilityChange: (layer: ItemType, visible: boolean) => void;
+  onExportPDF: () => void;
+  isExporting: boolean;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange }: SidebarProps) {
+export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting }: SidebarProps) {
 
   const handleToolChange = (tool: 'select' | 'shape' | 'marker', shape?: 'rectangle' | 'circle' | 'polygon') => {
     if (tool === 'select') {
@@ -213,6 +215,13 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             </AccordionContent>
             </AccordionItem>
         </Accordion>
+      </div>
+
+      <div className="p-2">
+        <Button onClick={onExportPDF} disabled={isExporting} className="w-full">
+            <FileDown className="mr-2 h-4 w-4" />
+            {isExporting ? 'Exporting...' : 'Export to PDF'}
+        </Button>
       </div>
     </aside>
   );
