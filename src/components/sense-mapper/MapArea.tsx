@@ -105,6 +105,24 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
     
+    const Hitbox = () => {
+      const props = {
+        fill: '#000',
+        fillOpacity: 0,
+        strokeOpacity: 0,
+      }
+       if (shape.shape === 'rectangle') {
+        return <rect x={shape.x} y={shape.y} width={shape.width} height={shape.height} {...props} />;
+      }
+      if (shape.shape === 'circle') {
+        return <circle cx={shape.cx} cy={shape.cy} r={shape.radius} {...props} />;
+      }
+      if (shape.shape === 'polygon') {
+        return <polygon points={shape.points.map(p => `${p.x},${p.y}`).join(' ')} {...props} />;
+      }
+      return null;
+    }
+
     return (
         <g 
           key={shape.id}
@@ -112,6 +130,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           data-item-type="shape"
           style={{ cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair') }}
         >
+            <Hitbox />
             {shape.shape === 'rectangle' && (
                 <rect
                     x={shape.x}
@@ -122,6 +141,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
+                    style={{pointerEvents: 'none'}}
                 />
             )}
             {shape.shape === 'circle' && (
@@ -133,6 +153,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
+                    style={{pointerEvents: 'none'}}
                 />
             )}
             {shape.shape === 'polygon' && (
@@ -142,6 +163,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
                     stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
+                    style={{pointerEvents: 'none'}}
                 />
             )}
             {isEditing && <EditHandles shape={shape} />}
@@ -155,14 +177,15 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       stroke: 'hsl(var(--primary))',
       strokeWidth: 2,
       strokeDasharray: '5,5',
-      fill: 'none',
+      fill: 'hsl(var(--primary))',
+      fillOpacity: 0.2,
       pointerEvents: 'none' as const
     };
     if (drawingShape.shape === 'rectangle') {
-      return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2,}} />;
+      return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={style} />;
     }
     if (drawingShape.shape === 'circle') {
-      return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2,}} />;
+      return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={style} />;
     }
     if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
       const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
@@ -174,16 +197,16 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 y1={drawingShape.points[drawingShape.points.length - 1].y}
                 x2={drawingShape.points[0].x}
                 y2={drawingShape.points[0].y}
-                style={{ ...style }}
+                style={{ ...style, fill: 'none' }}
               />
           )}
-          <polyline points={currentPoints} style={{...style, fill: 'hsl(var(--primary))', fillOpacity: 0.2, strokeDasharray: 'none'}} />
+          <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
           <line
             x1={drawingShape.points[drawingShape.points.length - 1].x}
             y1={drawingShape.points[drawingShape.points.length - 1].y}
             x2={cursorPos.x}
             y2={cursorPos.y}
-            style={{ ...style}}
+            style={{ ...style, fill: 'none'}}
           />
           {drawingShape.points.map((p: Point, i: number) => (
              <rect
