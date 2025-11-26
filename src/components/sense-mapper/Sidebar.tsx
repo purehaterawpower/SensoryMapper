@@ -127,20 +127,20 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
         
-        <div className="p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">SenseMapper</h1>
-          <div className="flex gap-2">
-            {!readOnly && (
-              <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm">
-                {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-                Share
-              </Button>
-            )}
-            <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
-                {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                Export
-            </Button>
-          </div>
+        <div className="p-4 flex flex-wrap gap-2 justify-between items-center">
+            <h1 className="text-xl font-bold">SenseMapper</h1>
+            <div className="flex gap-2">
+                {!readOnly && (
+                <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm">
+                    {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                    Share
+                </Button>
+                )}
+                <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                    Export
+                </Button>
+            </div>
         </div>
         <Separator/>
 
