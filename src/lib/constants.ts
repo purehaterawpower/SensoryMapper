@@ -1,5 +1,5 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee } from 'lucide-react';
+import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee, Users, Compass } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
 import { VolumeX, MessageCircle } from 'lucide-react';
 
@@ -10,27 +10,27 @@ export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help'
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
-    name: 'Vision', 
-    description: 'Visual stimuli like bright lights, flashing effects, or visual clutter.',
+    name: 'Visuals (Sight)', 
+    description: 'Lights & Patterns: Warns of bright or flashing lights, darkness, or "visually busy" areas with lots of colours and patterns.',
     icon: Eye, 
     color: '#8DAEF3', 
   },
   hearing: { 
-    name: 'Hearing', 
-    description: 'Auditory stimuli like loud music, sudden noises, or announcements.',
+    name: 'Sound (Sound)', 
+    description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet zones.',
     icon: Ear, 
     color: '#E6ACAC', 
   },
   smell: { 
-    name: 'Smell', 
-    description: 'Olfactory stimuli like food smells, cleaning products, or perfumes.',
+    name: 'Smell (Smell)', 
+    description: 'Scents & Odours: Warns of strong smells like food courts, cleaning chemicals, or perfumes. Also marks fresh air areas.',
     icon: NoseIcon, 
     color: '#FDDDB1',
   },
   vestibular: { 
-    name: 'Balance & Motion', 
-    description: 'Stability & Direction: Tells you if the floor is uneven, if there are elevators, or if the layout is confusing. Helpful if you get dizzy easily.',
-    icon: Scale, 
+    name: 'Movement (Vestibular)', 
+    description: 'Balance & Navigation: Tells you if the floor is uneven, if there are slopes/escalators, or if the layout is confusing to navigate.',
+    icon: Compass, 
     color: '#007C78', 
   },
   touch: { 
@@ -40,9 +40,9 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     color: '#2558D7', 
   },
   proprioception: { 
-    name: 'Body Space', 
-    description: 'Crowding & Squeeze: Tells you if an area is tight, crowded, or if you might bump into things. Helpful if you need personal space.',
-    icon: User, 
+    name: 'Space (Proprioception)', 
+    description: 'Crowding & Proximity: Tells you if an area is tight, usually crowded, or requires squeezing through narrow gaps.',
+    icon: Users, 
     color: '#F37255',
   },
 };
@@ -74,7 +74,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   },
   help: {
     name: 'Help Point',
-    description: 'Information desks or locations where staff can provide assistance.',
+    description: 'Information Desks or locations where staff can provide assistance.',
     icon: Info,
     color: '#BDBDBD'
   },
