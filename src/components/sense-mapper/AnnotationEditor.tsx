@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { SENSORY_DATA } from "@/lib/constants";
+import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item }from "@/lib/types";
 import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
@@ -70,7 +70,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   if (!item) return null;
 
-  const { name: sensoryName, icon: Icon } = SENSORY_DATA[item.type];
+  const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
 
   const handleSave = () => {
@@ -102,7 +102,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         <div className="grid gap-4">
             <div className="space-y-2">
                 <h4 className="font-medium leading-none flex items-center gap-2">
-                    <div className={`p-1.5 rounded-md`} style={{backgroundColor: SENSORY_DATA[item.type].color}}>
+                    <div className={`p-1.5 rounded-md`} style={{backgroundColor: ALL_SENSORY_DATA[item.type].color}}>
                         <Icon className="w-5 h-5 text-white" />
                     </div>
                     Edit {sensoryName} {isShape ? 'Zone' : 'Marker'}

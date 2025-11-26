@@ -1,6 +1,6 @@
 'use client';
 
-import { SENSORY_DATA } from "@/lib/constants";
+import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useState, useEffect } from "react";
@@ -42,7 +42,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   
   const renderMarker = (marker: Marker) => {
     if (!visibleLayers[marker.type]) return null;
-    const { icon: Icon } = SENSORY_DATA[marker.type];
+    const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const isSelected = selectedItem?.id === marker.id;
 
     const itemStyle: React.CSSProperties = {
@@ -67,10 +67,9 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       >
         <div className={cn(
             "p-1.5 rounded-full shadow-lg transition-all", 
-            !marker.color && SENSORY_DATA[marker.type].className,
             isSelected && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
             )}
-            style={{ backgroundColor: marker.color }}
+            style={{ backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color }}
           >
           <Icon className="w-5 h-5 text-white" />
         </div>

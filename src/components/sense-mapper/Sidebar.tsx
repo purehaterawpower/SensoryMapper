@@ -1,7 +1,7 @@
 'use client';
 
-import { SENSORY_DATA, SENSORY_TYPES } from "@/lib/constants";
-import { ActiveTool, SensoryType } from "@/lib/types";
+import { SENSORY_STIMULI_TYPES, RESPITE_ZONE_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA, SENSORY_TYPES } from "@/lib/constants";
+import { ItemType, ActiveTool } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,8 +17,8 @@ import { PolygonIcon } from "../icons/PolygonIcon";
 type SidebarProps = {
   activeTool: ActiveTool;
   setActiveTool: (tool: ActiveTool) => void;
-  visibleLayers: Record<SensoryType, boolean>;
-  onLayerVisibilityChange: (layer: SensoryType, visible: boolean) => void;
+  visibleLayers: Record<string, boolean>;
+  onLayerVisibilityChange: (layer: ItemType, visible: boolean) => void;
   onMapUpload: (file: File) => void;
 };
 
@@ -29,12 +29,12 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
     } else { // shape
-      const currentType = activeTool.type || SENSORY_TYPES[0];
+      const currentType = activeTool.type || SENSORY_STIMULI_TYPES[0];
       setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
     }
   };
 
-  const handleSensoryTypeChange = (type: SensoryType) => {
+  const handleSensoryTypeChange = (type: ItemType) => {
     if (activeTool.tool === 'select') {
         // If select tool is active, switch to shape tool with the new type
         setActiveTool({ tool: 'shape', shape: 'rectangle', type });
@@ -54,7 +54,26 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     }
   };
   
-  const selectedSensoryType = activeTool.tool !== 'select' ? activeTool.type : undefined;
+  const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
+
+  const renderTypeButtons = (types: ItemType[]) => {
+    return types.map(type => {
+        const { icon: Icon, name, color } = ALL_SENSORY_DATA[type];
+        return (
+            <Button
+                key={type}
+                variant={selectedItemType === type ? 'secondary' : 'ghost'}
+                onClick={() => handleSensoryTypeChange(type)}
+                className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
+            >
+                <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
+                    <Icon className="w-4 h-4 text-white" />
+                </div>
+                <span>{name}</span>
+            </Button>
+        );
+    });
+  }
 
   return (
     <aside className="w-80 bg-card border-r flex flex-col p-4 gap-4">
@@ -79,26 +98,27 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         </Button>
       </div>
 
-      <div className="space-y-2">
-          <h2 className="text-lg font-semibold px-2">Sensory Type</h2>
-          <div className="flex flex-col gap-1">
-          {SENSORY_TYPES.map(type => {
-              const { icon: Icon, name, color } = SENSORY_DATA[type];
-              return (
-                  <Button
-                      key={type}
-                      variant={selectedSensoryType === type ? 'secondary' : 'ghost'}
-                      onClick={() => handleSensoryTypeChange(type)}
-                      className="h-10 w-full justify-start pl-3 gap-3 rounded-full"
-                  >
-                      <div className="p-1.5 rounded-full flex items-center justify-center" style={{backgroundColor: color}}>
-                          <Icon className="w-4 h-4 text-white" />
-                      </div>
-                      <span>{name}</span>
-                  </Button>
-              );
-          })}
-          </div>
+      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+        <div>
+            <h2 className="text-lg font-semibold px-2 mb-2">Sensory Stimuli</h2>
+            <div className="flex flex-col gap-1">
+                {renderTypeButtons(SENSORY_STIMULI_TYPES)}
+            </div>
+        </div>
+
+        <div>
+            <h2 className="text-lg font-semibold px-2 mb-2">Respite Zones</h2>
+            <div className="flex flex-col gap-1">
+                {renderTypeButtons(RESPITE_ZONE_TYPES)}
+            </div>
+        </div>
+
+        <div>
+            <h2 className="text-lg font-semibold px-2 mb-2">Practical Amenities</h2>
+            <div className="flex flex-col gap-1">
+                {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
+            </div>
+        </div>
       </div>
       
       <Separator />
@@ -144,7 +164,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
           </div>
         </div>
-
       </TooltipProvider>
 
       <Separator />
@@ -156,12 +175,12 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           </AccordionTrigger>
           <AccordionContent className="pt-2">
             <div className="space-y-2">
-              {SENSORY_TYPES.map(type => {
-                const { icon: Icon, name } = SENSORY_DATA[type];
+              {[...SENSORY_STIMULI_TYPES, ...RESPITE_ZONE_TYPES, ...PRACTICAL_AMENITY_TYPES].map(type => {
+                const { icon: Icon, name } = ALL_SENSORY_DATA[type];
                 const isVisible = visibleLayers[type];
                 return (
                   <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
-                    <div className={`p-1 rounded-md`} style={{ backgroundColor: SENSORY_DATA[type].color }}>
+                    <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
                         <Icon className="w-4 h-4 text-white" />
                     </div>
                     <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>

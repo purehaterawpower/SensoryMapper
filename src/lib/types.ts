@@ -2,20 +2,27 @@ import type { LucideProps } from 'lucide-react';
 import type React from 'react';
 
 export type SensoryType = 'touch' | 'vestibular' | 'proprioception' | 'vision' | 'hearing' | 'smell';
+export type AmenityType = 'quietZone' | 'seating' | 'toilets' | 'exit' | 'help' | 'firstAid' | 'food';
+export type ItemType = SensoryType | AmenityType;
 
-export type SensoryInfo = {
+export type BaseInfo = {
   name: string;
   description: string;
   icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>> | React.FC<React.SVGProps<SVGSVGElement>>;
   color: string;
+}
+
+export type SensoryInfo = BaseInfo & {
   className: string;
 };
+
+export type AmenityInfo = BaseInfo;
 
 export type Point = { x: number; y: number };
 
 export type BaseItem = {
   id: string;
-  type: SensoryType;
+  type: ItemType;
   description: string;
   color?: string;
 };
@@ -53,6 +60,6 @@ export type Item = Marker | Shape;
 export type DrawingShape = 'rectangle' | 'circle' | 'polygon';
 export type ActiveTool = {
   tool: 'select' | 'shape';
-  type?: SensoryType;
+  type?: ItemType;
   shape?: DrawingShape;
 };

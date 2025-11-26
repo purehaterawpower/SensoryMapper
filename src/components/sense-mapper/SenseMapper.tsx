@@ -4,8 +4,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Marker, Shape, Point, ActiveTool, SensoryType } from '@/lib/types';
-import { SENSORY_TYPES } from '@/lib/constants';
+import { Item, Shape, Point, ActiveTool, ItemType } from '@/lib/types';
+import { ALL_SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
@@ -18,14 +18,14 @@ if (typeof window !== 'undefined') {
 }
 
 
-const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
+const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
   return acc;
-}, {} as Record<SensoryType, boolean>);
+}, {} as Record<ItemType, boolean>);
 
 export function SenseMapper() {
   const [items, setItems] = useState<Item[]>([]);
-  const [visibleLayers, setVisibleLayers] = useState<Record<SensoryType, boolean>>(initialLayerVisibility);
+  const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   
@@ -112,7 +112,7 @@ export function SenseMapper() {
     }
   };
 
-  const handleLayerVisibilityChange = (layer: SensoryType, visible: boolean) => {
+  const handleLayerVisibilityChange = (layer: ItemType, visible: boolean) => {
     setVisibleLayers(prev => ({ ...prev, [layer]: visible }));
   };
 
@@ -437,7 +437,7 @@ export function SenseMapper() {
     }
     const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
     const shape = activeTool.tool === 'shape' ? activeTool.shape : 'rectangle';
-    const type = activeTool.type || SENSORY_TYPES[0];
+    const type = activeTool.type || ALL_SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':
