@@ -96,7 +96,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     <aside className="w-80 bg-card border-r flex flex-col p-4 gap-4">
       <div className="p-2">
         <h1 className="text-2xl font-bold">SenseMapper</h1>
-        <p className="text-sm text-muted-foreground">Map and analyze sensory experiences.</p>
+        <p className="text-sm text-muted-foreground">Map and analyse sensory experiences.</p>
       </div>
       <Separator />
 
@@ -179,7 +179,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Facilities</h3>
               <div className="space-y-1">
                 {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
               </div>
@@ -205,7 +205,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
+                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Facilities</h3>
                   <div className="space-y-1">
                     {renderLayerCheckboxes(PRACTICAL_AMENITY_TYPES)}
                   </div>
