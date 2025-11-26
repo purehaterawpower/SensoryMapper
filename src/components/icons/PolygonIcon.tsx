@@ -9,24 +9,16 @@ export const PolygonIcon = (props: SVGProps<SVGSVGElement>) => (
         viewBox="0 0 24 24" 
         fill="none" 
         stroke="currentColor" 
-        strokeWidth="2.5" 
+        strokeWidth="2" 
         strokeLinecap="round" 
         strokeLinejoin="round" 
         {...props}
     >
-        <path d="M13.5 3.5h-5l-4 6.5 4 6.5h5l4-6.5Z"/>
-        <circle cx="13.5" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="8.5" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="4.5" cy="10" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="8.5" cy="16.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="13.5" cy="16.5" r="15" fill="currentColor" stroke="none"/>
-        <circle cx="17.5" cy="10" r="1.5" fill="currentColor" stroke="none"/>
-        
-        <circle cx="13.5" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="8.5" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="4.5" cy="10" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="8.5" cy="16.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="13.5" cy="16.5" r="1.5" fill="currentColor" stroke="none"/>
-        <circle cx="17.5" cy="10" r="1.5" fill="currentColor" stroke="none"/>
+        <path d="M20.18 3.34A1.5 1.5 0 0 0 18.5 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V5.5a1.5 1.5 0 0 0-.82-.66Z" />
+        <path d="M8 3v3H6" />
+        <path d="M16 12.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+        <path d="m6 21 4.5-4.5" />
+        <path d="M6 3h4" />
+        <path d="M21 21H6" />
     </svg>
 )
