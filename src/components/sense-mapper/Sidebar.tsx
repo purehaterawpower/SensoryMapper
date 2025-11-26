@@ -120,7 +120,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
       <div className="flex-1 overflow-y-auto pr-1 space-y-4">
         <div>
-            <h2 className="text-lg font-semibold px-2 mb-2">Sensory Stimuli</h2>
+            <h2 className="text-lg font-semibold px-2 mb-2">Sensory</h2>
             <div className="flex flex-col gap-1">
                 {renderTypeButtons(SENSORY_STIMULI_TYPES)}
             </div>
@@ -195,7 +195,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           </AccordionTrigger>
           <AccordionContent className="pt-2 space-y-4">
             <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory Stimuli</h3>
+              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
               <div className="space-y-1">
                 {renderLayerCheckboxes(SENSORY_STIMULI_TYPES)}
               </div>
