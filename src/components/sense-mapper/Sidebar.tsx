@@ -41,49 +41,115 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   const handleSensoryTypeChange = (type: ItemType) => {
     const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
-    if (isPracticalAmenity) {
+    if (activeTool.type === type) {
+        // If the same category is clicked again, switch to select tool
+        setActiveTool({ tool: 'select' });
+    } else if (isPracticalAmenity) {
       setActiveTool({ tool: 'marker', type });
     } else {
-      if (activeTool.tool === 'select' || activeTool.tool === 'marker') {
-          setActiveTool({ tool: 'shape', shape: 'rectangle', type });
-      } else {
-          setActiveTool({ ...activeTool, type });
-      }
+      // Default to rectangle shape when a new non-amenity category is selected
+      setActiveTool({ tool: 'shape', shape: 'rectangle', type });
     }
   };
   
   const selectedItemType = activeTool.tool !== 'select' ? activeTool.type : undefined;
-  const isAmenitySelected = selectedItemType ? PRACTICAL_AMENITY_TYPES.includes(selectedItemType as any) : false;
 
-  const renderTypeButtons = (types: ItemType[], withTooltips = false) => {
-    return types.map(type => {
-        const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
-        const button = (
-            <Button
-                key={type}
-                variant={selectedItemType === type ? 'secondary' : 'ghost'}
-                onClick={() => handleSensoryTypeChange(type)}
-                className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
-            >
-                <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
-                    <Icon className="w-4 h-4 text-white" />
-                </div>
-                <span>{name}</span>
-            </Button>
-        );
+  const renderTypeSection = (title: string, types: ItemType[], withTooltips = false) => {
+    return (
+      <div key={title}>
+        <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
+        <div className="space-y-1">
+          {types.map(type => {
+              const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
+              const isSelected = selectedItemType === type;
+              const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
-        if (withTooltips) {
-            return (
-                <Tooltip key={type}>
-                    <TooltipTrigger asChild>{button}</TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs">
-                        <p>{description}</p>
-                    </TooltipContent>
-                </Tooltip>
-            )
-        }
-        return button;
-    });
+              const categoryButton = (
+                  <Button
+                      key={type}
+                      variant={isSelected ? 'secondary' : 'ghost'}
+                      onClick={() => handleSensoryTypeChange(type)}
+                      className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
+                  >
+                      <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
+                          <Icon className="w-4 h-4 text-white" />
+                      </div>
+                      <span>{name}</span>
+                  </Button>
+              );
+
+              return (
+                  <div key={type}>
+                      {withTooltips ? (
+                          <Tooltip>
+                              <TooltipTrigger asChild>{categoryButton}</TooltipTrigger>
+                              <TooltipContent side="right" className="max-w-xs">
+                                  <p>{description}</p>
+                              </TooltipContent>
+                          </Tooltip>
+                      ) : categoryButton}
+                      
+                      {isSelected && (
+                        <div className="pl-10 pr-2 py-2">
+                          <div className="flex items-center justify-around bg-muted p-1 rounded-md">
+                            {isAmenity ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('marker')}>
+                                            <MapPin className="w-5 h-5" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="max-w-xs text-center">
+                                        <p className="font-bold">Place Marker</p>
+                                        <p>Click on the map to place an amenity icon. (M)</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                              <>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'rectangle')}>
+                                      <RectangleIcon className="w-5 h-5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom" className="max-w-xs text-center">
+                                      <p className="font-bold">Draw Rectangle Area</p>
+                                      <p>Click and drag to draw a rectangular area. (R)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'circle')}>
+                                      <CircleIcon className="w-5 h-5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom" className="max-w-xs text-center">
+                                      <p className="font-bold">Draw Circle Area</p>
+                                      <p>Click and drag to draw a circular area. (C)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'polygon')}>
+                                      <PolygonIcon className="w-5 h-5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom" className="max-w-xs text-center">
+                                      <p className="font-bold">Draw Polygon Area</p>
+                                      <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+              );
+          })}
+        </div>
+      </div>
+    );
   }
 
   const renderLayerCheckboxes = (types: ItemType[]) => {
@@ -107,133 +173,56 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   }
 
   return (
-    <aside id="sidebar" className="w-80 bg-card border-r flex flex-col p-4 gap-4">
-      <div className="p-2">
-        <h1 className="text-2xl font-bold">SenseMapper</h1>
-        <p className="text-sm text-muted-foreground">Map and analyse sensory experiences.</p>
-      </div>
-      <Separator />
-
+    <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold px-2">Tools</h2>
-          <div className="flex items-center justify-around">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
-                    <MousePointer className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Select</p>
-                    <p>Select, move, and edit items on the map. (V)</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('marker')} disabled={!isAmenitySelected}>
-                    <MapPin className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Place Marker</p>
-                    <p>Click on the map to place an amenity icon. (M)</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'rectangle')} disabled={isAmenitySelected}>
-                    <RectangleIcon className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Rectangle Area</p>
-                    <p>Click and drag to draw a rectangular area. (R)</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'circle')} disabled={isAmenitySelected}>
-                    <CircleIcon className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Circle Area</p>
-                    <p>Click and drag to draw a circular area. (C)</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('shape', 'polygon')} disabled={isAmenitySelected}>
-                    <PolygonIcon className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Polygon Area</p>
-                    <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
-                </TooltipContent>
-              </Tooltip>
-          </div>
+        
+        <div className="p-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold">SenseMapper</h1>
+          <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
+              {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+              Export
+          </Button>
+        </div>
+        <Separator/>
+
+        <div className="p-4 flex items-center justify-around border-b">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" className="rounded-full" onClick={() => handleToolChange('select')}>
+                  <MousePointer className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs text-center">
+                  <p className="font-bold">Select</p>
+                  <p>Select, move, and edit items on the map. (V)</p>
+              </TooltipContent>
+            </Tooltip>
+            <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
         </div>
 
-      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
-        <div className="space-y-4">
-            <h2 className="text-lg font-semibold px-2">Categories</h2>
-            <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
-              <div className="space-y-1">
-                {renderTypeButtons(SENSORY_STIMULI_TYPES, true)}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Areas</h3>
-              <div className="space-y-1">
-                {renderTypeButtons(RESPITE_AREA_TYPES)}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Facilities</h3>
-              <div className="space-y-1">
-                {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
-              </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <Accordion type="single" collapsible className="w-full" defaultValue="view-layers">
+                <AccordionItem value="view-layers" className="border-b-0">
+                <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                    View Layers
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 space-y-4">
+                    {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
+                    {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
+                    {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+                </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+            
+            <Separator />
+
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES, true)}
+                {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
+                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
             </div>
         </div>
-
-        <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
-            <AccordionItem value="item-1" className="border-b-0">
-            <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
-                View Layers
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 space-y-4">
-                 <div>
-                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
-                  <div className="space-y-1">
-                    {renderLayerCheckboxes(SENSORY_STIMULI_TYPES)}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Areas</h3>
-                  <div className="space-y-1">
-                    {renderLayerCheckboxes(RESPITE_AREA_TYPES)}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Facilities</h3>
-                  <div className="space-y-1">
-                    {renderLayerCheckboxes(PRACTICAL_AMENITY_TYPES)}
-                  </div>
-                </div>
-            </AccordionContent>
-            </AccordionItem>
-        </Accordion>
-      </div>
-
-      <div className="p-2">
-        <Button onClick={onExportPDF} disabled={isExporting} className="w-full">
-            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-            {isExporting ? 'Preparing...' : 'Export to PDF'}
-        </Button>
-      </div>
       </TooltipProvider>
     </aside>
   );
