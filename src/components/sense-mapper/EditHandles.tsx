@@ -62,7 +62,7 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           stroke="white"
           strokeWidth="1"
           data-item-id={shape.id}
-          data-item-type="shape"
+          data-item-type="shape-center"
           style={{ cursor: 'move' }}
           onMouseDown={(e) => e.stopPropagation()}
         />

@@ -117,8 +117,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     width={shape.width}
                     height={shape.height}
                     fill={fill}
-                    fillOpacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}
@@ -128,8 +128,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cy={shape.cy}
                     r={shape.radius}
                     fill={fill}
-                    fillOpacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}
@@ -137,8 +137,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
                     fill={fill}
-                    fillOpacity={isSelected ? 0.6 : 0.4}
-                    stroke={isSelected ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
                     strokeWidth={2}
                 />
             )}

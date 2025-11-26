@@ -101,23 +101,28 @@ export function SenseMapper() {
     return { x, y };
   };
   
-  const handleItemDrag = (id: string, newPos: Point, originalItem: Item) => {
+  const handleItemDrag = (id: string, newPos: Point) => {
     setItems(prevItems => prevItems.map(item => {
       if (item.id !== id) return item;
+      
+      const originalItem = prevItems.find(i => i.id === id);
+      if (!originalItem) return item;
 
       let dx = 0;
       let dy = 0;
+
       if (originalItem.shape === 'marker') {
         dx = newPos.x - originalItem.x;
         dy = newPos.y - originalItem.y;
       } else if (originalItem.shape === 'rectangle') {
-        dx = newPos.x - (originalItem.x + originalItem.width / 2);
-        dy = newPos.y - (originalItem.y + originalItem.height / 2);
+        const currentCenterX = originalItem.x + originalItem.width / 2;
+        const currentCenterY = originalItem.y + originalItem.height / 2;
+        dx = newPos.x - currentCenterX;
+        dy = newPos.y - currentCenterY;
       } else if (originalItem.shape === 'circle') {
         dx = newPos.x - originalItem.cx;
         dy = newPos.y - originalItem.cy;
       } else if (originalItem.shape === 'polygon') {
-        // Use centroid for dragging polygon
         const sum = originalItem.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
         const centroid = { x: sum.x / originalItem.points.length, y: sum.y / originalItem.points.length };
         dx = newPos.x - centroid.x;
@@ -215,23 +220,27 @@ export function SenseMapper() {
     }
     
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+    const itemType = target.closest('[data-item-type]')?.getAttribute('data-item-type');
+
     if (itemId) {
       const item = items.find(i => i.id === itemId);
-      // Logic for dragging markers
-      if (item && item.shape === 'marker') {
-        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - item.x, y: coords.y - item.y }});
+      if (!item) return;
+
+      if (itemType === 'marker') {
+        setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as Marker).x, y: coords.y - (item as Marker).y }});
         e.stopPropagation();
         return;
       }
-      // Logic for dragging shapes (zones)
-      if (item && item.shape !== 'marker') {
-        let dragStartPos = { x: 0, y: 0 };
+
+      if (itemType === 'shape' || itemType === 'shape-center') {
+        let dragStartPos: Point = { x: 0, y: 0 };
+        const shape = item as Shape;
         
-        if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
-        else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
-        else if (item.shape === 'polygon') {
-            const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-            dragStartPos = { x: sum.x / item.points.length, y: sum.y / item.points.length };
+        if (shape.shape === 'rectangle') dragStartPos = {x: shape.x + shape.width/2, y: shape.y + shape.height/2};
+        else if (shape.shape === 'circle') dragStartPos = {x: shape.cx, y: shape.cy};
+        else if (shape.shape === 'polygon') {
+            const sum = shape.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+            dragStartPos = { x: sum.x / shape.points.length, y: sum.y / shape.points.length };
         }
         
         setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
@@ -272,15 +281,8 @@ export function SenseMapper() {
 
     if (draggingItem) {
       if (draggingItem.type === 'item') {
-        const originalItem = items.find(i => i.id === draggingItem.id);
-        if (!originalItem) return;
-        let newCenterPos;
-        if(originalItem.shape === 'marker'){
-            newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
-        } else {
-            newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
-        }
-        handleItemDrag(draggingItem.id, newCenterPos, originalItem);
+        const newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
+        handleItemDrag(draggingItem.id, newCenterPos);
       } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
         handleHandleDrag(draggingItem.handleIndex, coords);
       }
