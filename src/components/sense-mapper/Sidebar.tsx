@@ -117,29 +117,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
           Upload Floor Plan
         </Button>
       </div>
-
-      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
-        <div>
-            <h2 className="text-lg font-semibold px-2 mb-2">Sensory</h2>
-            <div className="flex flex-col gap-1">
-                {renderTypeButtons(SENSORY_STIMULI_TYPES)}
-            </div>
-        </div>
-
-        <div>
-            <h2 className="text-lg font-semibold px-2 mb-2">Respite Zones</h2>
-            <div className="flex flex-col gap-1">
-                {renderTypeButtons(RESPITE_ZONE_TYPES)}
-            </div>
-        </div>
-
-        <div>
-            <h2 className="text-lg font-semibold px-2 mb-2">Practical Amenities</h2>
-            <div className="flex flex-col gap-1">
-                {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
-            </div>
-        </div>
-      </div>
       
       <Separator />
 
@@ -186,35 +163,36 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         </div>
       </TooltipProvider>
 
-      <Separator />
+      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+        <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+            <AccordionItem value="item-1" className="border-b-0">
+            <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
+                View Layers
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
+                  <div className="space-y-1">
+                    {renderTypeButtons(SENSORY_STIMULI_TYPES)}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
+                  <div className="space-y-1">
+                    {renderTypeButtons(RESPITE_ZONE_TYPES)}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
+                  <div className="space-y-1">
+                    {renderTypeButtons(PRACTICAL_AMENITY_TYPES)}
+                  </div>
+                </div>
+            </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+      </div>
 
-      <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
-        <AccordionItem value="item-1" className="border-b-0">
-          <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline">
-              View Layers
-          </AccordionTrigger>
-          <AccordionContent className="pt-2 space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Sensory</h3>
-              <div className="space-y-1">
-                {renderLayerCheckboxes(SENSORY_STIMULI_TYPES)}
-              </div>
-            </div>
-             <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Respite Zones</h3>
-              <div className="space-y-1">
-                {renderLayerCheckboxes(RESPITE_ZONE_TYPES)}
-              </div>
-            </div>
-             <div>
-              <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Practical Amenities</h3>
-              <div className="space-y-1">
-                {renderLayerCheckboxes(PRACTICAL_AMENITY_TYPES)}
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
     </aside>
   );
 }
