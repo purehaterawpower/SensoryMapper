@@ -54,6 +54,7 @@ const MapRenderer = ({
   };
 
   const renderShape = (shape: Shape & { number: number }) => {
+    const { icon: Icon } = ALL_SENSORY_DATA[shape.type];
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
 
@@ -67,6 +68,14 @@ const MapRenderer = ({
       shape.points.forEach(p => { xSum += p.x; ySum += p.y; });
       center = { x: xSum / shape.points.length, y: ySum / shape.points.length };
     }
+
+    const iconSize = 20;
+    const textNumberSize = 18;
+    const spacing = 4;
+    const totalWidth = iconSize + spacing + textNumberSize;
+    const iconX = center.x - totalWidth / 2;
+    const numberX = iconX + iconSize + spacing;
+
 
     return (
       <g key={shape.id}>
@@ -102,16 +111,19 @@ const MapRenderer = ({
             strokeWidth={2}
           />
         )}
+        <foreignObject x={iconX} y={center.y - iconSize / 2} width={iconSize} height={iconSize}>
+            <Icon className="w-full h-full" fill="white" stroke="black" strokeWidth="0.5" />
+        </foreignObject>
         <text
-            x={center.x}
+            x={numberX}
             y={center.y}
-            textAnchor="middle"
+            textAnchor="start"
             dominantBaseline="central"
             fill="white"
             stroke="black"
-            strokeWidth="0.5px"
+            strokeWidth="1px"
             paintOrder="stroke"
-            fontSize="14"
+            fontSize={textNumberSize}
             fontWeight="bold"
           >
             {shape.number}
@@ -132,6 +144,7 @@ const MapRenderer = ({
     left: 0,
     width: '100%',
     height: '100%',
+    overflow: 'visible'
   };
 
 
@@ -150,7 +163,7 @@ const MapRenderer = ({
           }}
         />
         <div style={svgStyle}>
-            <svg width="100%" height="100%" viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}>
+            <svg width="100%" height="100%" viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`} style={{overflow: 'visible'}}>
             {items
                 .filter((item) => item.shape !== 'marker')
                 .map((item) => renderShape(item as Shape & { number: number }))}
