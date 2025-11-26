@@ -94,6 +94,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const showIntensitySlider = isShape && item.type !== 'quietRoom';
   const showSizeSlider = isFacility;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
+  
   const placeholderText = readOnly
     ? 'No description provided.'
     : `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
