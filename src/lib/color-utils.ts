@@ -1,3 +1,4 @@
+
 function lerpColor(color1: string, color2: string, factor: number): string {
     const c1 = hexToRgb(color1);
     const c2 = hexToRgb(color2);
@@ -24,13 +25,17 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 
 const LOW_COLOR = '#409AF5';    // Blue
+const MID_LOW_COLOR = '#42FF7B'; // Vibrant Green
 const MEDIUM_COLOR = '#FFD000'; // Neutral Yellow
 const HIGH_COLOR = '#ff0a0a';   // Hot Red
 
 export function interpolateColor(intensity: number): string {
-    if (intensity <= 50) {
-        // Interpolate between LOW_COLOR and MEDIUM_COLOR
-        return lerpColor(LOW_COLOR, MEDIUM_COLOR, intensity / 50);
+    if (intensity <= 25) {
+        // Interpolate between LOW_COLOR and MID_LOW_COLOR
+        return lerpColor(LOW_COLOR, MID_LOW_COLOR, intensity / 25);
+    } else if (intensity <= 50) {
+        // Interpolate between MID_LOW_COLOR and MEDIUM_COLOR
+        return lerpColor(MID_LOW_COLOR, MEDIUM_COLOR, (intensity - 25) / 25);
     } else {
         // Interpolate between MEDIUM_COLOR and HIGH_COLOR
         return lerpColor(MEDIUM_COLOR, HIGH_COLOR, (intensity - 50) / 50);
@@ -46,27 +51,46 @@ export function colorToIntensity(hexColor?: string): number | undefined {
     
     const targetRgb = hexToRgb(hexColor);
     const lowRgb = hexToRgb(LOW_COLOR);
+    const midLowRgb = hexToRgb(MID_LOW_COLOR);
     const mediumRgb = hexToRgb(MEDIUM_COLOR);
     const highRgb = hexToRgb(HIGH_COLOR);
 
     // Project target color onto the line segments to find the closest point
     
-    // Segment 1: Low to Medium
-    const l1 = { p1: lowRgb, p2: mediumRgb };
+    // Segment 1: Low to Mid-Low
+    const l1 = { p1: lowRgb, p2: midLowRgb };
     const t1 = project(targetRgb, l1);
-    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, MEDIUM_COLOR, t1));
+    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, MID_LOW_COLOR, t1));
+    const intensity1 = t1 * 25;
 
-    // Segment 2: Medium to High
-    const l2 = { p1: mediumRgb, p2: highRgb };
+    // Segment 2: Mid-Low to Medium
+    const l2 = { p1: midLowRgb, p2: mediumRgb };
     const t2 = project(targetRgb, l2);
-    const d2 = colorDistance(targetRgb, lerpColor(MEDIUM_COLOR, HIGH_COLOR, t2));
+    const d2 = colorDistance(targetRgb, lerpColor(MID_LOW_COLOR, MEDIUM_COLOR, t2));
+    const intensity2 = 25 + (t2 * 25);
+
+    // Segment 3: Medium to High
+    const l3 = { p1: mediumRgb, p2: highRgb };
+    const t3 = project(targetRgb, l3);
+    const d3 = colorDistance(targetRgb, lerpColor(MEDIUM_COLOR, HIGH_COLOR, t3));
+    const intensity3 = 50 + (t3 * 50);
     
-    // Determine which segment is closer
-    if (d1 < d2) {
-        return Math.max(0, Math.min(50, t1 * 50));
-    } else {
-        return 50 + Math.max(0, Math.min(50, t2 * 50));
+    // Find the closest segment
+    const distances = [d1, d2, d3];
+    const intensities = [intensity1, intensity2, intensity3];
+    
+    let minDistance = d1;
+    let finalIntensity = intensity1;
+
+    if (d2 < minDistance) {
+        minDistance = d2;
+        finalIntensity = intensity2;
     }
+    if (d3 < minDistance) {
+        finalIntensity = intensity3;
+    }
+    
+    return Math.round(finalIntensity);
 }
 
 // Project point p onto line segment l
