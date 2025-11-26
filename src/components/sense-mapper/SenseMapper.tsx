@@ -54,10 +54,12 @@ export function SenseMapper() {
       const mapHeight = mapWidth / aspectRatio;
       setImageDimensions({ width: mapWidth, height: mapHeight });
       setViewState({
-        ...INITIAL_VIEW_STATE,
         longitude: mapWidth / 2,
         latitude: mapHeight / 2,
-        zoom: 1,
+        zoom: 0,
+        pitch: 0,
+        bearing: 0,
+        padding: { top: 0, bottom: 0, left: 0, right: 0 }
       });
       setMapImage(url);
     };
