@@ -1,64 +1,81 @@
-// Function to interpolate between two colors
-// `amt` is a value from 0 to 100
-function lerpColor(a: string, b: string, amt: number): string {
-    const amount = amt / 100;
-    const ah = parseInt(a.replace(/#/g, ''), 16);
-    const ar = ah >> 16;
-    const ag = (ah >> 8) & 0xff;
-    const ab = ah & 0xff;
-    const bh = parseInt(b.replace(/#/g, ''), 16);
-    const br = bh >> 16;
-    const bg = (bh >> 8) & 0xff;
-    const bb = bh & 0xff;
-    const rr = ar + amount * (br - ar);
-    const rg = ag + amount * (bg - ag);
-    const rb = ab + amount * (bb - ab);
-  
-    return `#${((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1)}`;
+function lerpColor(color1: string, color2: string, factor: number): string {
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+
+    const r = Math.round(c1.r + factor * (c2.r - c1.r));
+    const g = Math.round(c1.g + factor * (c2.g - c1.g));
+    const b = Math.round(c1.b + factor * (c2.b - c1.b));
+
+    return rgbToHex(r, g, b);
 }
 
-// Specific interpolation between light yellow and red
-const LIGHT_YELLOW = '#F4A261'; // Using the old "Moderate" color
-const RED = '#E76F51';       // Using the old "High" color
+function hexToRgb(hex: string): { r: number, g: number, b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+}
+
+
+const LOW_COLOR = '#82B4A1';    // Cool Teal
+const MEDIUM_COLOR = '#E9C46A'; // Neutral Yellow
+const HIGH_COLOR = '#E76F51';   // Hot Red
 
 export function interpolateColor(intensity: number): string {
-    return lerpColor(LIGHT_YELLOW, RED, intensity);
+    if (intensity <= 50) {
+        // Interpolate between LOW_COLOR and MEDIUM_COLOR
+        return lerpColor(LOW_COLOR, MEDIUM_COLOR, intensity / 50);
+    } else {
+        // Interpolate between MEDIUM_COLOR and HIGH_COLOR
+        return lerpColor(MEDIUM_COLOR, HIGH_COLOR, (intensity - 50) / 50);
+    }
 }
 
-// Reverse function: from color to intensity
+function colorDistance(c1: {r:number, g:number, b:number}, c2: {r:number, g:number, b:number}): number {
+    return Math.sqrt(Math.pow(c1.r - c2.r, 2) + Math.pow(c1.g - c2.g, 2) + Math.pow(c1.b - c2.b, 2));
+}
+
 export function colorToIntensity(hexColor?: string): number | undefined {
     if (!hexColor) return undefined;
     
-    const startColor = parseInt(LIGHT_YELLOW.slice(1), 16);
-    const endColor = parseInt(RED.slice(1), 16);
-    const targetColor = parseInt(hexColor.slice(1), 16);
-  
-    const sr = startColor >> 16, sg = (startColor >> 8) & 0xff, sb = startColor & 0xff;
-    const er = endColor >> 16, eg = (endColor >> 8) & 0xff, eb = endColor & 0xff;
-    const tr = targetColor >> 16, tg = (targetColor >> 8) & 0xff, tb = targetColor & 0xff;
-  
-    // We can solve for amount: amount = (target - start) / (end - start)
-    // We can do this for each channel (R, G, B) and average them, but since it's a linear interpolation,
-    // any single channel should give a good approximation if it has a non-zero difference.
-    
-    let totalAmount = 0;
-    let components = 0;
-    
-    if (er - sr !== 0) {
-        totalAmount += (tr - sr) / (er - sr);
-        components++;
-    }
-    if (eg - sg !== 0) {
-        totalAmount += (tg - sg) / (eg - sg);
-        components++;
-    }
-    if (eb - sb !== 0) {
-        totalAmount += (tb - sb) / (eb - sb);
-        components++;
-    }
-    
-    if(components === 0) return 50; // default if colors are the same
+    const targetRgb = hexToRgb(hexColor);
+    const lowRgb = hexToRgb(LOW_COLOR);
+    const mediumRgb = hexToRgb(MEDIUM_COLOR);
+    const highRgb = hexToRgb(HIGH_COLOR);
 
-    const averageAmount = totalAmount / components;
-    return Math.max(0, Math.min(100, averageAmount * 100));
+    // Project target color onto the line segments to find the closest point
+    
+    // Segment 1: Low to Medium
+    const l1 = { p1: lowRgb, p2: mediumRgb };
+    const t1 = project(targetRgb, l1);
+    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, MEDIUM_COLOR, t1));
+
+    // Segment 2: Medium to High
+    const l2 = { p1: mediumRgb, p2: highRgb };
+    const t2 = project(targetRgb, l2);
+    const d2 = colorDistance(targetRgb, lerpColor(MEDIUM_COLOR, HIGH_COLOR, t2));
+    
+    // Determine which segment is closer
+    if (d1 < d2) {
+        return Math.max(0, Math.min(50, t1 * 50));
+    } else {
+        return 50 + Math.max(0, Math.min(50, t2 * 50));
+    }
+}
+
+// Project point p onto line segment l
+function project(p: {r:number, g:number, b:number}, l: {p1: {r:number, g:number, b:number}, p2: {r:number, g:number, b:number}}) {
+    const { p1, p2 } = l;
+    const v = { r: p2.r - p1.r, g: p2.g - p1.g, b: p2.b - p1.b };
+    const w = { r: p.r - p1.r, g: p.g - p1.g, b: p.b - p1.b };
+    const dotV = v.r * v.r + v.g * v.g + v.b * v.b;
+    if (dotV === 0) return 0; // p1 and p2 are the same
+    const t = (w.r * v.r + w.g * v.g + w.b * v.b) / dotV;
+    return Math.max(0, Math.min(1, t)); // Clamp to [0, 1] for segment
 }

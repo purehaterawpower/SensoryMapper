@@ -10,7 +10,7 @@ import { Loader2, Sparkles, Trash2, Edit, Upload, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
-import { interpolateColor, colorToIntensity } from "@/lib/color-utils";
+import { interpolateColor } from "@/lib/color-utils";
 import Image from "next/image";
 import { Input } from "../ui/input";
 
@@ -37,8 +37,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
     if (item) {
       setDescription(item.description);
       setImage(item.imageUrl || null);
-      if(item.shape !== 'marker') {
-        setIntensity(item.intensity ?? colorToIntensity(item.color) ?? 50);
+      if(item.shape !== 'marker' && item.type !== 'quietArea') {
+        setIntensity(item.intensity ?? 50);
       }
     }
   }, [item]);
@@ -76,12 +76,12 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   const { name: sensoryName, icon: Icon, description: sensoryDescription } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
-  const showColorPicker = isShape && item.type !== 'quietArea';
+  const showIntensitySlider = isShape && item.type !== 'quietArea';
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
   const handleSave = () => {
     const data: { description: string, imageUrl?: string | null, color?: string, intensity?: number } = { description, imageUrl: image };
-    if (showColorPicker) {
+    if (showIntensitySlider) {
       data.color = interpolateColor(intensity);
       data.intensity = intensity;
     }
@@ -183,9 +183,9 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
               )}
             </div>
 
-            {showColorPicker && (
+            {showIntensitySlider && (
               <div className="grid gap-4 pt-2">
-                <Label>Intensity</Label>
+                <Label>Sensory Level</Label>
                 <Slider
                   value={[intensity]}
                   onValueChange={handleSliderChange}
@@ -194,7 +194,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                   disabled={readOnly}
                 />
                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Moderate</span>
+                    <span>Low</span>
+                    <span>Medium</span>
                     <span>High</span>
                 </div>
               </div>

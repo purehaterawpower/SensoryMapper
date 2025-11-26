@@ -256,7 +256,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
       if (itemType === 'marker') {
         setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as Marker).x, y: coords.y - (item as Marker).y }});
-      } else if (itemType === 'shape-center') {
+      } else if (itemType === 'shape-center' || (itemType === 'shape' && !editingItemId)) {
         let dragStartPos: Point = { x: 0, y: 0 };
         const shape = item as Shape;
         
@@ -392,6 +392,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     // Prevent deselection if the click was on an item or handle
     const target = e.target as HTMLElement;
     if (target.closest('[data-item-id]')) {
+      const itemId = target.closest('[data-item-id]')!.getAttribute('data-item-id');
+      const item = items.find(i => i.id === itemId);
+      if (item) {
+          handleItemSelect(item);
+      }
       return;
     }
     

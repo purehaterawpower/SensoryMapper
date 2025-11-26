@@ -69,5 +69,3 @@ export type MapData = {
     imageDimensions: { width: number, height: number };
     items: Item[];
 };
-
-    

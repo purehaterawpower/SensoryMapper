@@ -184,6 +184,7 @@ export function PrintableReport({
           {visibleItems.length > 0 ? (
             visibleItems.map((item) => {
               const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
+              const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietArea';
               return (
                 <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
                   <div className="flex items-start gap-3 mb-2">
@@ -193,11 +194,13 @@ export function PrintableReport({
                     </div>
                     <div className='flex-1'>
                       <h3 className="text-lg font-semibold">{categoryName}</h3>
-                      {item.intensity !== undefined && item.shape !== 'marker' && item.type !== 'quietArea' && (
+                      {isSensoryArea && item.intensity !== undefined && (
                         <div className='flex items-center gap-2 mt-1'>
-                            <span className="text-xs text-slate-600">Intensity:</span>
+                            <span className="text-xs text-slate-600">Level:</span>
                             <Progress value={item.intensity} className="h-2 w-24" />
-                            <span className="text-xs text-slate-600">{item.intensity}%</span>
+                             <span className="text-xs text-slate-600 w-16">
+                                {item.intensity < 33 ? 'Low' : item.intensity < 66 ? 'Medium' : 'High'}
+                            </span>
                         </div>
                       )}
                     </div>
