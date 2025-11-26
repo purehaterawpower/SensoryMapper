@@ -9,6 +9,7 @@ import { SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -23,12 +24,38 @@ export function SenseMapper() {
   const [selectedItem, setSelectedItem] = useState<Marker | Zone | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [drawingZone, setDrawingZone] = useState<Omit<Zone, 'id' | 'description'> | null>(null);
+  const [mapImage, setMapImage] = useState<string | null>(null);
   
   const [summary, setSummary] = useState<{title: string, content: string} | null>(null);
   const [isSummaryLoading, setSummaryLoading] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const floorPlanImage = PlaceHolderImages.find(img => img.id === 'floor-plan');
+    if (floorPlanImage) {
+      setMapImage(floorPlanImage.imageUrl);
+    }
+  }, []);
+
+  const handleMapUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setMapImage(e.target.result as string);
+        // Reset markers and zones when a new map is uploaded
+        setMarkers([]);
+        setZones([]);
+        setSelectedItem(null);
+        toast({ title: "Map Uploaded", description: "You can now add markers and zones to your new map." });
+      }
+    };
+    reader.onerror = () => {
+      toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+    }
+    reader.readAsDataURL(file);
+  };
 
   const handleLayerVisibilityChange = (layer: SensoryType, visible: boolean) => {
     setVisibleLayers(prev => ({ ...prev, [layer]: visible }));
@@ -41,7 +68,7 @@ export function SenseMapper() {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (activeTool.tool !== 'zone' || !activeTool.type) return;
+    if (activeTool.tool !== 'zone' || !activeTool.type || !mapImage) return;
     if (!mapRef.current) return;
 
     setDrawing(true);
@@ -82,7 +109,7 @@ export function SenseMapper() {
   };
 
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (activeTool.tool !== 'marker' || !activeTool.type) {
+    if (activeTool.tool !== 'marker' || !activeTool.type || !mapImage) {
       if (!e.defaultPrevented) setSelectedItem(null);
       return;
     }
@@ -163,9 +190,11 @@ export function SenseMapper() {
         setActiveTool={setActiveTool}
         visibleLayers={visibleLayers}
         onLayerVisibilityChange={handleLayerVisibilityChange}
+        onMapUpload={handleMapUpload}
       />
       <MapArea
         ref={mapRef}
+        mapImage={mapImage}
         markers={markers}
         zones={zones}
         visibleLayers={visibleLayers}

@@ -1,6 +1,5 @@
 'use client';
 
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { SENSORY_DATA } from "@/lib/constants";
 import { Marker, Zone } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -8,6 +7,7 @@ import Image from "next/image";
 import React, { forwardRef } from "react";
 
 type MapAreaProps = {
+  mapImage: string | null;
   markers: Marker[];
   zones: Zone[];
   visibleLayers: Record<string, boolean>;
@@ -15,9 +15,7 @@ type MapAreaProps = {
   drawingZone: Omit<Zone, 'id' | 'description'> | null;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-const floorPlanImage = PlaceHolderImages.find(img => img.id === 'floor-plan');
-
-export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({ markers, zones, visibleLayers, onItemSelect, drawingZone, ...props }, ref) => {
+export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({ mapImage, markers, zones, visibleLayers, onItemSelect, drawingZone, ...props }, ref) => {
 
   const renderItem = (item: Marker | Zone, isZone: boolean) => {
     if (!visibleLayers[item.type]) return null;
@@ -67,15 +65,18 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({ markers, zone
         className="relative w-full h-full shadow-lg rounded-lg overflow-hidden border"
         {...props}
       >
-        {floorPlanImage && (
+        {mapImage ? (
           <Image
-            src={floorPlanImage.imageUrl}
-            alt={floorPlanImage.description}
-            data-ai-hint={floorPlanImage.imageHint}
+            src={mapImage}
+            alt="Floor plan"
             fill
-            className="object-cover"
+            className="object-contain"
             priority
           />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <p className="text-muted-foreground">Upload a floor plan to get started</p>
+          </div>
         )}
         {markers.map(marker => renderItem(marker, false))}
         {zones.map(zone => renderItem(zone, true))}

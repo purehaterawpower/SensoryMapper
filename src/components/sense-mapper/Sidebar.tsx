@@ -8,17 +8,21 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Type } from "lucide-react";
+import { MousePointer, Square, Type, Upload } from "lucide-react";
+import { useRef } from "react";
+import { Input } from "../ui/input";
 
 type SidebarProps = {
   activeTool: ActiveTool;
   setActiveTool: (tool: ActiveTool) => void;
   visibleLayers: Record<SensoryType, boolean>;
   onLayerVisibilityChange: (layer: SensoryType, visible: boolean) => void;
+  onMapUpload: (file: File) => void;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange }: SidebarProps) {
-  
+export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onMapUpload }: SidebarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleToolChange = (tool: 'select' | 'marker' | 'zone') => {
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
@@ -35,6 +39,17 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onMapUpload(file);
+    }
+    // Reset file input to allow uploading the same file again
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <aside className="w-80 bg-card border-r flex flex-col">
       <div className="p-4">
@@ -43,8 +58,24 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       </div>
       <Separator />
 
+      <div className="p-4">
+        <Input
+          type="file"
+          id="map-upload"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileUpload}
+        />
+        <Button onClick={() => fileInputRef.current?.click()} className="w-full">
+          <Upload className="mr-2 h-4 w-4" />
+          Upload Floor Plan
+        </Button>
+      </div>
+
+
       <TooltipProvider delayDuration={100}>
-        <div className="p-4 space-y-4">
+        <div className="p-4 pt-0 space-y-4">
           <h2 className="text-lg font-semibold">Tools</h2>
           <div className="flex items-center space-x-2">
               <Tooltip>
