@@ -1,6 +1,7 @@
 import type { SensoryType, AmenityType, SensoryInfo, AmenityInfo } from './types';
-import { Hand, Scale, User, Eye, Ear, Waves, DoorOpen, PlusSquare, Info, Coffee, Users, Compass, MessageCircle, VolumeX } from 'lucide-react';
+import { Hand, Users, Compass, Eye, Ear, DoorOpen, PlusSquare, Info, Coffee, MessageCircle, VolumeX } from 'lucide-react';
 import { NoseIcon } from '@/components/icons/NoseIcon';
+import { ToiletIcon } from '@/components/icons/ToiletIcon';
 
 
 export const SENSORY_STIMULI_TYPES: SensoryType[] = ['touch', 'proprioception', 'vestibular', 'vision', 'hearing', 'smell'];
@@ -63,7 +64,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
   toilets: {
     name: 'Toilets',
     description: 'Location of standard, accessible, and ambulant toilets.',
-    icon: User,
+    icon: ToiletIcon,
     color: '#BDBDBD'
   },
   exit: {

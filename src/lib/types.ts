@@ -2,10 +2,9 @@ import type { LucideProps } from 'lucide-react';
 import type React from 'react';
 
 export type SensoryType = 'touch' | 'proprioception' | 'vestibular' | 'vision' | 'hearing' | 'smell';
-export type RespiteZoneType = 'quietZone' | 'seating';
-export type PracticalAmenityType = 'toilets' | 'exit' | 'help' | 'firstAid' | 'food';
+export type AmenityType = 'quietZone' | 'seating' | 'toilets' | 'exit' | 'help' | 'firstAid' | 'food';
 
-export type ItemType = SensoryType | RespiteZoneType | PracticalAmenityType;
+export type ItemType = SensoryType | AmenityType;
 
 export type BaseInfo = {
   name: string;
