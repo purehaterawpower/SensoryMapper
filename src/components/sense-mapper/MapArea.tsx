@@ -132,7 +132,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       stroke: 'hsl(var(--primary))',
       strokeWidth: 2,
       strokeDasharray: '5,5',
-      fill: 'hsla(var(--primary), 0.1)',
+      fill: 'hsla(var(--primary), 0.2)',
       pointerEvents: 'none'
     };
     if (drawingShape.shape === 'rectangle') {
