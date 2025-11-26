@@ -610,7 +610,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
   return (
     <>
-    <div id="app-container" className="flex h-screen bg-background font-body text-foreground">
+    <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
       <Sidebar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
@@ -677,5 +677,3 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     </>
   );
 }
-
-    
