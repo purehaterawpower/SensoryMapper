@@ -57,7 +57,7 @@ export const AMENITY_DATA: Record<AmenityType, AmenityInfo> = {
     name: 'Reset Room',
     description: 'A designated room with low sensory input for calming and regulation.',
     icon: ResetIcon,
-    color: '#A8DADC'
+    color: '#457B9D'
   },
   seating: {
     name: 'Seating',
