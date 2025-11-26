@@ -185,7 +185,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if (handleId) {
         e.preventDefault();
         const handleIndex = parseInt(handleId, 10);
-        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: { x: 0, y: 0 } });
+        const item = items.find(i => i.id === editingItemId) as Shape;
+        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as PolygonShape).points || {x: 0, y: 0} });
         return;
       }
       if (target.dataset.itemType === 'shape-center' && target.dataset.itemId === editingItemId) {
@@ -263,12 +264,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         const dx = coords.x - draggingItem.startPos.x;
         const dy = coords.y - draggingItem.startPos.y;
 
-        setItems(prevItems => prevItems.map(item => {
-            if (item.id !== draggingItem.id) return item;
-            
-            let updatedItem = { ...item };
-            
-            if (draggingItem.type === 'item') {
+        if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
+          handleHandleDrag(draggingItem.handleIndex, coords);
+        } else if (draggingItem.type === 'item') {
+            setItems(prevItems => prevItems.map(item => {
+                if (item.id !== draggingItem.id) return item;
+                
+                let updatedItem = { ...item };
+                
                 if (updatedItem.shape === 'marker' && 'x' in draggingItem.itemStartPos) {
                     updatedItem.x = draggingItem.itemStartPos.x + dx;
                     updatedItem.y = draggingItem.itemStartPos.y + dy;
@@ -284,33 +287,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                         y: p.y + dy
                     }));
                 }
-            } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
-                 if (updatedItem.shape === 'rectangle') {
-                    const originalItem = items.find(i => i.id === draggingItem.id) as RectangleShape;
-                    const corners = [
-                        {x: originalItem.x, y: originalItem.y}, 
-                        {x: originalItem.x + originalItem.width, y: originalItem.y}, 
-                        {x: originalItem.x + originalItem.width, y: originalItem.y + originalItem.height}, 
-                        {x: originalItem.x, y: originalItem.y + originalItem.height}
-                    ];
-                    const oppositeCorner = corners[(draggingItem.handleIndex + 2) % 4];
-                    updatedItem.x = Math.min(coords.x, oppositeCorner.x);
-                    updatedItem.y = Math.min(coords.y, oppositeCorner.y);
-                    updatedItem.width = Math.abs(coords.x - oppositeCorner.x);
-                    updatedItem.height = Math.abs(coords.y - oppositeCorner.y);
-                } else if (updatedItem.shape === 'circle') {
-                    const originalItem = items.find(i => i.id === draggingItem.id) as CircleShape;
-                    const newDx = coords.x - originalItem.cx;
-                    const newDy = coords.y - originalItem.cy;
-                    updatedItem.radius = Math.sqrt(newDx*newDx + newDy*newDy);
-                } else if (updatedItem.shape === 'polygon') {
-                    const newPoints = [...(updatedItem as PolygonShape).points];
-                    newPoints[draggingItem.handleIndex] = coords;
-                    (updatedItem as PolygonShape).points = newPoints;
-                }
-            }
-            return updatedItem;
-        }));
+                return updatedItem;
+            }));
+        }
         return;
     }
     
@@ -351,39 +330,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleMouseUp = (e: React.MouseEvent) => {
     if (draggingItem) {
-        const finalCoords = getMapCoordinates(e);
-        const dx = finalCoords.x - draggingItem.startPos.x;
-        const dy = finalCoords.y - draggingItem.startPos.y;
-
-        setItems(prevItems => prevItems.map(item => {
-            if (item.id !== draggingItem.id) return item;
-
-            const updatedItem = { ...item };
-            if (draggingItem.type === 'item') {
-                if (updatedItem.shape === 'marker' && 'x' in draggingItem.itemStartPos) {
-                    updatedItem.x = draggingItem.itemStartPos.x + dx;
-                    updatedItem.y = draggingItem.itemStartPos.y + dy;
-                } else if (updatedItem.shape === 'rectangle' && 'x' in draggingItem.itemStartPos) {
-                    updatedItem.x = draggingItem.itemStartPos.x + dx;
-                    updatedItem.y = draggingItem.itemStartPos.y + dy;
-                } else if (updatedItem.shape === 'circle' && 'x' in draggingItem.itemStartPos) {
-                    updatedItem.cx = draggingItem.itemStartPos.x + dx;
-                    updatedItem.cy = draggingItem.itemStartPos.y + dy;
-                } else if (updatedItem.shape === 'polygon' && Array.isArray(draggingItem.itemStartPos)) {
-                    updatedItem.points = draggingItem.itemStartPos.map(p => ({
-                        x: p.x + dx,
-                        y: p.y + dy,
-                    }));
-                }
-            } else if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
-              if (updatedItem.shape === 'polygon') {
-                const newPoints = [...(updatedItem as PolygonShape).points];
-                newPoints[draggingItem.handleIndex] = finalCoords;
-                (updatedItem as PolygonShape).points = newPoints;
-              }
+        if (didDrag) {
+            const finalCoords = getMapCoordinates(e);
+            if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
+                handleHandleDrag(draggingItem.handleIndex, finalCoords);
             }
-            return updatedItem;
-        }));
+        }
     }
 
     const coords = getMapCoordinates(e);
