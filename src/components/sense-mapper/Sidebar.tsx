@@ -139,7 +139,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <MousePointer className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Select (V)</p></TooltipContent>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Select (V)</p>
+                    <p>Select, move, and edit items on the map.</p>
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -147,7 +150,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <MapPin className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Place Marker</p></TooltipContent>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Place Marker (M)</p>
+                    <p>Click on the map to place an amenity icon.</p>
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -155,7 +161,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Draw Rectangle Zone (R)</p></TooltipContent>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Draw Rectangle Zone (R)</p>
+                    <p>Click and drag to draw a rectangular area.</p>
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -163,7 +172,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Draw Circle Zone (C)</p></TooltipContent>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Draw Circle Zone (C)</p>
+                    <p>Click and drag to draw a circular area.</p>
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
