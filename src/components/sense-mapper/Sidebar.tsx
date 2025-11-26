@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Landmark } from "lucide-react";
+import { MousePointer, Square, Upload, Landmark, Circle, Pentagon } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 
@@ -23,19 +23,21 @@ type SidebarProps = {
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onMapUpload }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleToolChange = (tool: 'select' | 'marker' | 'zone') => {
+  const handleToolChange = (tool: 'select' | 'marker' | 'shape', shape?: 'rectangle' | 'circle' | 'polygon') => {
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
-    } else {
-      // Default to first sensory type if none is selected
+    } else if (tool === 'marker') {
       const currentType = activeTool.type || SENSORY_TYPES[0];
-      setActiveTool({ tool, type: currentType });
+      setActiveTool({ tool: 'marker', type: currentType });
+    } else { // shape
+      const currentType = activeTool.type || SENSORY_TYPES[0];
+      setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
     }
   };
 
   const handleSensoryTypeChange = (type: SensoryType) => {
     if (activeTool.tool !== 'select') {
-      setActiveTool({ tool: activeTool.tool, type });
+      setActiveTool({ ...activeTool, type });
     }
   };
 
@@ -96,11 +98,27 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'zone' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('zone')}>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'rectangle')}>
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Zone (Z)</p></TooltipContent>
+                <TooltipContent side="right"><p>Rectangle Zone (Z)</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'circle')}>
+                    <Circle className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Circle Zone</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'polygon')}>
+                    <Pentagon className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>Polygon Zone</p></TooltipContent>
               </Tooltip>
           </div>
         </div>

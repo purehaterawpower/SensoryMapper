@@ -1,81 +1,156 @@
 'use client';
 
 import { SENSORY_DATA } from "@/lib/constants";
-import { Marker, Zone } from "@/lib/types";
+import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef } from "react";
+import { EditHandles } from './EditHandles';
 
 type MapAreaProps = {
   mapImage: string | null;
   imageDimensions: { width: number, height: number } | null;
-  markers: Marker[];
-  zones: Zone[];
+  items: Item[];
   visibleLayers: Record<string, boolean>;
-  onItemSelect: (item: Marker | Zone) => void;
-  drawingZone: Omit<Zone, 'id' | 'description'> | null;
-  selectedItemId?: string | null;
+  onItemSelect: (item: Item | null) => void;
+  drawingShape: any;
+  selectedItem: Item | null;
+  editingItemId: string | null;
+  onItemDrag: (id: string, newPos: Point) => void;
+  onHandleDrag: (handleIndex: number, newPos: Point) => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   mapImage,
   imageDimensions,
-  markers,
-  zones,
+  items,
   visibleLayers,
   onItemSelect,
-  drawingZone,
-  selectedItemId,
+  drawingShape,
+  selectedItem,
+  editingItemId,
+  onItemDrag,
+  onHandleDrag,
   ...props
 }, ref) => {
+  
+  const renderMarker = (marker: Marker) => {
+    if (!visibleLayers[marker.type]) return null;
+    const { icon: Icon } = SENSORY_DATA[marker.type];
+    const isSelected = selectedItem?.id === marker.id;
 
-  const renderItem = (item: Marker | Zone, isZone: boolean) => {
-    if (!visibleLayers[item.type]) return null;
-    const { icon: Icon } = SENSORY_DATA[item.type];
-    const isSelected = selectedItemId === item.id;
-
-    const itemStyle: React.CSSProperties = isZone
-      ? {
+    const itemStyle: React.CSSProperties = {
         position: 'absolute',
-        left: item.x,
-        top: item.y,
-        width: (item as Zone).width,
-        height: (item as Zone).height,
-        backgroundColor: SENSORY_DATA[item.type].color,
-        opacity: isSelected ? 0.6 : 0.4,
-        cursor: 'pointer',
-        border: `2px solid ${isSelected ? 'hsl(var(--primary))' : SENSORY_DATA[item.type].color}`,
-        boxSizing: 'border-box',
-      }
-      : {
-        position: 'absolute',
-        left: item.x,
-        top: item.y,
+        left: marker.x,
+        top: marker.y,
         transform: 'translate(-50%, -50%)',
         cursor: 'pointer',
       };
 
     return (
       <div
-        key={item.id}
+        key={marker.id}
         style={itemStyle}
         onClick={(e) => { 
-          e.stopPropagation(); // Prevent map click from firing
-          onItemSelect(item);
+          e.stopPropagation();
+          onItemSelect(marker);
         }}
-        data-marker-id={!isZone ? item.id : undefined}
+        onMouseDown={(e) => { e.stopPropagation(); }}
+        data-item-id={marker.id}
+        data-item-type="marker"
       >
-        {!isZone && (
-          <div className={cn(
+        <div className={cn(
             "p-1.5 rounded-full shadow-lg transition-all", 
-            SENSORY_DATA[item.type].className,
+            marker.color ? '' : SENSORY_DATA[marker.type].className,
             isSelected && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
-            )}>
-            <Icon className="w-5 h-5 text-white" />
-          </div>
-        )}
+            )}
+            style={{ backgroundColor: marker.color }}
+          >
+          <Icon className="w-5 h-5 text-white" />
+        </div>
       </div>
     );
   };
+  
+  const renderShape = (shape: Shape) => {
+    if (!visibleLayers[shape.type]) return null;
+
+    const isSelected = selectedItem?.id === shape.id;
+    const isEditing = editingItemId === shape.id;
+    const color = shape.color || SENSORY_DATA[shape.type].color;
+    
+    return (
+        <g 
+          key={shape.id}
+          onClick={(e) => { e.stopPropagation(); onItemSelect(shape); }}
+          onMouseDown={(e) => { e.stopPropagation(); }}
+          data-item-id={shape.id}
+          data-item-type="shape"
+          style={{ cursor: 'pointer' }}
+        >
+            {shape.shape === 'rectangle' && (
+                <rect
+                    x={shape.x}
+                    y={shape.y}
+                    width={shape.width}
+                    height={shape.height}
+                    fill={color}
+                    opacity={isSelected ? 0.6 : 0.4}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    strokeWidth={2}
+                />
+            )}
+            {shape.shape === 'circle' && (
+                <circle
+                    cx={shape.cx}
+                    cy={shape.cy}
+                    r={shape.radius}
+                    fill={color}
+                    opacity={isSelected ? 0.6 : 0.4}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    strokeWidth={2}
+                />
+            )}
+            {shape.shape === 'polygon' && (
+                <polygon
+                    points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
+                    fill={color}
+                    opacity={isSelected ? 0.6 : 0.4}
+                    stroke={isSelected ? 'hsl(var(--primary))' : color}
+                    strokeWidth={2}
+                />
+            )}
+            {isEditing && <EditHandles shape={shape} onItemDrag={onItemDrag} onHandleDrag={onHandleDrag} />}
+        </g>
+    );
+  }
+
+  const renderDrawingShape = () => {
+    if (!drawingShape) return null;
+    const style: React.CSSProperties = {
+      stroke: 'hsl(var(--primary))',
+      strokeWidth: 2,
+      strokeDasharray: '5,5',
+      fill: 'hsla(var(--primary), 0.1)',
+      pointerEvents: 'none'
+    };
+    if (drawingShape.shape === 'rectangle') {
+      return <rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} style={style} />;
+    }
+    if (drawingShape.shape === 'circle') {
+      return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={style} />;
+    }
+    if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
+      return (
+        <>
+          <polyline points={drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ')} style={{...style, fill: 'none'}} />
+          {drawingShape.points.map((p: Point, i: number) => (
+            <circle key={i} cx={p.x} cy={p.y} r={3} fill="hsl(var(--primary))" style={{pointerEvents: 'none'}} />
+          ))}
+        </>
+      );
+    }
+    return null;
+  }
 
   const mapStyle: React.CSSProperties = imageDimensions ? {
     width: imageDimensions.width,
@@ -89,24 +164,18 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         className="relative shadow-lg rounded-lg overflow-hidden border cursor-crosshair"
         style={mapStyle}
         {...props}
+        onClick={() => onItemSelect(null)}
       >
         {mapImage ? (
           <>
-            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none" />
-            {zones.map(zone => renderItem(zone, true))}
-            {markers.map(marker => renderItem(marker, false))}
-            {drawingZone && (
-              <div style={{
-                position: 'absolute',
-                left: drawingZone.x,
-                top: drawingZone.y,
-                width: drawingZone.width,
-                height: drawingZone.height,
-                border: '2px dashed hsl(var(--primary))',
-                backgroundColor: 'hsla(var(--primary), 0.1)',
-                pointerEvents: 'none',
-              }}/>
-            )}
+            <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
+            <div className="absolute inset-0">
+                <svg width="100%" height="100%">
+                  {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
+                  {renderDrawingShape()}
+                </svg>
+            </div>
+            {items.filter(item => item.shape === 'marker').map(item => renderMarker(item as Marker))}
           </>
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">

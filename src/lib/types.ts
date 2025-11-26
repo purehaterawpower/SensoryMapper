@@ -11,23 +11,48 @@ export type SensoryInfo = {
   className: string;
 };
 
-export type Item = {
+export type Point = { x: number; y: number };
+
+export type BaseItem = {
   id: string;
-  // For mapbox, x is longitude, y is latitude
-  x: number;
-  y: number;
   type: SensoryType;
   description: string;
-}
+  color?: string;
+};
 
-export type Marker = Item;
+export type Marker = BaseItem & {
+  shape: 'marker';
+  x: number;
+  y: number;
+};
 
-export type Zone = Item & {
+export type RectangleShape = BaseItem & {
+  shape: 'rectangle';
+  x: number;
+  y: number;
   width: number;
   height: number;
 };
 
+export type CircleShape = BaseItem & {
+  shape: 'circle';
+  cx: number;
+  cy: number;
+  radius: number;
+};
+
+export type PolygonShape = BaseItem & {
+  shape: 'polygon';
+  points: Point[];
+};
+
+export type Shape = RectangleShape | CircleShape | PolygonShape;
+
+export type Item = Marker | Shape;
+
+export type DrawingShape = 'rectangle' | 'circle' | 'polygon';
 export type ActiveTool = {
-  tool: 'select' | 'marker' | 'zone';
+  tool: 'select' | 'marker' | 'shape';
   type?: SensoryType;
+  shape?: DrawingShape;
 };
