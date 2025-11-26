@@ -9,6 +9,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { Button } from "../ui/button";
 import { Upload } from "lucide-react";
 import { Input } from "../ui/input";
+import Image from "next/image";
 
 
 type MapAreaProps = {
@@ -249,7 +250,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
               )}
               style={{ width: imageDimensions.width, height: imageDimensions.height, transformOrigin: 'top left' }}
             >
-              <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
+              <Image src={mapImage} alt="Floor Plan" width={imageDimensions.width} height={imageDimensions.height} priority className="block w-full h-full object-contain pointer-events-none select-none" />
               <div className="absolute inset-0 pointer-events-none">
                   <Tooltip open={showPolygonTooltip}>
                     <TooltipTrigger asChild>

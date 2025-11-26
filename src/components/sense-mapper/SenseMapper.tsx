@@ -687,7 +687,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             imageDimensions,
             items
         };
-        const response = await fetch('/save/route', {
+        const response = await fetch('/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(mapData),
@@ -764,10 +764,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       />
       {mapImage && (
           <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
-              <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+              <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom in">
                   <Plus className='h-4 w-4'/>
               </Button>
-                <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm'>
+                <Button onClick={() => handleZoom('out')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom out">
                   <Minus className='h-4 w-4'/>
               </Button>
           </div>

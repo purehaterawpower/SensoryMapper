@@ -7,6 +7,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 export const metadata: Metadata = {
   title: 'SenseMapper',
   description: 'A specialized web application designed to help you map specific sensory experiences onto a floor plan.',
+  themeColor: 'hsl(40, 17%, 98%)',
 };
 
 export default function RootLayout({
@@ -16,11 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-      </head>
+      <head />
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <FirebaseClientProvider>
           {children}
@@ -30,5 +27,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    

@@ -176,7 +176,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                 <div className="relative">
                   <Image src={image} alt="Annotation image" width={288} height={162} className="rounded-md object-cover w-full aspect-video" />
                   {!readOnly && (
-                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setImage(null)}>
+                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => setImage(null)} aria-label="Remove image">
                         <X className="h-4 w-4" />
                     </Button>
                   )}
@@ -245,12 +245,12 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
             {!readOnly && (
                 <div className="flex justify-between items-center">
-                    <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto">
+                    <Button variant="destructive" size="icon" onClick={handleDelete} className="mr-auto" aria-label="Delete item">
                         <Trash2 className="w-4 h-4" />
                     </Button>
                     <div className="flex gap-2">
                         {isShape && (
-                            <Button onClick={handleToggleEditMode} variant="outline" size="icon" title="Adjust Shape">
+                            <Button onClick={handleToggleEditMode} variant="outline" size="icon" title="Adjust Shape" aria-label="Adjust Shape">
                                 <Edit className="h-4 w-4" />
                             </Button>
                         )}
