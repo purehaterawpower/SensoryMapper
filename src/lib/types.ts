@@ -12,6 +12,7 @@ export type SensoryInfo = {
 
 export type Item = {
   id: string;
+  // For mapbox, x is longitude, y is latitude
   x: number;
   y: number;
   type: SensoryType;
