@@ -108,7 +108,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       <TooltipProvider delayDuration={100}>
         <div className="space-y-2">
           <h2 className="text-lg font-semibold px-2">Tools</h2>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-around">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('select')}>
