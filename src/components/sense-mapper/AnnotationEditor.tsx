@@ -48,30 +48,27 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         const style = triggerRef.current.style;
         style.position = 'absolute';
         
+        let targetX = 0, targetY = 0;
+
         if (item.shape === 'marker') {
-            style.left = `${item.x}px`;
-            style.top = `${item.y}px`;
-            style.width = `0px`;
-            style.height = `0px`;
+            targetX = item.x;
+            targetY = item.y;
         } else if (item.shape === 'rectangle') {
-            style.left = `${item.x + item.width / 2}px`;
-            style.top = `${item.y + item.height / 2}px`;
-            style.width = `0px`;
-            style.height = `0px`;
+            targetX = item.x + item.width / 2;
+            targetY = item.y + item.height / 2;
         } else if (item.shape === 'circle') {
-            style.left = `${item.cx}px`;
-            style.top = `${item.cy}px`;
-            style.width = `0px`;
-            style.height = `0px`;
+            targetX = item.cx;
+            targetY = item.cy;
         } else if (item.shape === 'polygon') {
-            // Find centroid of polygon
             let cx = 0, cy = 0;
             item.points.forEach(p => { cx += p.x; cy += p.y; });
-            style.left = `${cx / item.points.length}px`;
-            style.top = `${cy / item.points.length}px`;
-            style.width = `0px`;
-            style.height = `0px`;
+            targetX = cx / item.points.length;
+            targetY = cy / item.points.length;
         }
+        style.left = `${targetX}px`;
+        style.top = `${targetY}px`;
+        style.width = `0px`;
+        style.height = `0px`;
     }
   }, [item]);
 
@@ -127,7 +124,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
         <PopoverTrigger asChild>
             <div ref={triggerRef} />
         </PopoverTrigger>
-      <PopoverContent className="w-80" side="right" align="start" sideOffset={10}>
+      <PopoverContent className="w-80" side="right" align="center" alignOffset={-140} sideOffset={10}>
         <div className="grid gap-4">
             <div className="space-y-2">
                 <h4 className="font-medium leading-none flex items-center gap-2">
@@ -227,5 +224,3 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
     </Popover>
   );
 }
-
-    

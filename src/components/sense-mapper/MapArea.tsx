@@ -16,7 +16,6 @@ type MapAreaProps = {
   imageDimensions: { width: number, height: number } | null;
   items: Item[];
   visibleLayers: Record<string, boolean>;
-  onItemSelect: (item: Item | null) => void;
   drawingShape: any;
   selectedItem: Item | null;
   editingItemId: string | null;
@@ -24,14 +23,13 @@ type MapAreaProps = {
   showPolygonTooltip: boolean;
   onMapUpload: (file: File) => void;
   readOnly?: boolean;
-} & React.HTMLAttributes<HTMLDivElement>;
+} & Omit<React.HTMLAttributes<HTMLDivElement>, 'onItemSelect'>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   mapImage,
   imageDimensions,
   items,
   visibleLayers,
-  onItemSelect,
   drawingShape,
   selectedItem,
   editingItemId,
@@ -70,11 +68,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       <div
         key={marker.id}
         style={itemStyle}
-        onClick={(e) => { 
-          e.stopPropagation();
-          onItemSelect(marker);
-        }}
-        onMouseDown={(e) => { e.stopPropagation(); }}
         data-item-id={marker.id}
         data-item-type="marker"
       >
@@ -101,8 +94,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     return (
         <g 
           key={shape.id}
-          onClick={(e) => { e.stopPropagation(); onItemSelect(shape); }}
-          onMouseDown={(e) => { e.stopPropagation(); }}
           data-item-id={shape.id}
           data-item-type="shape"
           style={{ cursor: readOnly ? 'default' : 'pointer' }}
@@ -164,11 +155,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
       return (
         <>
-           {drawingShape.points.length > 1 && (
-            <polygon
-              points={currentPoints}
-              style={{ ...style, strokeDasharray: 'none' }}
-            />
+           {drawingShape.points.length > 2 && (
+             <line
+                x1={drawingShape.points[drawingShape.points.length - 1].x}
+                y1={drawingShape.points[drawingShape.points.length - 1].y}
+                x2={drawingShape.points[0].x}
+                y2={drawingShape.points[0].y}
+                style={{ ...style, fill: 'none' }}
+              />
           )}
           <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
           <line
@@ -185,7 +179,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
               y={p.y - 4}
               width={8}
               height={8}
-              fill="white"
+              fill={i === 0 ? "hsl(var(--primary))" : "white"}
               stroke="hsl(var(--primary))"
               strokeWidth="1"
               style={{pointerEvents: 'none'}}
@@ -214,7 +208,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         )}
         style={mapStyle}
         {...props}
-        onClick={() => onItemSelect(null)}
       >
         {mapImage ? (
           <>
@@ -263,7 +256,3 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
-
-    
-
-    
