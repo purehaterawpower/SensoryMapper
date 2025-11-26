@@ -2,11 +2,10 @@
 // Firebase configuration will be populated during the build process.
 // For local development, you can add your Firebase config here.
 export const firebaseConfig = {
-  apiKey: "AIzaSyA_m7oA31AV78g4jPcegntj_5CYQ4a4c1A",
-  authDomain: "sense-mapper.firebaseapp.com",
-  projectId: "sense-mapper",
-  storageBucket: "sense-mapper.appspot.com",
-  messagingSenderId: "56589574674",
-  appId: "1:56589574674:web:e41e3093f10132b35a7b03",
-  measurementId: "G-YVE7G429V1"
+  apiKey: "AIzaSyAzF8cXq-apZ2CW2y8PtN8YF9zcGdClasc",
+  authDomain: "studio-2886683004-c5a40.firebaseapp.com",
+  projectId: "studio-2886683004-c5a40",
+  storageBucket: "studio-2886683004-c5a40.appspot.com",
+  messagingSenderId: "1039221900796",
+  appId: "1:1039221900796:web:d080b81c6a6976a8909e79"
 };
