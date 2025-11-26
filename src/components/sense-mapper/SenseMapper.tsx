@@ -657,15 +657,33 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return;
     }
 
-    setIsPrinting(true);
     setSelectedItem(null);
     setHighlightedItem(null);
     setEditingItemId(null);
-    
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    window.print();
+    setIsPrinting(true);
   };
+  
+  useEffect(() => {
+    if (isPrinting) {
+      const print = () => {
+        window.print();
+      };
+      
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+      };
+
+      // A small timeout to allow the printable content to render
+      const timer = setTimeout(print, 100);
+      
+      window.addEventListener('afterprint', handleAfterPrint);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [isPrinting]);
 
   const handleShare = async () => {
     if (!mapImage || !imageDimensions) {
@@ -701,18 +719,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setIsSharing(false);
     }
   };
-
-
-  useEffect(() => {
-    const handleAfterPrint = () => {
-      setIsPrinting(false);
-    };
-
-    window.addEventListener('afterprint', handleAfterPrint);
-    return () => {
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
-  }, []);
 
   const transformStyle: React.CSSProperties = {
     transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
