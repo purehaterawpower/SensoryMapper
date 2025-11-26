@@ -10,14 +10,14 @@ import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ViewState } from 'react-map-gl';
+import type { ViewState } from 'react-map-gl';
 
 const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
   return acc;
 }, {} as Record<SensoryType, boolean>);
 
-const INITIAL_VIEW_STATE = {
+const INITIAL_VIEW_STATE: ViewState = {
   longitude: -100,
   latitude: 40,
   zoom: 1,

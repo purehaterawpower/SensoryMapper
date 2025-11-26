@@ -1,7 +1,7 @@
-import { SenseMapper } from "@/components/sense-mapper/SenseMapper";
+import SenseMapperLoader from "@/components/sense-mapper/SenseMapperLoader";
 
 export default function Home() {
   return (
-    <SenseMapper />
+    <SenseMapperLoader />
   );
 }
