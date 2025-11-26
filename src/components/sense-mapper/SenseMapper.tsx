@@ -49,18 +49,11 @@ export function SenseMapper() {
     img.src = url;
     img.onload = () => {
       const aspectRatio = img.width / img.height;
-      // Let's assume we want the map to have a "width" of 1000 units in our coordinate system
       const mapWidth = 1000;
       const mapHeight = mapWidth / aspectRatio;
       setImageDimensions({ width: mapWidth, height: mapHeight });
-      setViewState({
-        longitude: mapWidth / 2,
-        latitude: mapHeight / 2,
-        zoom: -1,
-        pitch: 0,
-        bearing: 0,
-        padding: { top: 0, bottom: 0, left: 0, right: 0 }
-      });
+      // Reset view state to a valid initial state when new image loads
+      setViewState(INITIAL_VIEW_STATE);
       setMapImage(url);
     };
     img.onerror = () => {
@@ -81,7 +74,6 @@ export function SenseMapper() {
       if (e.target?.result) {
         const imageUrl = e.target.result as string;
         handleImageLoad(imageUrl);
-        // Reset markers and zones when a new map is uploaded
         setMarkers([]);
         setZones([]);
         setSelectedItem(null);
