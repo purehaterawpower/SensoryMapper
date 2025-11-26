@@ -8,7 +8,7 @@ import { ExitIcon } from '@/components/icons/ExitIcon';
 import { SeatingIcon } from '@/components/icons/SeatingIcon';
 
 
-export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'touch', 'movement', 'space'];
+export const SENSORY_STIMULI_TYPES: (SensoryType | AmenityType)[] = ['vision', 'hearing', 'smell', 'space', 'touch', 'movement'];
 export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['quietRoom', 'toilets', 'exit', 'help', 'firstAid', 'food', 'seating'];
 
 
