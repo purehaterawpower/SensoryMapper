@@ -141,7 +141,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Square className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Rectangle Zone (R)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Draw Rectangle Zone (R)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -149,7 +149,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <Circle className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Circle Zone (C)</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Draw Circle Zone (C)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,7 +158,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Polygon Zone (P)</p>
+                    <p className="font-bold">Draw Polygon Zone (P)</p>
                     <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish.</p>
                 </TooltipContent>
               </Tooltip>
