@@ -156,7 +156,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       <Separator />
 
       <div className="flex-1 space-y-2 overflow-y-auto">
-        <h2 className="text-lg font-semibold px-2">Layers</h2>
+        <h2 className="text-lg font-semibold px-2">View Layers</h2>
         {SENSORY_TYPES.map(type => {
           const { name, icon: Icon, className } = SENSORY_DATA[type];
           return (
