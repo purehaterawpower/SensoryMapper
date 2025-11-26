@@ -14,12 +14,7 @@ export const PolygonIcon = (props: SVGProps<SVGSVGElement>) => (
     strokeLinejoin="round"
     {...props}
   >
-    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-    <path d="M7 12 3 7l10-4 8 5-5 8Z" />
-    <path d="m3 7 4 5" />
-    <path d="m13 3 5 5" />
+    <path d="M5.5 19.5 19 21l-3-8.5-9.5 4Z" />
+    <path d="m19 21 1-10-8-4.5-8 4.5 5 10" />
   </svg>
 )
