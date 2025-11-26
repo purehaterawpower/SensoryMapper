@@ -152,24 +152,29 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     );
   }
 
-  const renderLayerCheckboxes = (types: ItemType[]) => {
-    return types.map(type => {
-      const { icon: Icon, name } = ALL_SENSORY_DATA[type];
-      const isVisible = visibleLayers[type];
-      return (
-        <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
-          <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
-              <Icon className="w-4 h-4 text-white" />
-          </div>
-          <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
-          <Checkbox
-            id={`layer-${type}`}
-            checked={isVisible}
-            onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-          />
-        </div>
-      );
-    });
+  const renderLayerCheckboxes = (title: string, types: ItemType[]) => {
+    return (
+      <div key={title}>
+        <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">{title}</h3>
+        {types.map(type => {
+          const { icon: Icon, name } = ALL_SENSORY_DATA[type];
+          const isVisible = visibleLayers[type];
+          return (
+            <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
+              <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
+                  <Icon className="w-4 h-4 text-white" />
+              </div>
+              <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
+              <Checkbox
+                id={`layer-${type}`}
+                checked={isVisible}
+                onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
@@ -207,9 +212,9 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     View Layers
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 space-y-4">
-                    {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
-                    {renderTypeSection('Respite Areas', RESPITE_AREA_TYPES)}
-                    {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+                    {renderLayerCheckboxes('Sensory', SENSORY_STIMULI_TYPES)}
+                    {renderLayerCheckboxes('Respite Areas', RESPITE_AREA_TYPES)}
+                    {renderLayerCheckboxes('Facilities', PRACTICAL_AMENITY_TYPES)}
                 </AccordionContent>
                 </AccordionItem>
             </Accordion>
