@@ -26,17 +26,17 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 
 const LOW_COLOR = '#409AF5';    // Blue
-const MID_LOW_COLOR = '#00E500'; // Vibrant Green
+const MID_LOW_COLOR = '#FFFFFF'; // White
 const MEDIUM_COLOR = '#FFD000'; // Neutral Yellow
 const MID_HIGH_COLOR = '#FFA500'; // Orange
 const HIGH_COLOR = '#ff0a0a';   // Hot Red
 
 export function interpolateColor(intensity: number): string {
     if (intensity <= 25) {
-        // Blue to Green
+        // Blue to White
         return lerpColor(LOW_COLOR, MID_LOW_COLOR, intensity / 25);
     } else if (intensity <= 50) {
-        // Green to Yellow
+        // White to Yellow
         return lerpColor(MID_LOW_COLOR, MEDIUM_COLOR, (intensity - 25) / 25);
     } else if (intensity <= 75) {
         // Yellow to Orange
