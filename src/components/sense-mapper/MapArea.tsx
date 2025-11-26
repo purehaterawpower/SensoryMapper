@@ -5,7 +5,6 @@ import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useState, useEffect, useRef } from "react";
 import { EditHandles } from './EditHandles';
-import { ZONE_COLORS } from "@/lib/zone-colors";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
 import { Upload } from "lucide-react";
@@ -98,8 +97,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
     const isSelected = selectedItem?.id === shape.id;
     const isEditing = editingItemId === shape.id;
-    const color = shape.color || ZONE_COLORS[0].color;
-    const fill = color.startsWith('url') ? color : color;
+    const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
+    const fill = color;
     
     return (
         <g 
@@ -118,7 +117,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     height={shape.height}
                     fill={fill}
                     fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
             )}
@@ -129,7 +128,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     r={shape.radius}
                     fill={fill}
                     fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
             )}
@@ -138,7 +137,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
                     fill={fill}
                     fillOpacity={isSelected || isEditing ? 0.6 : 0.4}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color.startsWith('url') ? 'black' : color}
+                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                 />
             )}
@@ -231,12 +230,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                   </TooltipContent>
                 </Tooltip>
                 <svg width="100%" height="100%">
-                    <defs>
-                        <pattern id="extreme-pattern" patternUnits="userSpaceOnUse" width="8" height="8">
-                            <rect width="8" height="8" fill="#DC2626"/>
-                            <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="black" strokeWidth="1" />
-                        </pattern>
-                    </defs>
                   {items.filter(item => item.shape !== 'marker').map(item => renderShape(item as Shape))}
                   {renderDrawingShape()}
                 </svg>

@@ -2,7 +2,6 @@
 
 import { Item, Marker, Shape } from '@/lib/types';
 import { ALL_SENSORY_DATA } from '@/lib/constants';
-import { ZONE_COLORS } from '@/lib/zone-colors';
 
 type PrintableReportProps = {
   mapImage: string | null;
@@ -38,8 +37,8 @@ const MapRenderer = ({
   };
 
   const renderShape = (shape: Shape) => {
-    const color = shape.color || ZONE_COLORS[0].color;
-    const fill = color.startsWith('url') ? color : color;
+    const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
+    const fill = color;
 
     return (
       <g key={shape.id}>
@@ -51,7 +50,7 @@ const MapRenderer = ({
             height={shape.height}
             fill={fill}
             opacity={0.4}
-            stroke={color.startsWith('url') ? 'black' : color}
+            stroke={color}
             strokeWidth={2}
           />
         )}
@@ -62,7 +61,7 @@ const MapRenderer = ({
             r={shape.radius}
             fill={fill}
             opacity={0.4}
-            stroke={color.startsWith('url') ? 'black' : color}
+            stroke={color}
             strokeWidth={2}
           />
         )}
@@ -71,7 +70,7 @@ const MapRenderer = ({
             points={shape.points.map((p) => `${p.x},${p.y}`).join(' ')}
             fill={fill}
             opacity={0.4}
-            stroke={color.startsWith('url') ? 'black' : color}
+            stroke={color}
             strokeWidth={2}
           />
         )}
@@ -111,21 +110,6 @@ const MapRenderer = ({
         }}
       >
         <svg width="100%" height="100%">
-          <defs>
-            <pattern
-              id="extreme-pattern-print"
-              patternUnits="userSpaceOnUse"
-              width="8"
-              height="8"
-            >
-              <rect width="8" height="8" fill="#DC2626" />
-              <path
-                d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4"
-                stroke="black"
-                strokeWidth="1"
-              />
-            </pattern>
-          </defs>
           {items
             .filter((item) => item.shape !== 'marker')
             .map((item) => renderShape(item as Shape))}
@@ -164,7 +148,7 @@ export function PrintableReport({
               return (
                 <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-1.5 rounded-md" style={{ backgroundColor: color }}>
+                    <div className="p-1.5 rounded-md" style={{ backgroundColor: item.color || color }}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold">{categoryName}</h3>

@@ -23,6 +23,7 @@ export type BaseItem = {
   type: ItemType;
   description: string;
   color?: string;
+  intensity?: number;
 };
 
 export type Marker = BaseItem & {

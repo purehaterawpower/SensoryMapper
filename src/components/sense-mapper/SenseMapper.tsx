@@ -9,8 +9,8 @@ import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
-import { ZONE_COLORS } from '@/lib/zone-colors';
 import { PrintableReport } from './PrintableReport';
+import { interpolateColor } from '@/lib/color-utils';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -186,12 +186,14 @@ export function SenseMapper() {
   const finishDrawingPolygon = () => {
     if (drawingShape && drawingShape.shape === 'polygon' && drawingShape.points.length > 2 && activeTool.type) {
         const shapeType = activeTool.type;
+        const defaultIntensity = 50;
         const newShape: Shape = {
             ...drawingShape,
             id: crypto.randomUUID(),
             type: shapeType,
             description: '',
-            color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : ZONE_COLORS[0].color,
+            color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
+            intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -331,12 +333,14 @@ export function SenseMapper() {
          // Ignore tiny shapes
       } else {
         const shapeType = activeTool.type;
+        const defaultIntensity = 50;
         const newShape: Shape = {
           ...drawingShape,
           id: crypto.randomUUID(),
           type: shapeType,
           description: '',
-          color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : ZONE_COLORS[0].color,
+          color: shapeType === 'quietArea' ? ALL_SENSORY_DATA.quietArea.color : interpolateColor(defaultIntensity),
+          intensity: shapeType === 'quietArea' ? undefined : defaultIntensity,
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
@@ -384,7 +388,7 @@ export function SenseMapper() {
     }
   };
   
-  const handleSaveAnnotation = (itemId: string, data: { description: string, color?: string }) => {
+  const handleSaveAnnotation = (itemId: string, data: { description: string, color?: string, intensity?: number }) => {
     setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
@@ -426,7 +430,7 @@ export function SenseMapper() {
         return;
     }
     const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
-    const type = activeTool.type || ALL_SENSORY_TYPES[0];
+    const type = activeTool.type || ALL_SENSory_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':

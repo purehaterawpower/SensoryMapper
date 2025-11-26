@@ -6,16 +6,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item }from "@/lib/types";
-import { Loader2, Sparkles, Trash2, Edit, Check } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { ZONE_COLORS, ZoneColor } from "@/lib/zone-colors";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { interpolateColor, colorToIntensity } from "@/lib/color-utils";
 
 type AnnotationEditorProps = {
   item: Item | null;
   onClose: () => void;
-  onSave: (itemId: string, data: { description: string, color?: string }) => void;
+  onSave: (itemId: string, data: { description:string, color?: string, intensity?: number }) => void;
   onDelete: (itemId: string) => void;
   onGenerateSummary: (description: string) => Promise<void>;
   isSummaryLoading: boolean;
@@ -24,14 +25,14 @@ type AnnotationEditorProps = {
 
 export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState('');
+  const [intensity, setIntensity] = useState(50);
   const triggerRef = useRef<HTMLDivElement>(null);
-
+  
   useEffect(() => {
     if (item) {
       setDescription(item.description);
       if(item.shape !== 'marker') {
-        setColor(item.color || ZONE_COLORS[0].color);
+        setIntensity(item.intensity ?? colorToIntensity(item.color) ?? 50);
       }
     }
   }, [item]);
@@ -73,13 +74,13 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
   const showColorPicker = isShape && item.type !== 'quietArea';
-
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
   const handleSave = () => {
-    const data: { description: string, color?: string } = { description };
-    if (isShape) {
-      data.color = color;
+    const data: { description: string, color?: string, intensity?: number } = { description };
+    if (showColorPicker) {
+      data.color = interpolateColor(intensity);
+      data.intensity = intensity;
     }
     onSave(item.id, data);
   };
@@ -94,6 +95,10 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   const handleToggleEditMode = () => {
     onToggleEditMode(item.id);
+  }
+
+  const handleSliderChange = (value: number[]) => {
+    setIntensity(value[0]);
   }
 
   return (
@@ -126,32 +131,18 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
             </div>
 
             {showColorPicker && (
-              <div className="grid gap-2">
-                <Label>Area Category</Label>
-                <TooltipProvider delayDuration={100}>
-                <div className="flex flex-wrap gap-2">
-                    {ZONE_COLORS.map((zoneColor: ZoneColor) => (
-                        <Tooltip key={zoneColor.id}>
-                            <TooltipTrigger asChild>
-                                <button
-                                    onClick={() => setColor(zoneColor.color)}
-                                    className={cn("w-8 h-8 rounded-full border-2 transition-all",
-                                        color === zoneColor.color ? 'border-primary' : 'border-transparent'
-                                    )}
-                                >
-                                    <div className="w-full h-full rounded-full flex items-center justify-center" style={{backgroundColor: zoneColor.color}}>
-                                        {color === zoneColor.color && <Check className="h-5 w-5 text-white" />}
-                                    </div>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs text-center">
-                                <p className="font-bold">{zoneColor.name}</p>
-                                <p>{zoneColor.description}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    ))}
+              <div className="grid gap-4 pt-2">
+                <Label>Intensity</Label>
+                <Slider
+                  value={[intensity]}
+                  onValueChange={handleSliderChange}
+                  max={100}
+                  step={1}
+                />
+                 <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Moderate</span>
+                    <span>High</span>
                 </div>
-                </TooltipProvider>
               </div>
             )}
 
