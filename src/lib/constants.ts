@@ -32,7 +32,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     color: '#E76F51',
   },
   touch: { 
-    name: 'Touch', 
+    name: 'Feel', 
     description: 'Textures, temperature, and surfaces.',
     icon: Hand, 
     color: '#2A9D8F',
