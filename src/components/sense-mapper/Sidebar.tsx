@@ -65,17 +65,17 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
               const categoryButton = (
-                  <Button
-                      key={type}
-                      variant={isSelected ? 'secondary' : 'ghost'}
-                      onClick={() => handleSensoryTypeChange(type)}
-                      className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
-                  >
-                      <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
-                          <Icon className="w-4 h-4 text-white" />
-                      </div>
-                      <span>{name}</span>
-                  </Button>
+                <Button
+                  key={type}
+                  variant={isSelected ? 'secondary' : 'ghost'}
+                  onClick={() => handleSensoryTypeChange(type)}
+                  className="h-10 w-full justify-start pl-3 gap-3 rounded-md"
+                >
+                  <div className="p-1.5 rounded-md flex items-center justify-center" style={{backgroundColor: color}}>
+                      <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <span>{name}</span>
+                </Button>
               );
 
               return (
@@ -135,7 +135,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent side="bottom" className="max-w-xs text-center">
-                                      <p className="font-bold">Draw Polygon Area</p>
+                                      <p className="font-bold">Draw Custom Area</p>
                                       <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
                                   </TooltipContent>
                                 </Tooltip>

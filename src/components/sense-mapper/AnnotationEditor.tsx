@@ -73,6 +73,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
 
+  const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
+
   const handleSave = () => {
     const data: { description: string, color?: string } = { description };
     if (isShape) {
@@ -105,7 +107,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     <div className={`p-1.5 rounded-md`} style={{backgroundColor: ALL_SENSORY_DATA[item.type].color}}>
                         <Icon className="w-5 h-5 text-white" />
                     </div>
-                    Edit {sensoryName} {isShape ? 'Area' : 'Marker'}
+                    Edit {sensoryName} {isShape ? shapeName : 'Marker'}
                 </h4>
                 <p className="text-sm text-muted-foreground">
                     Add or edit the sensory details for this item.
