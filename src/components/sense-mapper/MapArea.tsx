@@ -98,12 +98,12 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     },
     properties: {}
   } : null;
-
+  
   const imageLayerCoordinates = imageDimensions ? [
-    [0, imageDimensions.height],
-    [imageDimensions.width, imageDimensions.height],
-    [imageDimensions.width, 0],
-    [0, 0]
+    [viewState.longitude - imageDimensions.width / 2, viewState.latitude + imageDimensions.height / 2],
+    [viewState.longitude + imageDimensions.width / 2, viewState.latitude + imageDimensions.height / 2],
+    [viewState.longitude + imageDimensions.width / 2, viewState.latitude - imageDimensions.height / 2],
+    [viewState.longitude - imageDimensions.width / 2, viewState.latitude - imageDimensions.height / 2]
   ] : [];
 
 
