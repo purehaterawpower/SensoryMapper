@@ -11,8 +11,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { PolygonIcon } from "../icons/PolygonIcon";
-import { RectangleIcon } from "../icons/RectangleIcon";
-import { CircleIcon } from "../icons/CircleIcon";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -28,7 +26,7 @@ type SidebarProps = {
 
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
 
-  const handleToolChange = (tool: 'select' | 'shape' | 'marker', shape?: 'rectangle' | 'circle' | 'polygon') => {
+  const handleToolChange = (tool: 'select' | 'shape' | 'marker') => {
     if (readOnly) return;
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
@@ -37,7 +35,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       if (tool === 'marker') {
         setActiveTool({ tool: 'marker', type: currentType });
       } else { // shape
-        setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
+        setActiveTool({ tool: 'shape', type: currentType, shape: 'polygon' });
       }
     }
   };
@@ -46,14 +44,14 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     if (readOnly) return;
     const isPracticalAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
 
-    if (activeTool.type === type) {
+    if (activeTool.type === type && activeTool.tool !== 'select') {
         // If the same category is clicked again, switch to select tool
         setActiveTool({ tool: 'select' });
     } else if (isPracticalAmenity) {
       setActiveTool({ tool: 'marker', type });
     } else {
-      // Default to rectangle shape when a new non-amenity category is selected
-      setActiveTool({ tool: 'shape', shape: 'rectangle', type });
+      // Default to polygon shape for sensory areas
+      setActiveTool({ tool: 'shape', shape: 'polygon', type });
     }
   };
   
@@ -112,32 +110,9 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                                     </TooltipContent>
                                 </Tooltip>
                             ) : (
-                              <>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'rectangle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'rectangle')}>
-                                      <RectangleIcon className="w-5 h-5" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="bottom" className="max-w-xs text-center">
-                                      <p className="font-bold">Draw Rectangle Area</p>
-                                      <p>Click and drag to draw a rectangular area. (R)</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'circle' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'circle')}>
-                                      <CircleIcon className="w-5 h-5" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="bottom" className="max-w-xs text-center">
-                                      <p className="font-bold">Draw Circle Area</p>
-                                      <p>Click and drag to draw a circular area. (C)</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape', 'polygon')}>
+                                    <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" className="rounded-full flex-1" onClick={() => handleToolChange('shape')}>
                                       <PolygonIcon className="w-5 h-5" />
                                     </Button>
                                   </TooltipTrigger>
@@ -146,7 +121,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                                       <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </>
                             )}
                           </div>
                         </div>
@@ -249,5 +223,3 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     </aside>
   );
 }
-
-    

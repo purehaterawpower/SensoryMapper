@@ -228,6 +228,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setDrawingShape(null);
     setStartCoords(null);
     setShowPolygonTooltip(false);
+    setActiveTool({ tool: 'select' });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -256,7 +257,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
       if (itemType === 'marker') {
         setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - (item as Marker).x, y: coords.y - (item as Marker).y }});
-      } else if (itemType === 'shape-center' || (itemType === 'shape' && !editingItemId)) {
+      } else if (itemType === 'shape-center' || (itemType === 'shape' && activeTool.tool === 'select')) {
         let dragStartPos: Point = { x: 0, y: 0 };
         const shape = item as Shape;
         
@@ -349,7 +350,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     // Handle selecting an item if we weren't dragging or drawing
     if (!isDrawing && itemId) {
         const item = items.find(i => i.id === itemId);
-        if (item) {
+        if (item && activeTool.tool === 'select') {
             handleItemSelect(item);
             return;
         }
@@ -384,6 +385,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setIsDrawing(false);
     setDrawingShape(null);
     setStartCoords(null);
+    setActiveTool({ tool: 'select' });
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
@@ -394,7 +396,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (target.closest('[data-item-id]')) {
       const itemId = target.closest('[data-item-id]')!.getAttribute('data-item-id');
       const item = items.find(i => i.id === itemId);
-      if (item) {
+      if (item && activeTool.tool === 'select') {
           handleItemSelect(item);
       }
       return;
@@ -423,7 +425,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         };
         setItems(prev => [...prev, newMarker]);
         setSelectedItem(newMarker);
-        setEditingItemId(newMarker.id);
+        setEditingItemId(null);
         setActiveTool({tool: 'select'});
     } else {
        handleItemSelect(null);
@@ -475,7 +477,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
-    const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
     const type = activeTool.type || ALL_SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
@@ -484,12 +485,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         break;
       case 'm':
         setActiveTool({ tool: 'marker', type });
-        break;
-      case 'r':
-        setActiveTool({ tool: 'shape', shape: 'rectangle', type });
-        break;
-      case 'c':
-        setActiveTool({ tool: 'shape', shape: 'circle', type });
         break;
       case 'p':
         setActiveTool({ tool: 'shape', shape: 'polygon', type });
@@ -507,6 +502,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             setSelectedItem(null);
         }
         setDraggingItem(null);
+        setActiveTool({tool: 'select'});
         break;
     }
   }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
