@@ -183,11 +183,8 @@ export function PrintableReport({
   imageDimensions,
   items,
 }: PrintableReportProps) {
-  // All visible items get a number for the map
-  const numberedMapItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
-
-  // Only items with descriptions or images get an entry in the list
-  const listItems = numberedMapItems.filter(item => item.description || item.imageUrl);
+  // All visible items get a number for the map and are included in the list
+  const listItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
 
   return (
     <div className="p-8 bg-white text-black">
@@ -197,7 +194,7 @@ export function PrintableReport({
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>
         <div style={{width: '100%', maxWidth: '100%'}}>
-          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={numberedMapItems} />
+          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={listItems} />
         </div>
       </div>
 
@@ -220,7 +217,7 @@ export function PrintableReport({
                       {isSensoryArea && item.intensity !== undefined && (
                         <div className='flex items-center gap-2 mt-1'>
                             <span className="text-xs text-slate-600">Level:</span>
-                            <Progress value={item.intensity} className="h-2 w-24" />
+                            <Progress value={item.intensity} className="h-2 w-24" style={{ '--primary': item.color } as React.CSSProperties} />
                              <span className="text-xs text-slate-600 w-16">
                                 {item.intensity < 33 ? 'Low' : item.intensity < 66 ? 'Medium' : 'High'}
                             </span>
@@ -229,7 +226,11 @@ export function PrintableReport({
                     </div>
                   </div>
                   <div className="grid gap-4 ml-9" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
-                    {item.description && <p className="text-sm">{item.description}</p>}
+                    {item.description ? (
+                        <p className="text-sm">{item.description}</p>
+                    ) : (
+                        (!item.imageUrl) && <p className='text-sm text-slate-500'>No details provided for this item.</p>
+                    )}
                     {item.imageUrl && (
                        <Image
                           src={item.imageUrl}
@@ -244,7 +245,7 @@ export function PrintableReport({
               );
             })
           ) : (
-            <p>No annotations with descriptions have been added to the map.</p>
+            <p>No annotations have been added to the map.</p>
           )}
         </div>
       </div>
