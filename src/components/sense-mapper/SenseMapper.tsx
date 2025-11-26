@@ -74,7 +74,7 @@ export function SenseMapper() {
 
   const handleItemSelect = (item: Item | null) => {
     if (editingItemId && item?.id !== editingItemId) {
-        setEditingItemId(null);
+        return; // Don't allow deselection while editing a shape
     }
     setSelectedItem(item);
   };
@@ -97,8 +97,8 @@ export function SenseMapper() {
         dx = newPos.x - originalItem.x;
         dy = newPos.y - originalItem.y;
       } else if (originalItem.shape === 'rectangle') {
-        dx = newPos.x - originalItem.x;
-        dy = newPos.y - originalItem.y;
+        dx = newPos.x - (originalItem.x + originalItem.width / 2);
+        dy = newPos.y - (originalItem.y + originalItem.height / 2);
       } else if (originalItem.shape === 'circle') {
         dx = newPos.x - originalItem.cx;
         dy = newPos.y - originalItem.cy;
@@ -137,7 +137,6 @@ export function SenseMapper() {
         const { x, y, width, height } = updatedShape;
         const corners = [{x,y}, {x:x+width, y}, {x:x+width, y:y+height}, {x, y:y+height}];
         
-        // This is a naive implementation. A better one would handle which corner is being dragged.
         const oppositeCorner = corners[(handleIndex + 2) % 4];
         const newX = Math.min(newPos.x, oppositeCorner.x);
         const newY = Math.min(newPos.y, oppositeCorner.y);
@@ -185,8 +184,9 @@ export function SenseMapper() {
       if (item) {
         if (activeTool.tool === 'select') {
           let dragStartPos = { x: 0, y: 0 };
+          
           if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
-          else if (item.shape === 'rectangle') dragStartPos = {x: item.x, y: item.y};
+          else if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
           else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
           else if (item.shape === 'polygon') {
              const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
@@ -203,6 +203,7 @@ export function SenseMapper() {
     }
     
     if ((activeTool.tool === 'marker' || activeTool.tool === 'shape') && activeTool.type) {
+      if (editingItemId) return; // Don't start drawing if an item is being edited.
       setIsDrawing(true);
       setStartCoords(coords);
       
@@ -275,6 +276,8 @@ export function SenseMapper() {
           description: ''
         };
         setItems(prev => [...prev, newShape]);
+        setSelectedItem(newShape);
+        setEditingItemId(newShape.id);
       }
     }
     
@@ -286,6 +289,10 @@ export function SenseMapper() {
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
+    if (editingItemId) {
+        return; // Prevent deselection or new item creation while editing
+    }
+
     if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
         const { x, y } = getMapCoordinates(e);
         const newMarker: Marker = {
@@ -297,9 +304,11 @@ export function SenseMapper() {
           description: ''
         };
         setItems(prev => [...prev, newMarker]);
+        setSelectedItem(newMarker);
     } else {
-       if (editingItemId) {
-           // This is handled by item selection now
+       if (!e.defaultPrevented) {
+          setSelectedItem(null);
+          setEditingItemId(null);
        }
     }
   };
@@ -428,7 +437,12 @@ export function SenseMapper() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onClick={handleMapClick}
+        onClick={(e) => {
+          if (!editingItemId) {
+            setSelectedItem(null);
+          }
+          handleMapClick(e);
+        }}
         onDoubleClick={handleDoubleClick}
         drawingShape={drawingShape}
         selectedItem={selectedItem}
