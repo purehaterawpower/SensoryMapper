@@ -28,7 +28,7 @@ type MapAreaProps = {
   activeTool: ActiveTool;
   readOnly?: boolean;
   zoomLevel: number;
-} & Omit<React.HTMLAttributes<HTMLDivElement>, 'onItemSelect'>;
+} & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   mapImage,
@@ -74,10 +74,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const isHighlighted = highlightedItem?.id === marker.id;
     const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === marker.type);
 
-    // Default size is 20px for the icon (w-5, h-5). We'll scale from 0.8x to 2x this size.
-    // 50 (default) -> 1.4 * 20 = 28px
-    // 0 -> 0.8 * 20 = 16px
-    // 100 -> 2 * 20 = 40px
     const scaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
     const iconSize = 20 * scaleFactor;
     const padding = 6 * scaleFactor;
