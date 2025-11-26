@@ -210,6 +210,25 @@ export function SenseMapper() {
     }));
   }
 
+  const finishDrawingPolygon = () => {
+    if (drawingShape && drawingShape.shape === 'polygon' && drawingShape.points.length > 2 && activeTool.type) {
+        const newShape: Shape = {
+            ...drawingShape,
+            id: crypto.randomUUID(),
+            type: activeTool.type,
+            description: '',
+            color: ZONE_COLORS[0].color,
+        };
+        setItems(prev => [...prev, newShape]);
+        setSelectedItem(newShape);
+        setEditingItemId(newShape.id);
+    }
+    setIsDrawing(false);
+    setDrawingShape(null);
+    setStartCoords(null);
+    setShowPolygonTooltip(false);
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage) return;
 
@@ -251,21 +270,24 @@ export function SenseMapper() {
     
     if ((activeTool.tool === 'marker' || activeTool.tool === 'shape') && activeTool.type) {
       if (editingItemId) return; // Don't start drawing if an item is being edited.
-      setIsDrawing(true);
-      setStartCoords(coords);
       
       if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
+        setIsDrawing(true); // Keep drawing mode for polygons
         if (!drawingShape) {
           setDrawingShape({ shape: 'polygon', points: [coords] });
         } else {
+          // Check if user is closing the polygon
           const firstPoint = drawingShape.points[0];
           const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-          if (showPolygonTooltip && dist < 10 && drawingShape.points.length > 2) {
-             handleMouseUp();
+          if (drawingShape.points.length > 2 && dist < 10) {
+            finishDrawingPolygon();
           } else {
             setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
           }
         }
+      } else {
+        setIsDrawing(true);
+        setStartCoords(coords);
       }
     }
   };
@@ -316,7 +338,8 @@ export function SenseMapper() {
       return;
     }
 
-    if (!isDrawing || !activeTool.type) return;
+    if (!isDrawing || !activeTool.type || activeTool.shape === 'polygon') return;
+
 
     if (activeTool.tool === 'shape' && drawingShape) {
       if (
@@ -324,7 +347,7 @@ export function SenseMapper() {
         (drawingShape.shape === 'circle' && drawingShape.radius < 5)
       ) {
          // Ignore tiny shapes
-      } else if (activeTool.shape !== 'polygon' || (drawingShape?.points && drawingShape.points.length > 2)) {
+      } else {
         const newShape: Shape = {
           ...drawingShape,
           id: crypto.randomUUID(),
@@ -338,12 +361,9 @@ export function SenseMapper() {
       }
     }
     
-    if (activeTool.shape !== 'polygon' || (drawingShape?.points && drawingShape.points.length > 2)) {
-      setIsDrawing(false);
-      setDrawingShape(null);
-      setStartCoords(null);
-      setShowPolygonTooltip(false);
-    }
+    setIsDrawing(false);
+    setDrawingShape(null);
+    setStartCoords(null);
   };
 
   const handleMapClick = (e: React.MouseEvent) => {
@@ -354,6 +374,10 @@ export function SenseMapper() {
             setEditingItemId(null);
          }
         return;
+    }
+    
+    if (activeTool.shape === 'polygon' && isDrawing) {
+        return; // Let mousedown handle adding points
     }
 
     if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
@@ -486,7 +510,7 @@ export function SenseMapper() {
       if(draggingItem) {
           setDraggingItem(null);
       }
-      if(isDrawing) {
+      if(isDrawing && activeTool.shape !== 'polygon') {
           handleMouseUp();
       }
     }
@@ -496,11 +520,11 @@ export function SenseMapper() {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp]);
+  }, [draggingItem, isDrawing, handleMouseMove, handleMouseUp, activeTool.shape]);
 
   const handleDoubleClick = () => {
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
-      handleMouseUp();
+      finishDrawingPolygon();
     }
   };
 
