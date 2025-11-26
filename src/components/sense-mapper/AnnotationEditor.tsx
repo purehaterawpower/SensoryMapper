@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item }from "@/lib/types";
-import { Loader2, Sparkles, Trash2, Edit } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Edit, Check } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { ZONE_COLORS, ZoneColor } from "@/lib/zone-colors";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -139,7 +139,9 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                                         color === zoneColor.color ? 'border-primary' : 'border-transparent'
                                     )}
                                 >
-                                    <div className="w-full h-full rounded-full" style={{backgroundColor: zoneColor.color}}></div>
+                                    <div className="w-full h-full rounded-full flex items-center justify-center" style={{backgroundColor: zoneColor.color}}>
+                                        {color === zoneColor.color && <Check className="h-5 w-5 text-white" />}
+                                    </div>
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="max-w-xs text-center">
