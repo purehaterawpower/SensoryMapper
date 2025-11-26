@@ -23,7 +23,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 
-const LOW_COLOR = '#2A9D8F';    // Blue
+const LOW_COLOR = '#409AF5';    // Blue
 const MEDIUM_COLOR = '#E9C46A'; // Neutral Yellow
 const HIGH_COLOR = '#E76F51';   // Hot Red
 
