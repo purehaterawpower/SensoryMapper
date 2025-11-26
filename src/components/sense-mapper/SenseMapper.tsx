@@ -308,9 +308,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     const newDy = coords.y - originalItem.cy;
                     updatedItem.radius = Math.sqrt(newDx*newDx + newDy*newDy);
                 } else if (updatedItem.shape === 'polygon') {
-                    const newPoints = [...updatedItem.points];
+                    const newPoints = [...(updatedItem as PolygonShape).points];
                     newPoints[draggingItem.handleIndex] = coords;
-                    updatedItem.points = newPoints;
+                    (updatedItem as PolygonShape).points = newPoints;
                 }
             }
             return updatedItem;
