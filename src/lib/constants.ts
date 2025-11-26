@@ -24,8 +24,8 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     name: 'Smell', 
     description: 'The capacity to perceive and interpret smells.',
     icon: NoseIcon, 
-    color: '#FFF5EB', 
-    className: 'bg-[#FFF5EB]' 
+    color: '#FDDDB1', // Changed from #FFF5EB to a darker shade for visibility
+    className: 'bg-[#FDDDB1]' 
   },
   vestibular: { 
     name: 'The vestibular system', 
