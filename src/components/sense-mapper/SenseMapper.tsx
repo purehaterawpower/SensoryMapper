@@ -29,6 +29,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [highlightedItem, setHighlightedItem] = useState<Item | null>(null);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -77,6 +78,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setItems([]);
         setSelectedItem(null);
         setEditingItemId(null);
+        setHighlightedItem(null);
         setZoomLevel(1);
         setPanOffset({ x: 0, y: 0 });
       }
@@ -164,7 +166,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       } else {
         updatedItem = item;
       }
-      setSelectedItem(updatedItem);
+      setHighlightedItem(updatedItem);
       return updatedItem;
     }));
   };
@@ -200,7 +202,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         updatedShape.points = newPoints;
       }
 
-      setSelectedItem(updatedShape);
+      setHighlightedItem(updatedShape);
       return updatedShape;
     }));
   }
@@ -220,6 +222,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         };
         setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
+        setHighlightedItem(newShape);
         setEditingItemId(newShape.id);
     }
     setIsDrawing(false);
@@ -355,6 +358,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       };
       setItems(prev => [...prev, newMarker]);
       setSelectedItem(newMarker);
+      setHighlightedItem(newMarker);
       setEditingItemId(null);
       setActiveTool({tool: 'select'});
     }
@@ -380,11 +384,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if (itemId) {
         const item = items.find(i => i.id === itemId);
         if (item) {
-          setSelectedItem(item);
+          setHighlightedItem(item);
           setEditingItemId(null);
         }
       } else {
-        setSelectedItem(null);
+        setHighlightedItem(null);
         setEditingItemId(null);
       }
     }
@@ -399,6 +403,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const target = e.target as HTMLElement;
     if (!target.closest('[data-item-id]')) {
         if (editingItemId) setEditingItemId(null);
+        if (highlightedItem) setHighlightedItem(null);
         if (selectedItem) setSelectedItem(null);
     }
   };
@@ -415,6 +420,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       const item = items.find(i => i.id === itemId);
       if (item) {
         setSelectedItem(item);
+        setHighlightedItem(item);
         setEditingItemId(null);
       }
     }
@@ -422,9 +428,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleSaveAnnotation = (itemId: string, data: { description: string, imageUrl?: string | null, color?: string, intensity?: number }) => {
     if (readOnly) return;
-    setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
+    const updatedItems = items.map(i => i.id === itemId ? { ...i, ...data } : i);
+    setItems(updatedItems);
     setSelectedItem(null);
     setEditingItemId(null);
+    const updatedItem = updatedItems.find(i => i.id === itemId);
+    if (updatedItem) setHighlightedItem(updatedItem);
     toast({ title: "Saved!", description: "Your annotation has been saved." });
   };
   
@@ -432,6 +441,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly) return;
     setItems(items.filter(m => m.id !== itemId));
     setSelectedItem(null);
+    setHighlightedItem(null);
     setEditingItemId(null);
     toast({ title: "Deleted!", description: "The item has been removed from the map." });
   };
@@ -454,7 +464,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setEditingItemId(newId);
     if(newId) {
         const itemToEdit = items.find(i => i.id === newId);
-        if(itemToEdit) setSelectedItem(itemToEdit);
+        if(itemToEdit) {
+          setSelectedItem(itemToEdit);
+          setHighlightedItem(itemToEdit);
+        };
     }
   }
 
@@ -545,6 +558,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         const item = items.find(i => i.id === itemId);
         if (item) {
             setSelectedItem(item);
+            setHighlightedItem(item);
         }
     }
   };
@@ -599,6 +613,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     setIsPrinting(true);
     setSelectedItem(null);
+    setHighlightedItem(null);
     setEditingItemId(null);
     
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -687,7 +702,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
           onContextMenu={handleContextMenu}
           onMapUpload={handleMapUpload}
           drawingShape={drawingShape}
-          selectedItem={selectedItem}
+          highlightedItem={highlightedItem}
           editingItemId={editingItemId}
           cursorPos={cursorPos}
           showPolygonTooltip={showPolygonTooltip}
@@ -711,7 +726,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         item={selectedItem}
         onClose={() => {
             setSelectedItem(null);
-            setEditingItemId(null);
+            if (!editingItemId) {
+              setHighlightedItem(null);
+            }
         }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}
@@ -741,3 +758,5 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     </>
   );
 }
+
+    

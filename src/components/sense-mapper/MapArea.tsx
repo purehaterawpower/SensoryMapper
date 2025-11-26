@@ -17,7 +17,7 @@ type MapAreaProps = {
   items: Item[];
   visibleLayers: Record<string, boolean>;
   drawingShape: any;
-  selectedItem: Item | null;
+  highlightedItem: Item | null;
   editingItemId: string | null;
   cursorPos: Point;
   showPolygonTooltip: boolean;
@@ -35,7 +35,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   items,
   visibleLayers,
   drawingShape,
-  selectedItem,
+  highlightedItem,
   editingItemId,
   cursorPos,
   showPolygonTooltip,
@@ -70,7 +70,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   const renderMarker = (marker: Marker) => {
     if (!visibleLayers[marker.type]) return null;
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
-    const isSelected = selectedItem?.id === marker.id;
+    const isHighlighted = highlightedItem?.id === marker.id;
 
     const itemStyle: React.CSSProperties = {
         position: 'absolute',
@@ -89,7 +89,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       >
         <div className={cn(
             "p-1.5 rounded-full shadow-lg transition-all", 
-            isSelected && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
+            isHighlighted && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
             )}
             style={{ backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color }}
           >
@@ -102,7 +102,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   const renderShape = (shape: Shape) => {
     if (!visibleLayers[shape.type]) return null;
 
-    const isSelected = selectedItem?.id === shape.id;
+    const isHighlighted = highlightedItem?.id === shape.id;
     const isEditing = editingItemId === shape.id;
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
@@ -138,8 +138,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     width={shape.width}
                     height={shape.height}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
+                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
+                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                     style={{pointerEvents: 'none'}}
                 />
@@ -150,8 +150,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     cy={shape.cy}
                     r={shape.radius}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
+                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
+                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                     style={{pointerEvents: 'none'}}
                 />
@@ -160,8 +160,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                 <polygon
                     points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
                     fill={fill}
-                    fillOpacity={isSelected || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
-                    stroke={isSelected || isEditing ? 'hsl(var(--primary))' : color}
+                    fillOpacity={isHighlighted || isEditing ? 0.6 : (shape.type === 'quietRoom' ? 0.4 : 0.4)}
+                    stroke={isHighlighted || isEditing ? 'hsl(var(--primary))' : color}
                     strokeWidth={2}
                     style={{pointerEvents: 'none'}}
                 />
@@ -301,3 +301,5 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
+
+    
