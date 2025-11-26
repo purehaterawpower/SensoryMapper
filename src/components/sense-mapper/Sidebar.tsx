@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Circle, MapPin, FileDown } from "lucide-react";
-import { useRef } from "react";
-import { Input } from "../ui/input";
+import { MousePointer, Square, Circle, MapPin, FileDown, Loader2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -95,7 +93,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   }
 
   return (
-    <aside className="w-80 bg-card border-r flex flex-col p-4 gap-4">
+    <aside id="sidebar" className="w-80 bg-card border-r flex flex-col p-4 gap-4">
       <div className="p-2">
         <h1 className="text-2xl font-bold">SenseMapper</h1>
         <p className="text-sm text-muted-foreground">Map and analyse sensory experiences.</p>
@@ -219,8 +217,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
       <div className="p-2">
         <Button onClick={onExportPDF} disabled={isExporting} className="w-full">
-            <FileDown className="mr-2 h-4 w-4" />
-            {isExporting ? 'Exporting...' : 'Export to PDF'}
+            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+            {isExporting ? 'Preparing...' : 'Export to PDF'}
         </Button>
       </div>
     </aside>

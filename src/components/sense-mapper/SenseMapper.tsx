@@ -5,14 +5,12 @@ import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
 import { Item, Shape, Point, ActiveTool, ItemType, Marker } from '@/lib/types';
-import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA } from '@/lib/constants';
+import { ALL_SENSORY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
 import { ZONE_COLORS } from '@/lib/zone-colors';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { PrintableReport } from './PrintableReport';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -41,7 +39,7 @@ export function SenseMapper() {
   
   const [summary, setSummary] = useState<{title: string, content: string} | null>(null);
   const [isSummaryLoading, setSummaryLoading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -501,80 +499,44 @@ export function SenseMapper() {
   };
 
   const handleExportPDF = async () => {
-    if (!mapRef.current) {
-        toast({ variant: "destructive", title: "Error", description: "Could not find map to export." });
-        return;
+    if (!mapImage) {
+      toast({ variant: "destructive", title: "No Map", description: "Please upload a map before exporting." });
+      return;
     }
-    setIsExporting(true);
+
+    setIsPrinting(true);
     setSelectedItem(null);
     setEditingItemId(null);
 
+    // Wait for state to update and UI to re-render
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    try {
-        const canvas = await html2canvas(mapRef.current, { useCORS: true, allowTaint: true });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new (jsPDF as any)({
-            orientation: canvas.width > canvas.height ? 'l' : 'p',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
+    window.print();
 
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-
-        const visibleItems = items.filter(item => visibleLayers[item.type]);
-        if (visibleItems.length > 0) {
-            pdf.addPage();
-            const tableData = visibleItems.map(item => {
-                const itemInfo = ALL_SENSORY_DATA[item.type];
-                const category = 
-                    itemInfo ? itemInfo.name : 'Unknown';
-                const description = item.description || 'No description provided.';
-                return [category, description];
-            });
-
-            pdf.autoTable({
-                head: [['Category', 'Description']],
-                body: tableData,
-                startY: 40,
-                styles: {
-                    cellPadding: 4,
-                    fontSize: 10,
-                },
-                headStyles: {
-                    fillColor: [37, 54, 94], // primary color
-                    textColor: 255,
-                    fontStyle: 'bold',
-                },
-                didDrawPage: (data: any) => {
-                    pdf.setFontSize(20);
-                    pdf.text("Sensory Map Legend", data.settings.margin.left, 30);
-                }
-            });
-        }
-
-        pdf.save("sensory-map.pdf");
-        toast({ title: "Export Successful", description: "Your sensory map has been exported to PDF." });
-
-    } catch (error) {
-        console.error("Failed to export PDF:", error);
-        toast({ variant: "destructive", title: "Export Failed", description: "An error occurred while exporting to PDF." });
-    } finally {
-        setIsExporting(false);
-    }
+    // The `afterprint` event will set isPrinting to false
   };
 
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
   return (
-    <div className="flex h-screen bg-background font-body text-foreground">
+    <>
+    <div id="app-container" className="flex h-screen bg-background font-body text-foreground">
       <Sidebar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         visibleLayers={visibleLayers}
         onLayerVisibilityChange={handleLayerVisibilityChange}
         onExportPDF={handleExportPDF}
-        isExporting={isExporting}
+        isExporting={isPrinting}
       />
       <MapArea
         ref={mapRef}
@@ -615,5 +577,15 @@ export function SenseMapper() {
         onClose={() => setSummary(null)}
       />
     </div>
+    {isPrinting && (
+        <div id="printable-report">
+            <PrintableReport
+              mapImage={mapImage}
+              imageDimensions={imageDimensions}
+              items={items.filter(item => visibleLayers[item.type])}
+            />
+        </div>
+    )}
+    </>
   );
 }
