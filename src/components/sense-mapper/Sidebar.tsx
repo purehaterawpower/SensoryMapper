@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Landmark, Circle, Pentagon } from "lucide-react";
+import { MousePointer, Square, Upload, Circle, Pentagon } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
@@ -24,12 +24,9 @@ type SidebarProps = {
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onMapUpload }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleToolChange = (tool: 'select' | 'marker' | 'shape', shape?: 'rectangle' | 'circle' | 'polygon') => {
+  const handleToolChange = (tool: 'select' | 'shape', shape?: 'rectangle' | 'circle' | 'polygon') => {
     if (tool === 'select') {
       setActiveTool({ tool: 'select' });
-    } else if (tool === 'marker') {
-      const currentType = activeTool.type || SENSORY_TYPES[0];
-      setActiveTool({ tool: 'marker', type: currentType });
     } else { // shape
       const currentType = activeTool.type || SENSORY_TYPES[0];
       setActiveTool({ tool: 'shape', type: currentType, shape: shape || 'rectangle' });
@@ -38,8 +35,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
 
   const handleSensoryTypeChange = (type: SensoryType) => {
     if (activeTool.tool === 'select') {
-        // If select tool is active, switch to marker tool with the new type
-        setActiveTool({ tool: 'marker', type });
+        // If select tool is active, switch to shape tool with the new type
+        setActiveTool({ tool: 'shape', shape: 'rectangle', type });
     } else {
         setActiveTool({ ...activeTool, type });
     }
@@ -116,14 +113,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Select (V)</p></TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant={activeTool.tool === 'marker' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('marker')}>
-                    <Landmark className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Marker (M)</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -52,7 +52,7 @@ export type Item = Marker | Shape;
 
 export type DrawingShape = 'rectangle' | 'circle' | 'polygon';
 export type ActiveTool = {
-  tool: 'select' | 'marker' | 'shape';
+  tool: 'select' | 'shape';
   type?: SensoryType;
   shape?: DrawingShape;
 };

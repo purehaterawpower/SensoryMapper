@@ -32,8 +32,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
       setDescription(item.description);
       if(item.shape !== 'marker') {
         setColor(item.color || ZONE_COLORS[0].color);
-      } else {
-        setColor(SENSORY_DATA[item.type].color);
       }
     }
   }, [item]);

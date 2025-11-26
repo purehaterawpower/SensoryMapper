@@ -249,11 +249,10 @@ export function SenseMapper() {
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId) {
       const item = items.find(i => i.id === itemId);
-      if (item) {
+      if (item && item.shape !== 'marker') {
         let dragStartPos = { x: 0, y: 0 };
         
-        if (item.shape === 'marker') dragStartPos = {x: item.x, y: item.y};
-        else if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
+        if (item.shape === 'rectangle') dragStartPos = {x: item.x + item.width/2, y: item.y + item.height/2};
         else if (item.shape === 'circle') dragStartPos = {x: item.cx, y: item.cy};
         else if (item.shape === 'polygon') {
             const sum = item.points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
@@ -268,10 +267,10 @@ export function SenseMapper() {
       return;
     }
     
-    if ((activeTool.tool === 'marker' || activeTool.tool === 'shape') && activeTool.type) {
+    if (activeTool.tool === 'shape' && activeTool.type) {
       if (editingItemId) return; // Don't start drawing if an item is being edited.
       
-      if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
+      if (activeTool.shape === 'polygon') {
         setIsDrawing(true); // Keep drawing mode for polygons
         if (!drawingShape) {
           setDrawingShape({ shape: 'polygon', points: [coords] });
@@ -380,18 +379,9 @@ export function SenseMapper() {
         return; // Let mousedown handle adding points
     }
 
-    if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
+    if (activeTool.tool === 'shape' && activeTool.type && mapImage) {
         const { x, y } = getMapCoordinates(e);
-        const newMarker: Marker = {
-          id: crypto.randomUUID(),
-          shape: 'marker',
-          x,
-          y,
-          type: activeTool.type,
-          description: ''
-        };
-        setItems(prev => [...prev, newMarker]);
-        setSelectedItem(newMarker);
+        // This is where markers were created. Now we only create shapes.
     } else {
        if (!e.defaultPrevented) {
           setSelectedItem(null);
@@ -445,16 +435,13 @@ export function SenseMapper() {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
-    const tool = activeTool.tool === 'select' ? 'marker' : activeTool.tool;
+    const tool = activeTool.tool === 'select' ? 'shape' : activeTool.tool;
     const shape = activeTool.tool === 'shape' ? activeTool.shape : 'rectangle';
     const type = activeTool.type || SENSORY_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':
         setActiveTool({ tool: 'select' });
-        break;
-      case 'm':
-        setActiveTool({ tool: 'marker', type });
         break;
       case 'r':
         setActiveTool({ tool: 'shape', shape: 'rectangle', type });
