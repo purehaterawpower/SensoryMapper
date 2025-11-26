@@ -138,19 +138,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                                         color === zoneColor.color ? 'border-primary' : 'border-transparent'
                                     )}
                                 >
-                                    {zoneColor.id === 'extreme' ? (
-                                        <svg width="100%" height="100%" className="rounded-full">
-                                            <defs>
-                                                <pattern id="extreme-pattern-preview" patternUnits="userSpaceOnUse" width="8" height="8">
-                                                    <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="black" strokeWidth="1" />
-                                                </pattern>
-                                            </defs>
-                                            <rect x="0" y="0" width="100%" height="100%" fill="#DC2626" />
-                                            <rect x="0" y="0" width="100%" height="100%" fill="url(#extreme-pattern-preview)" />
-                                        </svg>
-                                    ) : (
-                                        <div className="w-full h-full rounded-full" style={{backgroundColor: zoneColor.color}}></div>
-                                    )}
+                                    <div className="w-full h-full rounded-full" style={{backgroundColor: zoneColor.color}}></div>
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="max-w-xs text-center">

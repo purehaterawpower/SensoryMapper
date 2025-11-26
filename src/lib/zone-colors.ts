@@ -7,39 +7,15 @@ export type ZoneColor = {
 
 export const ZONE_COLORS: ZoneColor[] = [
     {
-        id: 'blue',
-        name: 'Blue Area = Sensory Friendly',
-        description: 'A sensory friendly area is an area where there are few sensory inputs (such as background music, dim lighting) and where sensory inputs are controllable or predictable.',
-        color: '#A8DADC'
+        id: 'moderate',
+        name: 'Moderate',
+        description: 'Noticeable activity, elevated input.',
+        color: '#F4A261' // Yellow/Orange
     },
     {
-        id: 'green',
-        name: 'Green Area = Lower sensory',
-        description: 'A green area is a lower sensory area where there are some sensory inputs but these are not overwhelming or competing (e.g. a single source of background music or natural light that is filtered through tinted windows). Green areas are not likely to cause overwhelm.',
-        color: '#82B4A1'
+        id: 'high',
+        name: 'High',
+        description: 'Intense, potential trigger or overwhelm.',
+        color: '#E76F51' // Red
     },
-    {
-        id: 'orange',
-        name: 'Orange Area – Medium sensory',
-        description: 'An orange area is an area with moderate levels of sensory input. These areas may have competing sensory inputs (e.g. background music for the venue competing with other sounds from stores/exhibits etc.). Orange areas indicate the need for some strategies (e.g. noise cancelling headphones/sunglasses) and have an increased chance of leading to overwhelm.',
-        color: '#F4A261'
-    },
-    {
-        id: 'red',
-        name: 'Red Area – High sensory',
-        description: 'A Red Area is an area with heightened sensory input or with multiple overlapping/competing sensory inputs simultaneously. (E.g. loud noises from multiple sources as well as crowding and smells). Red areas indicate the need for coping strategies and have a high likelihood of leading to overwhelm without strategies in place.',
-        color: '#E76F51'
-    },
-    {
-        id: 'extreme',
-        name: 'Extreme sensory',
-        description: 'An extreme sensory area is reserved for the highest levels of sensory input (e.g. entering a plane via the tarmac at an airport). Extreme areas have multiple sources of overwhelming input (e.g. loud sounds strong smells etc.) simultaneously and require the Autistic person to manage multiple overwhelming inputs at once. Extreme areas require multiple coping strategies to navigate and have a high likelihood of leading to overwhelm without support.',
-        color: 'url(#extreme-pattern)'
-    },
-    {
-        id: 'purple',
-        name: 'Purple – Sensory Opportunity',
-        description: 'The colour purple indicates a potential positive sensory opportunity. Purple Sensory symbols/areas indicate an opportunity for someone who finds pleasure in that sense (e.g visual, balance, movement) to experience positive sensory stimulation in that space.',
-        color: '#264653'
-    }
 ];
