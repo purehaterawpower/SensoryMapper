@@ -261,7 +261,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     const itemType = target.closest('[data-item-type]')?.getAttribute('data-item-type');
 
-    if (itemId) {
+    if (activeTool.tool === 'select' && itemId) {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
   
@@ -278,9 +278,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         
         if (isCenterHandle || item.shape === 'marker') {
             setDraggingItem({ id: itemId, type: 'item', offset: { x: coords.x - dragStartPos.x, y: coords.y - dragStartPos.y }});
+            e.stopPropagation();
+            return;
         }
-        e.stopPropagation();
-        return;
       }
     
     if (activeTool.tool === 'shape' && activeTool.type) {
@@ -303,9 +303,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setIsDrawing(true);
         setStartCoords(coords);
       }
+    } else if (activeTool.tool === 'marker') {
+        // This is handled in handleMapClick to place markers on a simple click
     } else {
-        setIsPanning(true);
-        setPanStart({ x: e.clientX, y: e.clientY });
+        // Fallback to panning only when no other tool is active or interaction has occurred
+        if (!itemId) {
+            setIsPanning(true);
+            setPanStart({ x: e.clientX, y: e.clientY });
+        }
     }
   };
   
@@ -362,11 +367,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     }
 
     if (draggingItem) {
-      setDraggingItem(null);
       if (!didDrag) {
           const item = items.find(i => i.id === draggingItem.id);
           if (item) handleItemSelect(item);
       }
+      setDraggingItem(null);
       return;
     }
 
@@ -450,7 +455,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setSelectedItem(newMarker);
       setEditingItemId(null);
       setActiveTool({tool: 'select'});
-    } else {
+    } else if (!itemId) { // Deselect if clicking on empty space
       handleItemSelect(null);
     }
   };
