@@ -84,7 +84,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const isSelected = selectedItem?.id === shape.id;
     const isEditing = editingItemId === shape.id;
     const color = shape.color || ZONE_COLORS[0].color;
-    const fill = color === 'url(#extreme-pattern)' ? color : color;
+    const fill = color.startsWith('url') ? color : color;
     
     return (
         <g 
@@ -149,7 +149,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     }
     if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
       const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
-      const previewLine = `${drawingShape.points[drawingShape.points.length - 1].x},${drawingShape.points[drawingShape.points.length - 1].y} ${cursorPos.x},${cursorPos.y}`;
       return (
         <>
            {drawingShape.points.length > 1 && (

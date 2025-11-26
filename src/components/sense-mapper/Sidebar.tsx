@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, Square, Upload, Circle, Pentagon } from "lucide-react";
+import { MousePointer, Square, Upload, Circle } from "lucide-react";
 import { useRef } from "react";
 import { Input } from "../ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
+import { PolygonIcon } from "../icons/PolygonIcon";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -133,10 +134,13 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant={activeTool.tool === 'shape' && activeTool.shape === 'polygon' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleToolChange('shape', 'polygon')}>
-                    <Pentagon className="w-5 h-5" />
+                    <PolygonIcon className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Polygon Zone (P)</p></TooltipContent>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                    <p className="font-bold">Polygon Zone (P)</p>
+                    <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish.</p>
+                </TooltipContent>
               </Tooltip>
           </div>
         </div>
