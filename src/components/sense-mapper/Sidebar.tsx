@@ -26,10 +26,10 @@ type SidebarProps = {
 
 export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
 
-  const handleToolChange = (tool: 'select' | 'marker' | 'shape', type: ItemType) => {
+  const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
 
-    if (activeTool.tool === tool && activeTool.type === type) {
+    if (activeTool.type === type) {
       setActiveTool({ tool: 'select' });
     } else {
       const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
@@ -44,9 +44,10 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
   const renderTypeSection = (title: string, types: ItemType[]) => {
     if (types.length === 0) return null;
 
-    const onValueChange = (type: string) => {
-      const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
-      handleToolChange(isAmenity ? 'marker' : 'shape', type as ItemType);
+    const onValueChange = (value: string) => {
+      if (value) {
+        handleToolChange(value as ItemType);
+      }
     };
 
     return (
@@ -80,7 +81,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                     <div className="p-1.5 rounded-md flex items-center justify-center" style={{ backgroundColor: color }}>
                       <Icon className="w-4 h-4 text-white" />
                     </div>
-                    <span>{name}</span>
+                    <span className="flex-1">{name}</span>
                   </Label>
                 </TooltipTrigger>
                 <TooltipContent side="right" align="start" className="max-w-xs text-left">
