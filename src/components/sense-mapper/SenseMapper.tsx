@@ -39,6 +39,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   // Editing state
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'item' | 'handle', handleIndex?: number; offset: Point } | null>(null);
+  const [didDrag, setDidDrag] = useState(false);
 
   const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
@@ -233,6 +234,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!mapImage || readOnly) return;
+    setDidDrag(false);
 
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
@@ -302,6 +304,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     setCursorPos(coords);
 
     if (draggingItem) {
+      setDidDrag(true);
       if (draggingItem.type === 'item') {
         const newCenterPos = { x: coords.x - draggingItem.offset.x, y: coords.y - draggingItem.offset.y };
         handleItemDrag(draggingItem.id, newCenterPos);
@@ -334,26 +337,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
-    const target = e.target as SVGElement;
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-
     if (draggingItem) {
-      // If we just finished dragging, select the item that was dragged
-      const draggedItem = items.find(i => i.id === draggingItem.id);
-      if (draggedItem) {
-        setSelectedItem(draggedItem);
-      }
       setDraggingItem(null);
+      if (!didDrag) {
+          const item = items.find(i => i.id === draggingItem.id);
+          if (item) handleItemSelect(item);
+      }
       return;
-    }
-
-    // Handle selecting an item if we weren't dragging or drawing
-    if (!isDrawing && itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (item && activeTool.tool === 'select') {
-            handleItemSelect(item);
-            return;
-        }
     }
 
     if (!isDrawing || !activeTool.type || activeTool.shape === 'polygon') return;
@@ -391,27 +381,32 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleMapClick = (e: React.MouseEvent) => {
     if (readOnly) return;
 
-    // Prevent deselection if the click was on an item or handle
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-item-id]')) {
-      const itemId = target.closest('[data-item-id]')!.getAttribute('data-item-id');
-      const item = items.find(i => i.id === itemId);
-      if (item && activeTool.tool === 'select') {
-          handleItemSelect(item);
-      }
+    if (didDrag) {
+      setDidDrag(false);
       return;
     }
     
+    const target = e.target as HTMLElement;
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+
+    if (activeTool.shape === 'polygon' && isDrawing) {
+        return; // Let mousedown handle adding points
+    }
+
+    if (itemId && activeTool.tool === 'select') {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+          handleItemSelect(item);
+        }
+        return;
+    }
+
     if (editingItemId) {
         setSelectedItem(null);
         setEditingItemId(null);
         return;
     }
     
-    if (activeTool.shape === 'polygon' && isDrawing) {
-        return; // Let mousedown handle adding points
-    }
-
     if (activeTool.tool === 'marker' && activeTool.type && mapImage) {
         const { x, y } = getMapCoordinates(e);
         const newMarker: Marker = {
@@ -477,7 +472,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
     }
-    const type = activeTool.type || ALL_SENSORY_TYPES[0];
+    const type = activeTool.type || ALL_SENSory_TYPES[0];
 
     switch (event.key.toLowerCase()) {
       case 'v':
@@ -689,3 +684,5 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     </>
   );
 }
+
+    
