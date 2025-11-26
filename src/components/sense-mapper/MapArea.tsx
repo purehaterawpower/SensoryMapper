@@ -3,10 +3,13 @@
 import { ALL_SENSORY_DATA } from "@/lib/constants";
 import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import React, { forwardRef, useState, useEffect } from "react";
+import React, { forwardRef, useState, useEffect, useRef } from "react";
 import { EditHandles } from './EditHandles';
 import { ZONE_COLORS } from "@/lib/zone-colors";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Button } from "../ui/button";
+import { Upload } from "lucide-react";
+import { Input } from "../ui/input";
 
 
 type MapAreaProps = {
@@ -22,6 +25,7 @@ type MapAreaProps = {
   onHandleDrag: (handleIndex: number, newPos: Point) => void;
   cursorPos: Point;
   showPolygonTooltip: boolean;
+  onMapUpload: (file: File) => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -37,9 +41,21 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   onHandleDrag,
   cursorPos,
   showPolygonTooltip,
+  onMapUpload,
   ...props
 }, ref) => {
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onMapUpload(file);
+    }
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
   const renderMarker = (marker: Marker) => {
     if (!visibleLayers[marker.type]) return null;
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
@@ -186,14 +202,17 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   const mapStyle: React.CSSProperties = imageDimensions ? {
     width: imageDimensions.width,
     height: imageDimensions.height,
-  } : {};
+  } : { width: '100%', height: '100%'};
 
   return (
     <main className="flex-1 p-4 bg-muted/40 overflow-auto flex items-center justify-center">
       <TooltipProvider>
       <div 
         ref={ref}
-        className="relative shadow-lg rounded-lg overflow-hidden border cursor-crosshair"
+        className={cn(
+          "relative shadow-lg rounded-lg overflow-hidden border",
+           mapImage ? 'cursor-crosshair' : ''
+        )}
         style={mapStyle}
         {...props}
         onClick={() => onItemSelect(null)}
@@ -225,9 +244,23 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           </>
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center text-center p-8">
-            <p className="text-muted-foreground">
-              Upload a floor plan to get started.
-            </p>
+             <div className="flex flex-col items-center gap-4">
+              <p className="text-muted-foreground max-w-xs">
+                To get started, upload a floor plan image (PNG, JPG) or PDF. This will be the canvas for your sensory map.
+              </p>
+              <Input
+                type="file"
+                id="map-upload-main"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*,application/pdf"
+                onChange={handleFileUpload}
+              />
+              <Button onClick={() => fileInputRef.current?.click()} size="lg">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Floor Plan
+              </Button>
+            </div>
           </div>
         )}
       </div>

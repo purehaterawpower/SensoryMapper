@@ -534,7 +534,6 @@ export function SenseMapper() {
         setActiveTool={setActiveTool}
         visibleLayers={visibleLayers}
         onLayerVisibilityChange={handleLayerVisibilityChange}
-        onMapUpload={handleMapUpload}
       />
       <MapArea
         ref={mapRef}
@@ -548,6 +547,7 @@ export function SenseMapper() {
         onMouseUp={handleMouseUp}
         onClick={handleMapClick}
         onDoubleClick={handleDoubleClick}
+        onMapUpload={handleMapUpload}
         drawingShape={drawingShape}
         selectedItem={selectedItem}
         editingItemId={editingItemId}

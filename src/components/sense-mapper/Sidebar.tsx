@@ -19,11 +19,9 @@ type SidebarProps = {
   setActiveTool: (tool: ActiveTool) => void;
   visibleLayers: Record<string, boolean>;
   onLayerVisibilityChange: (layer: ItemType, visible: boolean) => void;
-  onMapUpload: (file: File) => void;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onMapUpload }: SidebarProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange }: SidebarProps) {
 
   const handleToolChange = (tool: 'select' | 'shape' | 'marker', shape?: 'rectangle' | 'circle' | 'polygon') => {
     if (tool === 'select') {
@@ -49,16 +47,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       } else {
           setActiveTool({ ...activeTool, type });
       }
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onMapUpload(file);
-    }
-    if(fileInputRef.current) {
-        fileInputRef.current.value = '';
     }
   };
   
@@ -112,23 +100,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
       </div>
       <Separator />
 
-      <div>
-        <Input
-          type="file"
-          id="map-upload"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*,application/pdf"
-          onChange={handleFileUpload}
-        />
-        <Button onClick={() => fileInputRef.current?.click()} className="w-full">
-          <Upload className="mr-2 h-4 w-4" />
-          Upload Floor Plan
-        </Button>
-      </div>
-      
-      <Separator />
-
       <TooltipProvider delayDuration={100}>
         <div className="space-y-2">
           <h2 className="text-lg font-semibold px-2">Tools</h2>
@@ -140,8 +111,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Select (V)</p>
-                    <p>Select, move, and edit items on the map.</p>
+                    <p className="font-bold">Select</p>
+                    <p>Select, move, and edit items on the map. (V)</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -151,8 +122,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Place Marker (M)</p>
-                    <p>Click on the map to place an amenity icon.</p>
+                    <p className="font-bold">Place Marker</p>
+                    <p>Click on the map to place an amenity icon. (M)</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -162,8 +133,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Rectangle Zone (R)</p>
-                    <p>Click and drag to draw a rectangular area.</p>
+                    <p className="font-bold">Draw Rectangle Zone</p>
+                    <p>Click and drag to draw a rectangular area. (R)</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -173,8 +144,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Circle Zone (C)</p>
-                    <p>Click and drag to draw a circular area.</p>
+                    <p className="font-bold">Draw Circle Zone</p>
+                    <p>Click and drag to draw a circular area. (C)</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -184,8 +155,8 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-center">
-                    <p className="font-bold">Draw Polygon Zone (P)</p>
-                    <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish.</p>
+                    <p className="font-bold">Draw Polygon Zone</p>
+                    <p>Draw a custom shape by clicking to place points. Click the first point or double-click to finish. (P)</p>
                 </TooltipContent>
               </Tooltip>
           </div>
