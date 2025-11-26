@@ -690,7 +690,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         isSharing={isSharing}
         readOnly={readOnly}
       />
-      <main className="flex-1 relative">
+      <main className="flex-1 relative flex flex-col">
         <MapArea
             ref={mapRef}
             mapImage={mapImage}
