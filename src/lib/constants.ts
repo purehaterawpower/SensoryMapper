@@ -14,7 +14,7 @@ export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['quietRoom', 'toilets', '
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
-    name: 'Visuals', 
+    name: 'Visual', 
     description: 'Lighting, glare, and clutter.',
     icon: Eye, 
     color: '#82B4A1', 
