@@ -33,7 +33,9 @@ export function SenseMapper() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingShape, setDrawingShape] = useState<any>(null);
   const [startCoords, setStartCoords] = useState<Point | null>(null);
-  
+  const [cursorPos, setCursorPos] = useState<Point>({ x: 0, y: 0 });
+  const [showPolygonTooltip, setShowPolygonTooltip] = useState(false);
+
   // Editing state
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'item' | 'handle', handleIndex?: number; offset: Point } | null>(null);
@@ -258,7 +260,7 @@ export function SenseMapper() {
         } else {
           const firstPoint = drawingShape.points[0];
           const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-          if (dist < 10 && drawingShape.points.length > 2) {
+          if (showPolygonTooltip && dist < 10 && drawingShape.points.length > 2) {
              handleMouseUp();
           } else {
             setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
@@ -270,6 +272,7 @@ export function SenseMapper() {
   
   const handleMouseMove = (e: React.MouseEvent) => {
     const coords = getMapCoordinates(e);
+    setCursorPos(coords);
 
     if (draggingItem) {
       if (draggingItem.type === 'item') {
@@ -281,6 +284,14 @@ export function SenseMapper() {
         handleHandleDrag(draggingItem.handleIndex, coords);
       }
       return;
+    }
+    
+    if (isDrawing && activeTool.tool === 'shape' && activeTool.shape === 'polygon' && drawingShape?.points?.length > 2) {
+      const firstPoint = drawingShape.points[0];
+      const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
+      setShowPolygonTooltip(dist < 10);
+    } else {
+      setShowPolygonTooltip(false);
     }
 
     if (!isDrawing || !startCoords || activeTool.tool !== 'shape') return;
@@ -331,6 +342,7 @@ export function SenseMapper() {
       setIsDrawing(false);
       setDrawingShape(null);
       setStartCoords(null);
+      setShowPolygonTooltip(false);
     }
   };
 
@@ -399,7 +411,7 @@ export function SenseMapper() {
             if(itemToEdit) setSelectedItem(itemToEdit);
         } else {
             // If we are exiting edit mode, deselect the item
-            setSelectedItem(null);
+            // setSelectedItem(null); // Keep item selected but exit edit mode
         }
         return newId;
     });
@@ -434,6 +446,7 @@ export function SenseMapper() {
             setIsDrawing(false);
             setDrawingShape(null);
             setStartCoords(null);
+            setShowPolygonTooltip(false);
         } else if (editingItemId) {
             setEditingItemId(null);
             setSelectedItem(null);
@@ -517,12 +530,15 @@ export function SenseMapper() {
         editingItemId={editingItemId}
         onItemDrag={handleItemDrag}
         onHandleDrag={handleHandleDrag}
+        cursorPos={cursorPos}
+        showPolygonTooltip={showPolygonTooltip}
       />
       <AnnotationEditor
         item={selectedItem}
         onClose={() => { 
-            if (editingItemId) return;
-            setSelectedItem(null); 
+            if (!editingItemId) {
+              setSelectedItem(null); 
+            }
         }}
         onSave={handleSaveAnnotation}
         onDelete={handleDeleteItem}

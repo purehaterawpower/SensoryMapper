@@ -3,9 +3,11 @@
 import { SENSORY_DATA } from "@/lib/constants";
 import { Item, Marker, Shape, Point } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 import { EditHandles } from './EditHandles';
 import { ZONE_COLORS } from "@/lib/zone-colors";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+
 
 type MapAreaProps = {
   mapImage: string | null;
@@ -18,6 +20,8 @@ type MapAreaProps = {
   editingItemId: string | null;
   onItemDrag: (id: string, newPos: Point) => void;
   onHandleDrag: (handleIndex: number, newPos: Point) => void;
+  cursorPos: Point;
+  showPolygonTooltip: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -31,6 +35,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   editingItemId,
   onItemDrag,
   onHandleDrag,
+  cursorPos,
+  showPolygonTooltip,
   ...props
 }, ref) => {
   
@@ -142,11 +148,36 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       return <circle cx={drawingShape.cx} cy={drawingShape.cy} r={drawingShape.radius} style={style} />;
     }
     if (drawingShape.shape === 'polygon' && drawingShape.points.length > 0) {
+      const currentPoints = drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ');
+      const previewLine = `${drawingShape.points[drawingShape.points.length - 1].x},${drawingShape.points[drawingShape.points.length - 1].y} ${cursorPos.x},${cursorPos.y}`;
       return (
         <>
-          <polyline points={drawingShape.points.map((p: Point) => `${p.x},${p.y}`).join(' ')} style={{...style, fill: 'none'}} />
+           {drawingShape.points.length > 1 && (
+            <polygon
+              points={currentPoints}
+              style={{ ...style, strokeDasharray: 'none', fill: 'hsla(var(--primary), 0.2)' }}
+            />
+          )}
+          <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
+          <line
+            x1={drawingShape.points[drawingShape.points.length - 1].x}
+            y1={drawingShape.points[drawingShape.points.length - 1].y}
+            x2={cursorPos.x}
+            y2={cursorPos.y}
+            style={{ ...style, fill: 'none'}}
+          />
           {drawingShape.points.map((p: Point, i: number) => (
-            <circle key={i} cx={p.x} cy={p.y} r={3} fill="hsl(var(--primary))" style={{pointerEvents: 'none'}} />
+             <rect
+              key={i}
+              x={p.x - 4}
+              y={p.y - 4}
+              width={8}
+              height={8}
+              fill="white"
+              stroke="hsl(var(--primary))"
+              strokeWidth="1"
+              style={{pointerEvents: 'none'}}
+            />
           ))}
         </>
       );
@@ -161,6 +192,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
   return (
     <main className="flex-1 p-4 bg-muted/40 overflow-auto flex items-center justify-center">
+      <TooltipProvider>
       <div 
         ref={ref}
         className="relative shadow-lg rounded-lg overflow-hidden border cursor-crosshair"
@@ -172,6 +204,14 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           <>
             <img src={mapImage} alt="Floor Plan" className="block w-full h-full object-contain pointer-events-none select-none" />
             <div className="absolute inset-0">
+                <Tooltip open={showPolygonTooltip}>
+                  <TooltipTrigger asChild>
+                     <div style={{ position: 'absolute', left: cursorPos.x, top: cursorPos.y, width: 1, height: 1 }} />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="center">
+                    <p>Click first point to close this shape.</p>
+                  </TooltipContent>
+                </Tooltip>
                 <svg width="100%" height="100%">
                     <defs>
                         <pattern id="extreme-pattern" patternUnits="userSpaceOnUse" width="8" height="8">
@@ -193,6 +233,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
           </div>
         )}
       </div>
+      </TooltipProvider>
     </main>
   );
 });
