@@ -1,6 +1,6 @@
 'use client';
 
-import { SENSORY_DATA } from "@/lib/constants";
+import { SENSORY_DATA, SENSORY_TYPES } from "@/lib/constants";
 import { Marker as MarkerType, Zone as ZoneType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useEffect, useState } from "react";

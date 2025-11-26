@@ -5,6 +5,7 @@ export type SensoryType = 'touch' | 'vestibular' | 'proprioception' | 'vision' |
 
 export type SensoryInfo = {
   name: string;
+  description: string;
   icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>> | React.FC<React.SVGProps<SVGSVGElement>>;
   color: string;
   className: string;
