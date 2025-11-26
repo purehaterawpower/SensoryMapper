@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
 import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape } from '@/lib/types';
-import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA } from '@/lib/constants';
+import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
 import { getSensorySummary } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { SummaryDialog } from './SummaryDialog';
@@ -389,11 +389,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const coords = getMapCoordinates(e);
 
     if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
+      const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === activeTool.type);
       const newMarker: Marker = {
         id: crypto.randomUUID(),
         type: activeTool.type,
         shape: 'marker',
         x: coords.x, y: coords.y, description: '', imageUrl: null,
+        size: isFacility ? 50 : undefined,
       };
       setItems(prev => [...prev, newMarker]);
       setSelectedItem(newMarker);
@@ -483,7 +485,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     }
   };
   
-  const handleSaveAnnotation = (itemId: string, data: { description: string, imageUrl?: string | null, color?: string, intensity?: number }) => {
+  const handleSaveAnnotation = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
     const updatedItems = items.map(i => i.id === itemId ? { ...i, ...data } : i);
     setItems(updatedItems);

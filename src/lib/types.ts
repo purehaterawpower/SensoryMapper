@@ -31,6 +31,7 @@ export type Marker = BaseItem & {
   shape: 'marker';
   x: number;
   y: number;
+  size?: number;
 };
 
 export type RectangleShape = BaseItem & {

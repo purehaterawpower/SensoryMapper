@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { ALL_SENSORY_DATA } from "@/lib/constants";
-import { Item, Point }from "@/lib/types";
+import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
+import { Item, Point, Marker }from "@/lib/types";
 import { Loader2, Sparkles, Trash2, Edit, Upload, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ import { Input } from "../ui/input";
 type AnnotationEditorProps = {
   item: Item | null;
   onClose: () => void;
-  onSave: (itemId: string, data: { description:string, imageUrl?: string | null, color?: string, intensity?: number }) => void;
+  onSave: (itemId: string, data: Partial<Item>) => void;
   onDelete: (itemId: string) => void;
   onGenerateSummary: (description: string) => Promise<void>;
   isSummaryLoading: boolean;
@@ -30,6 +30,7 @@ type AnnotationEditorProps = {
 export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSummary, isSummaryLoading, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
+  const [iconSize, setIconSize] = useState(50);
   const [image, setImage] = useState<string | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,11 +43,15 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
       if(item.shape !== 'marker' && item.type !== 'quietRoom') {
         setIntensity(item.intensity ?? 50);
       }
+      if (item.shape === 'marker') {
+        setIconSize((item as Marker).size ?? 50);
+      }
     } else {
       // Reset state when no item is selected
       setDescription('');
       setImage(null);
       setIntensity(50);
+      setIconSize(50);
     }
   }, [item]);
   
@@ -85,16 +90,21 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   if (!item) return null;
 
-  const { name: sensoryName, icon: Icon, description: sensoryDescription } = ALL_SENSORY_DATA[item.type];
+  const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
+  const isFacility = item.shape === 'marker' && PRACTICAL_AMENITY_TYPES.some(t => t === item.type);
   const showIntensitySlider = isShape && item.type !== 'quietRoom';
+  const showSizeSlider = isFacility;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
 
   const handleSave = () => {
-    const data: { description: string, imageUrl?: string | null, color?: string, intensity?: number } = { description, imageUrl: image };
+    const data: Partial<Item> = { description, imageUrl: image };
     if (showIntensitySlider) {
       data.color = interpolateColor(intensity);
       data.intensity = intensity;
+    }
+    if (showSizeSlider) {
+      (data as Marker).size = iconSize;
     }
     onSave(item.id, data);
   };
@@ -114,6 +124,10 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
   const handleSliderChange = (value: number[]) => {
     setIntensity(value[0]);
   }
+  
+  const handleSizeSliderChange = (value: number[]) => {
+    setIconSize(value[0]);
+  };
   
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -157,7 +171,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="min-h-[120px]"
-                    placeholder={readOnly ? 'No description provided.' : `e.g., Describe the ${sensoryName.toLowerCase()} like ${sensoryDescription.toLowerCase()}`}
+                    placeholder={readOnly ? 'No description provided.' : `e.g., Describe the ${sensoryName.toLowerCase()}...`}
                     readOnly={readOnly}
                 />
             </div>
@@ -215,6 +229,25 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                 </div>
               </div>
             )}
+            
+            {showSizeSlider && (
+              <div className="grid gap-4 pt-2">
+                <Label>Icon Size</Label>
+                <Slider
+                  value={[iconSize]}
+                  onValueChange={handleSizeSliderChange}
+                  max={100}
+                  step={1}
+                  disabled={readOnly}
+                />
+                 <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Small</span>
+                    <span>Medium</span>
+                    <span>Large</span>
+                </div>
+              </div>
+            )}
+
 
             {!readOnly && (
                 <div className="flex justify-between items-center">

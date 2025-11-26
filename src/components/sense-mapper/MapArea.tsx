@@ -1,6 +1,6 @@
 'use client';
 
-import { ALL_SENSORY_DATA } from "@/lib/constants";
+import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
 import { Item, Marker, Shape, Point, ActiveTool } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useRef } from "react";
@@ -71,6 +71,15 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     if (!visibleLayers[marker.type]) return null;
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const isHighlighted = highlightedItem?.id === marker.id;
+    const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === marker.type);
+
+    // Default size is 20px for the icon (w-5, h-5). We'll scale from 0.8x to 2x this size.
+    // 50 (default) -> 1.4 * 20 = 28px
+    // 0 -> 0.8 * 20 = 16px
+    // 100 -> 2 * 20 = 40px
+    const scaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
+    const iconSize = 20 * scaleFactor;
+    const padding = 6 * scaleFactor;
 
     const itemStyle: React.CSSProperties = {
         position: 'absolute',
@@ -79,6 +88,11 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         transform: 'translate(-50%, -50%)',
         cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
       };
+      
+    const containerStyle: React.CSSProperties = {
+        backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color,
+        padding: `${padding}px`
+    }
 
     return (
       <div
@@ -89,12 +103,12 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         className="pointer-events-auto"
       >
         <div className={cn(
-            "p-1.5 rounded-full shadow-lg transition-all", 
+            "rounded-full shadow-lg transition-all flex items-center justify-center", 
             isHighlighted && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
             )}
-            style={{ backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color }}
+            style={containerStyle}
           >
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="text-white" style={{width: iconSize, height: iconSize}} />
         </div>
       </div>
     );

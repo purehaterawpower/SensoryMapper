@@ -1,7 +1,7 @@
 'use client';
 
 import { Item, Marker, Shape } from '@/lib/types';
-import { ALL_SENSORY_DATA } from '@/lib/constants';
+import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
 import Image from 'next/image';
 import { Progress } from '../ui/progress';
 
@@ -30,6 +30,13 @@ const MapRenderer = ({
 
   const renderMarker = (marker: Marker & { number: number }) => {
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
+    const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === marker.type);
+
+    const scaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
+    const iconSize = 20 * scaleFactor;
+    const padding = 6 * scaleFactor;
+    const numberSize = 16 * (0.9 + (scaleFactor - 1) * 0.5);
+
     const itemStyle: React.CSSProperties = {
       position: 'absolute',
       left: `${(marker.x / imageDimensions.width) * 100}%`,
@@ -39,13 +46,17 @@ const MapRenderer = ({
     return (
       <div key={marker.id} style={itemStyle}>
         <div
-          className="p-1.5 rounded-full shadow-lg relative"
+          className="rounded-full shadow-lg relative flex items-center justify-center"
           style={{
             backgroundColor: marker.color || ALL_SENSORY_DATA[marker.type].color,
+            padding: `${padding}px`
           }}
         >
-          <Icon className="w-5 h-5 text-white" />
-           <div className="absolute -top-1 -right-1 bg-background text-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold border">
+          <Icon className="text-white" style={{width: iconSize, height: iconSize}}/>
+           <div 
+            className="absolute -top-1 -right-1 bg-background text-foreground rounded-full flex items-center justify-center font-bold border"
+            style={{ width: numberSize, height: numberSize, fontSize: numberSize * 0.7 }}
+          >
             {marker.number}
           </div>
         </div>
