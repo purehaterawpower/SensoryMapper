@@ -107,7 +107,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
     
-    const commonProps = {
+    const commonProps: React.SVGProps<any> = {
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill,
@@ -116,35 +116,36 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         strokeWidth: 2,
         style: {
             cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
-            pointerEvents: 'all' as const
         },
     };
 
     return (
-        <g key={shape.id}>
-            {shape.shape === 'rectangle' && (
-                <rect
-                    x={shape.x}
-                    y={shape.y}
-                    width={shape.width}
-                    height={shape.height}
-                    {...commonProps}
-                />
-            )}
-            {shape.shape === 'circle' && (
-                <circle
-                    cx={shape.cx}
-                    cy={shape.cy}
-                    r={shape.radius}
-                    {...commonProps}
-                />
-            )}
-            {shape.shape === 'polygon' && (
-                <polygon
-                    points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
-                    {...commonProps}
-                />
-            )}
+        <g key={shape.id} data-item-id={shape.id} data-item-type="shape" style={{pointerEvents: 'all'}}>
+             <g style={{pointerEvents: 'none'}}>
+                {shape.shape === 'rectangle' && (
+                    <rect
+                        x={shape.x}
+                        y={shape.y}
+                        width={shape.width}
+                        height={shape.height}
+                        {...commonProps}
+                    />
+                )}
+                {shape.shape === 'circle' && (
+                    <circle
+                        cx={shape.cx}
+                        cy={shape.cy}
+                        r={shape.radius}
+                        {...commonProps}
+                    />
+                )}
+                {shape.shape === 'polygon' && (
+                    <polygon
+                        points={shape.points.map(p => `${p.x},${p.y}`).join(' ')}
+                        {...commonProps}
+                    />
+                )}
+            </g>
             {isEditing && <EditHandles shape={shape} />}
         </g>
     );
