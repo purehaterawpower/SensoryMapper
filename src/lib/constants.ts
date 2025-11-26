@@ -10,25 +10,25 @@ export const PRACTICAL_AMENITY_TYPES: AmenityType[] = ['toilets', 'exit', 'help'
 
 export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
   vision: { 
-    name: 'Visuals (Sight)', 
+    name: 'Visuals', 
     description: 'Lights & Patterns: Warns of bright or flashing lights, darkness, or "visually busy" areas with lots of colours and patterns.',
     icon: Eye, 
     color: '#8DAEF3', 
   },
   hearing: { 
-    name: 'Sound (Sound)', 
+    name: 'Sound', 
     description: 'Volume & Echo: Indicates if a space is loud, has sudden noises (like hand dryers), or echoes. Also marks quiet zones.',
     icon: Ear, 
     color: '#E6ACAC', 
   },
   smell: { 
-    name: 'Smell (Smell)', 
+    name: 'Smell', 
     description: 'Scents & Odours: Warns of strong smells like food courts, cleaning chemicals, or perfumes. Also marks fresh air areas.',
     icon: NoseIcon, 
     color: '#FDDDB1',
   },
   vestibular: { 
-    name: 'Movement (Vestibular)', 
+    name: 'Movement', 
     description: 'Balance & Navigation: Tells you if the floor is uneven, if there are slopes/escalators, or if the layout is confusing to navigate.',
     icon: Compass, 
     color: '#007C78', 
@@ -40,7 +40,7 @@ export const SENSORY_DATA: Record<SensoryType, SensoryInfo> = {
     color: '#2558D7', 
   },
   proprioception: { 
-    name: 'Space (Proprioception)', 
+    name: 'Space', 
     description: 'Crowding & Proximity: Tells you if an area is tight, usually crowded, or requires squeezing through narrow gaps.',
     icon: Users, 
     color: '#F37255',
