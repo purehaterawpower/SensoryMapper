@@ -18,8 +18,8 @@ const initialLayerVisibility = SENSORY_TYPES.reduce((acc, layer) => {
 }, {} as Record<SensoryType, boolean>);
 
 const INITIAL_VIEW_STATE: ViewState = {
-  longitude: -100,
-  latitude: 40,
+  longitude: 0,
+  latitude: 0,
   zoom: 1,
   pitch: 0,
   bearing: 0,
@@ -56,7 +56,7 @@ export function SenseMapper() {
       setViewState({
         longitude: mapWidth / 2,
         latitude: mapHeight / 2,
-        zoom: 0,
+        zoom: -1,
         pitch: 0,
         bearing: 0,
         padding: { top: 0, bottom: 0, left: 0, right: 0 }
