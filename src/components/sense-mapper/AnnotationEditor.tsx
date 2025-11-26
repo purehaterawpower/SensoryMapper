@@ -76,7 +76,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
 
   if (!item) return null;
 
-  const { name: sensoryName, icon: Icon } = ALL_SENSORY_DATA[item.type];
+  const { name: sensoryName, icon: Icon, description: sensoryDescription } = ALL_SENSORY_DATA[item.type];
   const isShape = item.shape !== 'marker';
   const showColorPicker = isShape && item.type !== 'quietArea';
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
@@ -146,7 +146,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onGenerateSu
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="min-h-[120px]"
-                    placeholder="e.g., 'This area has a loud, constant humming noise...'"
+                    placeholder={`e.g., Describe the ${sensoryName.toLowerCase()} like ${sensoryDescription.toLowerCase()}`}
                 />
             </div>
             
