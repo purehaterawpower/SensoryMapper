@@ -100,7 +100,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       reader.onerror = () => {
         toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
       };
-      reader.readDataURL(file);
+      reader.readAsDataURL(file);
     } else {
       toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
