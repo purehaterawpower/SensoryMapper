@@ -14,12 +14,13 @@ async function getMapData(mapId: string): Promise<MapData | null> {
     }
 
     const data = mapSnap.data();
-    // The data from firestore will not be serializable, so we need to convert it.
-    // We are just removing the timestamp for now.
-    const serializableData = {
-        ...data,
-        createdAt: null,
+    
+    // Convert Firestore Timestamp to null for serialization
+    const serializableData: any = { ...data };
+    if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
+        serializableData.createdAt = null;
     }
+
 
     return serializableData as MapData;
 }
