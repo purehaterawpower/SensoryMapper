@@ -27,6 +27,7 @@ export type BaseItem = {
   color?: string;
   intensity?: number;
   imageUrl?: string;
+  audioUrl?: string;
 };
 
 export type Marker = BaseItem & {

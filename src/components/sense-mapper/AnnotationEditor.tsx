@@ -6,13 +6,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
 import { Item, Point, Marker } from "@/lib/types";
-import { Trash2, Edit, Upload, X } from "lucide-react";
+import { Trash2, Edit, Upload, X, Music } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import { interpolateColor } from "@/lib/color-utils";
 import Image from "next/image";
-import { Input } from "@/components/ui/input"; // Fixed import path assumption
+import { Input } from "@/components/ui/input";
 
 type AnnotationEditorProps = {
   item: Item | null;
@@ -30,14 +30,17 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const [intensity, setIntensity] = useState(50);
   const [iconSize, setIconSize] = useState(50);
   const [image, setImage] = useState<string | null>(null);
+  const [audio, setAudio] = useState<string | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
   useEffect(() => {
     if (item) {
       setDescription(item.description || '');
       setImage(item.imageUrl || null);
+      setAudio(item.audioUrl || null);
       if(item.shape !== 'marker' && item.type !== 'quietRoom') {
         setIntensity(item.intensity ?? 50);
       }
@@ -48,6 +51,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
       // Reset state when no item is selected
       setDescription('');
       setImage(null);
+      setAudio(null);
       setIntensity(50);
       setIconSize(50);
     }
@@ -97,10 +101,9 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
   
   const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
-  const noDescriptionText = 'No description provided.';
 
   const handleSave = () => {
-    const data: Partial<Item> = { description, imageUrl: image };
+    const data: Partial<Item> = { description, imageUrl: image, audioUrl: audio };
     if (showIntensitySlider) {
       data.color = interpolateColor(intensity);
       data.intensity = intensity;
@@ -137,6 +140,21 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAudioUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({ variant: 'destructive', title: 'File too large', description: 'Please upload an audio file smaller than 5MB.'});
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAudio(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -195,18 +213,17 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                 )}
                             </div>
                         ) : (
-                            // Only show upload controls if NOT readOnly
                             !readOnly && (
                                 <>
                                 <Input
                                     type="file"
                                     id="image-upload"
-                                    ref={fileInputRef}
+                                    ref={imageInputRef}
                                     className="hidden"
                                     accept="image/*"
                                     onChange={handleImageUpload}
                                 />
-                                <Button variant="outline" className="w-full border-dashed" onClick={() => fileInputRef.current?.click()}>
+                                <Button variant="outline" className="w-full border-dashed" onClick={() => imageInputRef.current?.click()}>
                                     <Upload className="mr-2 h-4 w-4" />
                                     Upload Photo
                                 </Button>
@@ -215,13 +232,47 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                         )}
                     </div>
                 )}
+                
+                {/* Audio Section */}
+                {(!readOnly || audio) && (
+                    <div className="grid gap-2">
+                         {!readOnly && <Label>Audio</Label>}
+                         {audio ? (
+                             <div className="relative rounded-lg overflow-hidden border bg-muted p-2">
+                                <audio controls src={audio} className="w-full" />
+                                {!readOnly && (
+                                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 shadow-sm" onClick={() => setAudio(null)} aria-label="Remove audio">
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
+                         ) : (
+                            !readOnly && (
+                                <>
+                                <Input
+                                    type="file"
+                                    id="audio-upload"
+                                    ref={audioInputRef}
+                                    className="hidden"
+                                    accept="audio/*"
+                                    onChange={handleAudioUpload}
+                                />
+                                <Button variant="outline" className="w-full border-dashed" onClick={() => audioInputRef.current?.click()}>
+                                    <Music className="mr-2 h-4 w-4" />
+                                    Upload Audio
+                                </Button>
+                                </>
+                            )
+                         )}
+                    </div>
+                )}
 
                 {/* Description Section */}
                 <div className="grid gap-2">
                     {!readOnly && <Label htmlFor="description">Description</Label>}
                     
                     {readOnly ? (
-                        <div className="text-sm leading-relaxed text-foreground/90">
+                        <div className="text-sm leading-relaxed text-foreground/90 p-3 bg-muted/50 rounded-md">
                             {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
                         </div>
                     ) : (
