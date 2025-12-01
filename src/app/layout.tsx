@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -15,8 +15,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'SenseMapper',
   description: 'A specialized web application designed to help you map specific sensory experiences onto a floor plan.',
-  themeColor: 'hsl(40, 17%, 98%)',
 };
+
+export const viewport: Viewport = {
+  themeColor: 'hsl(40, 17%, 98%)',
+}
 
 export default function RootLayout({
   children,
