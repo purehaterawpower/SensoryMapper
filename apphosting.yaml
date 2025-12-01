@@ -5,3 +5,23 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+# This is a sample of the environment variables that are available to your
+# application at runtime.
+# You can add your own environment variables here.
+#
+# These variables are created by App Hosting. You can change them to connect
+# to a different backend, for example, if you had a separate development
+# backend.
+#
+# The following variables are automatically populated by App Hosting.
+#
+#   FIREBASE_CONFIG - A JSON string containing the Firebase project's
+#                     configuration.
+#   GCLOUD_PROJECT  - The Google Cloud project ID.
+#
+# https://firebase.google.com/docs/app-hosting/configure-backend#environment-variables
+env:
+  - variable: FIREBASE_CONFIG
+    value: '{"projectId":"studio-2886683004-c5a40","appId":"1:1039221900796:web:d080b81c6a6976a8909e79","apiKey":"AIzaSyAzF8cXq-apZ2CW2y8PtN8YF9zcGdClasc","authDomain":"studio-2886683004-c5a40.firebaseapp.com","measurementId":"","messagingSenderId":"1039221900796"}'
+  - variable: GCLOUD_PROJECT
+    value: studio-2886683004-c5a40
