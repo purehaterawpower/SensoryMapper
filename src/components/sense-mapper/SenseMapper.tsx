@@ -100,7 +100,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       reader.onerror = () => {
         toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
       };
-      reader.readAsDataURL(file);
+      reader.readDataURL(file);
     } else {
       toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
@@ -738,21 +738,23 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
-      <Sidebar
-        activeTool={activeTool}
-        setActiveTool={setActiveTool}
-        visibleLayers={visibleLayers}
-        onLayerVisibilityChange={handleLayerVisibilityChange}
-        onExportPDF={handleExportPDF}
-        isExporting={isPrinting}
-        onShare={handleShare}
-        isSharing={isSharing}
-        readOnly={readOnly}
-        printOrientation={printOrientation}
-        setPrintOrientation={setPrintOrientation}
-        exportIconScale={exportIconScale}
-        setExportIconScale={setExportIconScale}
-      />
+      {!readOnly && (
+          <Sidebar
+            activeTool={activeTool}
+            setActiveTool={setActiveTool}
+            visibleLayers={visibleLayers}
+            onLayerVisibilityChange={handleLayerVisibilityChange}
+            onExportPDF={handleExportPDF}
+            isExporting={isPrinting}
+            onShare={handleShare}
+            isSharing={isSharing}
+            readOnly={readOnly}
+            printOrientation={printOrientation}
+            setPrintOrientation={setPrintOrientation}
+            exportIconScale={exportIconScale}
+            setExportIconScale={setExportIconScale}
+          />
+      )}
       <main className="flex-1 relative flex flex-col">
         <MapArea
             ref={mapRef}
