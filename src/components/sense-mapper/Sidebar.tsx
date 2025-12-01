@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Slider } from "../ui/slider";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -23,10 +24,26 @@ type SidebarProps = {
   isSharing: boolean;
   printOrientation: PrintOrientation;
   setPrintOrientation: (orientation: PrintOrientation) => void;
+  exportIconScale: number;
+  setExportIconScale: (scale: number) => void;
   readOnly?: boolean;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, printOrientation, setPrintOrientation, readOnly }: SidebarProps) {
+export function Sidebar({ 
+  activeTool, 
+  setActiveTool, 
+  visibleLayers, 
+  onLayerVisibilityChange, 
+  onExportPDF, 
+  isExporting, 
+  onShare, 
+  isSharing, 
+  printOrientation, 
+  setPrintOrientation,
+  exportIconScale,
+  setExportIconScale,
+  readOnly 
+}: SidebarProps) {
 
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
@@ -175,7 +192,7 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             
             <Separator />
 
-            <Accordion type="multiple" className="w-full" defaultValue={['view-layers']}>
+            <Accordion type="multiple" className="w-full" defaultValue={['export-options', 'view-layers']}>
               <AccordionItem value="export-options" className="border-b-0">
                   <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
                       Export Options
@@ -197,6 +214,21 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
                                   <Label htmlFor="landscape" className="font-normal">Landscape</Label>
                               </div>
                           </RadioGroup>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Icon Size</Label>
+                        <Slider
+                          value={[exportIconScale]}
+                          onValueChange={(value) => setExportIconScale(value[0])}
+                          min={50}
+                          max={150}
+                          step={10}
+                        />
+                         <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Small</span>
+                            <span>Default</span>
+                            <span>Large</span>
+                        </div>
                       </div>
                   </AccordionContent>
               </AccordionItem>

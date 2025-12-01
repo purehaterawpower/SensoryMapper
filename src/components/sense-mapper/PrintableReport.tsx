@@ -11,6 +11,7 @@ type PrintableReportProps = {
   imageDimensions: { width: number; height: number } | null;
   items: Item[];
   printOrientation: PrintOrientation;
+  iconScale: number;
 };
 
 type NumberedItem = Item & { number: number };
@@ -19,25 +20,31 @@ const MapRenderer = ({
   mapImage,
   imageDimensions,
   items,
+  iconScale,
 }: {
   mapImage: string | null;
   imageDimensions: { width: number; height: number } | null;
   items: NumberedItem[];
+  iconScale: number;
 }) => {
   if (!imageDimensions || !mapImage) {
     return null;
   }
   
   const aspectRatio = imageDimensions.height / imageDimensions.width;
+  const globalScale = iconScale / 100;
 
   const renderMarker = (marker: Marker & { number: number }) => {
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === marker.type);
 
-    const scaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
-    const iconSize = 20 * scaleFactor;
-    const padding = 6 * scaleFactor;
-    const numberSize = 16 * (0.9 + (scaleFactor - 1) * 0.5);
+    const facilityScaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
+    const effectiveScale = facilityScaleFactor * globalScale;
+
+    const iconSize = 20 * effectiveScale;
+    const padding = 6 * effectiveScale;
+    const numberSize = 16 * (0.9 + (effectiveScale - 1) * 0.5);
+
 
     const itemStyle: React.CSSProperties = {
       position: 'absolute',
@@ -82,9 +89,9 @@ const MapRenderer = ({
       center = { x: xSum / shape.points.length, y: ySum / shape.points.length };
     }
 
-    const iconSize = 20;
-    const textNumberSize = 18;
-    const spacing = 4;
+    const iconSize = 20 * globalScale;
+    const textNumberSize = 18 * globalScale;
+    const spacing = 4 * globalScale;
     const totalWidth = iconSize + spacing + textNumberSize;
     const iconX = center.x - totalWidth / 2;
     const numberX = iconX + iconSize + spacing;
@@ -196,6 +203,7 @@ export function PrintableReport({
   imageDimensions,
   items,
   printOrientation,
+  iconScale,
 }: PrintableReportProps) {
   const listItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
 
@@ -207,7 +215,7 @@ export function PrintableReport({
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>
         <div style={{width: '100%', maxWidth: '100%'}}>
-          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={listItems} />
+          <MapRenderer mapImage={mapImage} imageDimensions={imageDimensions} items={listItems} iconScale={iconScale} />
         </div>
       </div>
 

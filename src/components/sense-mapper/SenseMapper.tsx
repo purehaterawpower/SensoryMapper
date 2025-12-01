@@ -54,6 +54,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [isSharing, setIsSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
+  const [exportIconScale, setExportIconScale] = useState(100);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -98,7 +99,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       reader.onerror = () => {
         toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
       };
-      reader.readAsDataURL(file);
+      reader.readDataURL(file);
     } else {
       toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
@@ -692,6 +693,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         readOnly={readOnly}
         printOrientation={printOrientation}
         setPrintOrientation={setPrintOrientation}
+        exportIconScale={exportIconScale}
+        setExportIconScale={setExportIconScale}
       />
       <main className="flex-1 relative flex flex-col">
         <MapArea
@@ -758,6 +761,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
               imageDimensions={imageDimensions}
               items={items.filter(item => visibleLayers[item.type])}
               printOrientation={printOrientation}
+              iconScale={exportIconScale}
             />
         </div>
     )}
