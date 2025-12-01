@@ -274,7 +274,7 @@ export function Sidebar({
         <div className="flex-1 overflow-y-auto">
           {!readOnly ? (
             <>
-              <div className="p-4 flex items-center justify-between border-b">
+              <div className="p-4 flex items-center border-b">
                   <Tooltip>
                     <TooltipTrigger asChild>
                         <Button 
@@ -292,24 +292,23 @@ export function Sidebar({
                         <p>Select, move, and edit items on the map. (V)</p>
                     </TooltipContent>
                   </Tooltip>
-                  <div className="flex items-center gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={onUndo} disabled={!canUndo}>
-                          <Undo2 className="w-5 h-5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={onRedo} disabled={!canRedo}>
-                          <Redo2 className="w-5 h-5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <Separator orientation="vertical" className="h-6 mx-2" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full" onClick={onUndo} disabled={!canUndo}>
+                        <Undo2 className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+                  </Tooltip>
+                   <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full" onClick={onRedo} disabled={!canRedo}>
+                        <Redo2 className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+                  </Tooltip>
               </div>
 
               <div className="p-4 space-y-4">
