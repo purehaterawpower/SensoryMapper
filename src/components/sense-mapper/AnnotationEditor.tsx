@@ -205,6 +205,25 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
             {/* CONTENT SECTION */}
             <div className="grid gap-4">
+                {/* Description Section */}
+                <div className="grid gap-2">
+                    {!readOnly && <Label htmlFor="description">Description</Label>}
+                    
+                    {readOnly ? (
+                        <div className="text-sm leading-relaxed text-foreground/90 p-3 bg-muted/50 rounded-md">
+                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
+                        </div>
+                    ) : (
+                        <Textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[100px] resize-none"
+                            placeholder={placeholderText}
+                        />
+                    )}
+                </div>
+                
                 {/* Image Section - Hidden in readOnly if no image exists */}
                 {(!readOnly || image) && (
                     <div className="grid gap-2">
@@ -272,25 +291,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                          )}
                     </div>
                 )}
-
-                {/* Description Section */}
-                <div className="grid gap-2">
-                    {!readOnly && <Label htmlFor="description">Description</Label>}
-                    
-                    {readOnly ? (
-                        <div className="text-sm leading-relaxed text-foreground/90 p-3 bg-muted/50 rounded-md">
-                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
-                        </div>
-                    ) : (
-                        <Textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="min-h-[100px] resize-none"
-                            placeholder={placeholderText}
-                        />
-                    )}
-                </div>
 
                 {/* Sensory Intensity - Meter vs Slider */}
                 {showIntensitySlider && (
@@ -378,5 +378,3 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
     </Popover>
   );
 }
-
-    
