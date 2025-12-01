@@ -19,7 +19,7 @@ service cloud.firestore {
     }
 
     // Default deny all other collections
-    match /{path=**}/documents/{document} {
+    match /{path=**} {
       allow read, write: if false;
     }
   }
