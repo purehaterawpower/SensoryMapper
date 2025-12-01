@@ -194,117 +194,117 @@ export function Sidebar({
     setIsExportPopoverOpen(false);
   }
 
-  if (readOnly) {
-    return <aside id="sidebar" className="w-80 bg-card border-r flex-col hidden md:flex"></aside>;
-  }
-
   return (
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
         
         <div className="p-4 flex flex-col gap-4">
             <h1 className="text-xl font-bold">SenseMapper</h1>
-            <div className="flex gap-2">
-                {!readOnly && (
-                <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
-                    {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-                    Share
-                </Button>
-                )}
-                <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <FileDown className="mr-2 h-4 w-4" />
-                      Export
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64" align="start">
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Export to PDF</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Configure the layout for your PDF export.
-                        </p>
-                      </div>
+            {!readOnly && (
+              <div className="flex gap-2">
+                  <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
+                      {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                      Share
+                  </Button>
+                  <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Export
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64" align="start">
                       <div className="grid gap-4">
-                        <div>
-                          <Label className="text-sm font-medium">Page Orientation</Label>
-                          <RadioGroup
-                            value={printOrientation}
-                            onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
-                            className="mt-2"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="portrait" id="portrait" />
-                              <Label htmlFor="portrait" className="font-normal">Portrait</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="landscape" id="landscape" />
-                              <Label htmlFor="landscape" className="font-normal">Landscape</Label>
-                            </div>
-                          </RadioGroup>
+                        <div className="space-y-2">
+                          <h4 className="font-medium leading-none">Export to PDF</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Configure the layout for your PDF export.
+                          </p>
                         </div>
-                        <div className="grid gap-2">
-                          <Label>Icon Size</Label>
-                          <Slider
-                            value={[exportIconScale]}
-                            onValueChange={(value) => setExportIconScale(value[0])}
-                            min={50}
-                            max={150}
-                            step={10}
-                          />
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Small</span>
-                            <span>Default</span>
-                            <span>Large</span>
+                        <div className="grid gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Page Orientation</Label>
+                            <RadioGroup
+                              value={printOrientation}
+                              onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                              className="mt-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="portrait" id="portrait" />
+                                <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="landscape" id="landscape" />
+                                <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+                          <div className="grid gap-2">
+                            <Label>Icon Size</Label>
+                            <Slider
+                              value={[exportIconScale]}
+                              onValueChange={(value) => setExportIconScale(value[0])}
+                              min={50}
+                              max={150}
+                              step={10}
+                            />
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Small</span>
+                              <span>Default</span>
+                              <span>Large</span>
+                            </div>
                           </div>
                         </div>
+                        <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
+                          {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                          Print to PDF
+                        </Button>
                       </div>
-                      <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
-                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Print to PDF
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <Button asChild variant="outline" size="icon" className="h-9 w-9">
-                  <Link href="/faq" title="Frequently Asked Questions">
-                    <HelpCircle className="h-4 w-4" />
-                  </Link>
-                </Button>
-            </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Button asChild variant="outline" size="icon" className="h-9 w-9">
+                    <Link href="/faq" title="Frequently Asked Questions">
+                      <HelpCircle className="h-4 w-4" />
+                    </Link>
+                  </Button>
+              </div>
+            )}
         </div>
         <Separator/>
         
-        <div className="p-4 flex items-center justify-around border-b">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                  <Button 
-                    variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
-                    size="icon" 
-                    className="rounded-full" 
-                    onClick={() => setActiveTool({ tool: 'select' })}
-                    aria-label="Select Tool (V)"
-                  >
-                    <MousePointer className="w-5 h-5" />
-                  </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs text-center">
-                  <p className="font-bold">Select</p>
-                  <p>Select, move, and edit items on the map. (V)</p>
-              </TooltipContent>
-            </Tooltip>
-            <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
-                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
-                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+        {!readOnly && (
+          <>
+            <div className="p-4 flex items-center justify-around border-b">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button 
+                        variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
+                        size="icon" 
+                        className="rounded-full" 
+                        onClick={() => setActiveTool({ tool: 'select' })}
+                        aria-label="Select Tool (V)"
+                      >
+                        <MousePointer className="w-5 h-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-center">
+                      <p className="font-bold">Select</p>
+                      <p>Select, move, and edit items on the map. (V)</p>
+                  </TooltipContent>
+                </Tooltip>
+                <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
             </div>
-            <Separator />
-        </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                    {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
+                    {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+                </div>
+                <Separator />
+            </div>
+          </>
+        )}
 
         
          <div className="flex-1 overflow-y-auto p-4 space-y-4">
