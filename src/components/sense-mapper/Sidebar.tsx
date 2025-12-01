@@ -13,6 +13,8 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Slider } from "../ui/slider";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useState } from "react";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -45,6 +47,7 @@ export function Sidebar({
   setExportIconScale,
   readOnly 
 }: SidebarProps) {
+  const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
 
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
@@ -196,6 +199,11 @@ export function Sidebar({
     );
   }
 
+  const handleExportClick = () => {
+    onExportPDF();
+    setIsExportPopoverOpen(false);
+  }
+
   return (
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
@@ -209,10 +217,62 @@ export function Sidebar({
                     Share
                 </Button>
                 )}
-                <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm" className="flex-1">
-                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    Export
-                </Button>
+                <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <FileDown className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64" align="start">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Export to PDF</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Configure the layout for your PDF export.
+                        </p>
+                      </div>
+                      <div className="grid gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Page Orientation</Label>
+                          <RadioGroup
+                            value={printOrientation}
+                            onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                            className="mt-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="portrait" id="portrait" />
+                              <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="landscape" id="landscape" />
+                              <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Icon Size</Label>
+                          <Slider
+                            value={[exportIconScale]}
+                            onValueChange={(value) => setExportIconScale(value[0])}
+                            min={50}
+                            max={150}
+                            step={10}
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Small</span>
+                            <span>Default</span>
+                            <span>Large</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
+                        {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Print to PDF
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
             </div>
         </div>
         <Separator/>
@@ -252,46 +312,7 @@ export function Sidebar({
         )}
         
          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <Accordion type="multiple" className="w-full" defaultValue={['export-options', 'view-layers']}>
-              <AccordionItem value="export-options" className="border-b-0">
-                  <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
-                      Export Options
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 space-y-4 px-2">
-                      <div>
-                          <Label className="text-sm font-medium">Page Orientation</Label>
-                          <RadioGroup 
-                              value={printOrientation} 
-                              onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
-                              className="mt-2"
-                          >
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="portrait" id="portrait" />
-                                  <Label htmlFor="portrait" className="font-normal">Portrait</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="landscape" id="landscape" />
-                                  <Label htmlFor="landscape" className="font-normal">Landscape</Label>
-                              </div>
-                          </RadioGroup>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Icon Size</Label>
-                        <Slider
-                          value={[exportIconScale]}
-                          onValueChange={(value) => setExportIconScale(value[0])}
-                          min={50}
-                          max={150}
-                          step={10}
-                        />
-                         <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Small</span>
-                            <span>Default</span>
-                            <span>Large</span>
-                        </div>
-                      </div>
-                  </AccordionContent>
-              </AccordionItem>
+            <Accordion type="single" collapsible className="w-full" defaultValue={'view-layers'}>
                 <AccordionItem value="view-layers" className="border-b-0">
                 <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
                     {readOnly ? 'Map Key' : 'View Layers'}
