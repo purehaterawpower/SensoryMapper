@@ -738,7 +738,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
-      {!readOnly && <Sidebar
+      <Sidebar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         visibleLayers={visibleLayers}
@@ -752,7 +752,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setPrintOrientation={setPrintOrientation}
         exportIconScale={exportIconScale}
         setExportIconScale={setExportIconScale}
-      />}
+      />
       <main className="flex-1 relative flex flex-col">
         <MapArea
             ref={mapRef}

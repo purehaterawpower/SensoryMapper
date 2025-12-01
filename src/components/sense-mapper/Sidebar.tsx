@@ -65,8 +65,6 @@ export function Sidebar({
   };
 
   const renderTypeSection = (title: string, types: ItemType[]) => {
-    if (readOnly || types.length === 0) return null;
-
     const onValueChange = (value: string) => {
       if (value) {
         handleToolChange(value as ItemType);
@@ -196,6 +194,10 @@ export function Sidebar({
     setIsExportPopoverOpen(false);
   }
 
+  if (readOnly) {
+    return <aside id="sidebar" className="w-80 bg-card border-r flex-col hidden md:flex"></aside>;
+  }
+
   return (
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
@@ -273,40 +275,37 @@ export function Sidebar({
             </div>
         </div>
         <Separator/>
+        
+        <div className="p-4 flex items-center justify-around border-b">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                  <Button 
+                    variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
+                    size="icon" 
+                    className="rounded-full" 
+                    onClick={() => setActiveTool({ tool: 'select' })}
+                    aria-label="Select Tool (V)"
+                  >
+                    <MousePointer className="w-5 h-5" />
+                  </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs text-center">
+                  <p className="font-bold">Select</p>
+                  <p>Select, move, and edit items on the map. (V)</p>
+              </TooltipContent>
+            </Tooltip>
+            <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
+        </div>
 
-        {!readOnly && (
-            <>
-                <div className="p-4 flex items-center justify-around border-b">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                          <Button 
-                            variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
-                            size="icon" 
-                            className="rounded-full" 
-                            onClick={() => setActiveTool({ tool: 'select' })}
-                            aria-label="Select Tool (V)"
-                          >
-                            <MousePointer className="w-5 h-5" />
-                          </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-xs text-center">
-                          <p className="font-bold">Select</p>
-                          <p>Select, move, and edit items on the map. (V)</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
-                </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="space-y-4">
+                <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
+                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+            </div>
+            <Separator />
+        </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-semibold px-2">Map Categories</h2>
-                        {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
-                        {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
-                    </div>
-                    <Separator />
-                </div>
-            </>
-        )}
         
          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <Accordion type="single" collapsible className="w-full" defaultValue={'view-layers'}>
