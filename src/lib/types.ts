@@ -27,6 +27,7 @@ export type BaseItem = {
   color?: string;
   intensity?: number;
   imageUrl?: string;
+  audioUrl?: string;
 };
 
 export type Marker = BaseItem & {
@@ -72,3 +73,4 @@ export type MapData = {
     imageDimensions: { width: number, height: number };
     items: Item[];
 };
+
