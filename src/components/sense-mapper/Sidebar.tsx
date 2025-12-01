@@ -57,7 +57,7 @@ export function Sidebar({
     const isSensory = SENSORY_STIMULI_TYPES.includes(type);
     
     if (isSensory) {
-      setActiveTool({ tool: 'shape', type: type, shape: 'rectangle' });
+      setActiveTool({ tool: 'shape', type: type, shape: 'polygon' });
     } else {
       setActiveTool({ tool: 'marker', type: type });
     }
