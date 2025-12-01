@@ -1,7 +1,9 @@
+
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
   title: 'FAQ - SenseMapper',
@@ -232,12 +234,16 @@ const ViewerFAQ = () => (
 type FAQPageProps = {
     searchParams?: {
         view?: string;
+        back?: string;
     };
 };
 
 export default function FAQPage({ searchParams }: FAQPageProps) {
   const isReadOnly = searchParams?.view === 'readonly';
-  const backLink = isReadOnly ? 'javascript:history.back()' : '/';
+  const backUrl = searchParams?.back;
+  
+  // Use the 'back' parameter if it exists, otherwise use history.back() for read-only, or '/' for editor.
+  const backLink = backUrl ? backUrl : (isReadOnly ? 'javascript:history.back()' : '/');
 
   return (
     <div className="bg-background text-foreground min-h-screen">

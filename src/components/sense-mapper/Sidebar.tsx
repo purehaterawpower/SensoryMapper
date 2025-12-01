@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
@@ -15,6 +16,7 @@ import { Slider } from "../ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -48,6 +50,7 @@ export function Sidebar({
   readOnly 
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
+  const pathname = usePathname();
 
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
@@ -116,7 +119,6 @@ export function Sidebar({
   }
 
   const renderLayerCheckboxes = () => {
-    
     const areAllFacilitiesVisible = PRACTICAL_AMENITY_TYPES.every(type => visibleLayers[type]);
     const areSomeFacilitiesVisible = PRACTICAL_AMENITY_TYPES.some(type => visibleLayers[type]);
     
@@ -145,45 +147,43 @@ export function Sidebar({
             })}
         </div>
         <Accordion type="single" collapsible className="w-full" defaultValue={readOnly ? undefined : 'facilities'}>
-            <AccordionItem value="facilities" className="border-b-0">
-                <div className="flex items-center p-2 rounded-md hover:bg-muted">
-                    <AccordionTrigger className="py-0 px-0 font-normal hover:no-underline flex-1">
-                        <div className="flex items-center space-x-2 flex-1">
-                            <div className="w-4 h-4 rounded-full bg-gray-400 border" />
-                            <span className="font-normal flex-1 text-left">Facilities</span>
-                        </div>
-                    </AccordionTrigger>
+          <AccordionItem value="facilities" className="border-b-0">
+            <div className="flex items-center rounded-md hover:bg-muted pr-2">
+              <AccordionTrigger className="py-2 px-2 flex-1 font-normal hover:no-underline flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full bg-gray-400 border" />
+                <span className="flex-1 text-left">Facilities</span>
+              </AccordionTrigger>
+              <Checkbox
+                  checked={masterCheckboxState}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      const nextState = !areAllFacilitiesVisible;
+                      PRACTICAL_AMENITY_TYPES.forEach(type => {
+                          onLayerVisibilityChange(type, nextState);
+                      });
+                  }}
+                  className="ml-auto"
+              />
+            </div>
+            <AccordionContent className="pt-1 pl-4 space-y-1">
+              {PRACTICAL_AMENITY_TYPES.map(type => {
+                const { icon: Icon, name } = ALL_SENSORY_DATA[type];
+                return (
+                  <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
+                    <div className="p-1 rounded-md" style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
                     <Checkbox
-                        checked={masterCheckboxState}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const nextState = !areAllFacilitiesVisible;
-                            PRACTICAL_AMENITY_TYPES.forEach(type => {
-                                onLayerVisibilityChange(type, nextState);
-                            });
-                        }}
-                        className="ml-auto"
+                        id={`layer-${type}`}
+                        checked={visibleLayers[type]}
+                        onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
                     />
-                </div>
-                <AccordionContent className="pt-1 pl-4 space-y-1">
-                    {PRACTICAL_AMENITY_TYPES.map(type => {
-                        const { icon: Icon, name } = ALL_SENSORY_DATA[type];
-                        return (
-                            <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
-                                <div className="p-1 rounded-md" style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
-                                    <Icon className="w-4 h-4 text-white" />
-                                </div>
-                                <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
-                                <Checkbox
-                                    id={`layer-${type}`}
-                                    checked={visibleLayers[type]}
-                                    onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-                                />
-                            </div>
-                        )
-                    })}
-                </AccordionContent>
-            </AccordionItem>
+                  </div>
+                )
+              })}
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </>
     );
@@ -193,6 +193,8 @@ export function Sidebar({
     onExportPDF();
     setIsExportPopoverOpen(false);
   }
+
+  const faqLink = readOnly ? `/faq?view=readonly&back=${encodeURIComponent(pathname)}` : "/faq";
 
   return (
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col h-screen">
@@ -263,7 +265,7 @@ export function Sidebar({
               </PopoverContent>
             </Popover>
             <Button asChild variant="outline" size="icon" className="h-9 w-9">
-              <Link href={readOnly ? "/faq?view=readonly" : "/faq"} title="Frequently Asked Questions">
+              <Link href={faqLink} title="Frequently Asked Questions">
                 <HelpCircle className="h-4 w-4" />
               </Link>
             </Button>
