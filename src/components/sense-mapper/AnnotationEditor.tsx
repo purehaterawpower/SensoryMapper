@@ -138,7 +138,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
       reader.onloadend = () => {
         setImage(reader.result as string);
       };
-      reader.readDataURL(file);
+      reader.readAsDataURL(file);
     }
   };
   
