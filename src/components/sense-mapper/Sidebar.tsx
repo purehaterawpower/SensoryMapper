@@ -144,7 +144,7 @@ export function Sidebar({
               );
             })}
         </div>
-        <Accordion type="single" collapsible className="w-full" defaultValue={readOnly ? '' : 'facilities'}>
+        <Accordion type="single" collapsible className="w-full" defaultValue={readOnly ? undefined : 'facilities'}>
             <AccordionItem value="facilities" className="border-b-0">
                 <div className="flex items-center p-2 rounded-md hover:bg-muted">
                     <AccordionTrigger className="py-0 px-0 font-normal hover:no-underline flex-1">
@@ -201,69 +201,67 @@ export function Sidebar({
           <h1 className="text-xl font-bold">SenseMapper</h1>
           <div className="flex gap-2">
             {!readOnly && (
-              <>
               <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
                   {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
                   Share
               </Button>
-              <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64" align="start">
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium leading-none">Export to PDF</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Configure the layout for your PDF export.
-                      </p>
-                    </div>
-                    <div className="grid gap-4">
-                      <div>
-                        <Label className="text-sm font-medium">Page Orientation</Label>
-                        <RadioGroup
-                          value={printOrientation}
-                          onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
-                          className="mt-2"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="portrait" id="portrait" />
-                            <Label htmlFor="portrait" className="font-normal">Portrait</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="landscape" id="landscape" />
-                            <Label htmlFor="landscape" className="font-normal">Landscape</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Icon Size</Label>
-                        <Slider
-                          value={[exportIconScale]}
-                          onValueChange={(value) => setExportIconScale(value[0])}
-                          min={50}
-                          max={150}
-                          step={10}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Small</span>
-                          <span>Default</span>
-                          <span>Large</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
-                      {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Print to PDF
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              </>
             )}
+            <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="start">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Export to PDF</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Configure the layout for your PDF export.
+                    </p>
+                  </div>
+                  <div className="grid gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">Page Orientation</Label>
+                      <RadioGroup
+                        value={printOrientation}
+                        onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                        className="mt-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="portrait" id="portrait" />
+                          <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="landscape" id="landscape" />
+                          <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Icon Size</Label>
+                      <Slider
+                        value={[exportIconScale]}
+                        onValueChange={(value) => setExportIconScale(value[0])}
+                        min={50}
+                        max={150}
+                        step={10}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Small</span>
+                        <span>Default</span>
+                        <span>Large</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
+                    {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Print to PDF
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button asChild variant="outline" size="icon" className="h-9 w-9">
               <Link href={readOnly ? "/faq?view=readonly" : "/faq"} title="Frequently Asked Questions">
                 <HelpCircle className="h-4 w-4" />

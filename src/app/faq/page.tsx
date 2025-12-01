@@ -128,75 +128,103 @@ const EditorFAQ = () => (
 
 const ViewerFAQ = () => (
     <div className="space-y-12">
-      <h1 className="text-4xl font-bold text-center">
-        Sensory Map Viewer FAQ
-      </h1>
-  
-      <section id="general">
-        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Viewing a Map</h2>
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold">What am I looking at?</h3>
-            <p className="text-muted-foreground">
-              You are viewing a sensory map. It shows a floor plan with information about sensory inputs (like sounds and smells) and facilities (like quiet rooms and toilets) to help people navigate the space more comfortably.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">How do I see details?</h3>
-            <p className="text-muted-foreground">
-              Click on any icon on the map. A pop-up window will appear with more details, including a description, photos, and audio notes if they have been added.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">What do the colors and icons mean?</h3>
-            <p className="text-muted-foreground">
-              Use the <strong>Map Key</strong> in the sidebar to see what each icon and color represents. You can also hide or show different categories by using the checkboxes in the key.
-            </p>
-          </div>
-        </div>
-      </section>
-  
-      <section id="sharing">
-        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Sharing & Using the Map</h2>
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold">Can I edit this map?</h3>
-            <p className="text-muted-foreground">
-              No. This is a "View Only" link. You can look at all the information, but you cannot make any changes.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">How can I create my own map?</h3>
-            <p className="text-muted-foreground">
-              To create your own sensory map, go to the <Link href="/" className="text-primary underline">SenseMapper home page</Link>.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Can I print this map?</h3>
-            <p className="text-muted-foreground">
-              Printing is a feature available to the map creator. If you need a printable version, please contact the person who shared this link with you.
-            </p>
-          </div>
-        </div>
-      </section>
-  
-      <section id="troubleshooting">
-        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Troubleshooting</h2>
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold">The map is not loading correctly.</h3>
-            <p className="text-muted-foreground">
-              Try refreshing the page. If that doesn't work, there might be an issue with the shared link. Please check with the person who sent it to you.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">I can't hear the audio on a marker.</h3>
-            <p className="text-muted-foreground">
-              First, check your device's volume. If it's turned up, the audio may not have been included or uploaded correctly by the map creator.
-            </p>
-          </div>
-        </div>
-      </section>
+        <h1 className="text-4xl font-bold text-center">
+            Frequently Asked Questions for Visitors
+        </h1>
+
+        <section id="general">
+            <h2 className="text-2xl font-semibold border-b pb-2 mb-4">General</h2>
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold">What is this map?</h3>
+                    <p className="text-muted-foreground">
+                        This is a sensory map. It shows you the layout of the building along with important sensory details. It highlights areas that might be loud, bright, smelly, or crowded. It also shows you where to find practical facilities.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Who is this map for?</h3>
+                    <p className="text-muted-foreground">
+                        This map is for anyone visiting the building. It is especially helpful for people with sensory sensitivities who want to know what to expect before they arrive. It helps you find quiet spaces and plan a comfortable visit.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="using">
+            <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Using the Map</h2>
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold">How do I read the map?</h3>
+                    <p className="text-muted-foreground">
+                        Look for the icons placed on the floor plan. You can click or tap on any icon to see more details.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">What do the icons mean?</h3>
+                    <p className="text-muted-foreground">
+                        There are two main types of icons:
+                    </p>
+                    <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
+                        <li><strong>Sensory Inputs:</strong> These show specific sensory experiences. You might see icons for loud noises, strong smells, bright lights, or crowded areas. The notes will tell you if the intensity is Low, Medium, or High.</li>
+                        <li><strong>Amenities:</strong> These show helpful facilities. Look for these icons to find quiet rooms, toilets, exits, seating areas, and first aid points.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Why are there photos?</h3>
+                    <p className="text-muted-foreground">
+                        Some icons include photos when you click on them. These photos help you see exactly what a specific area, quiet room, or landmark looks like so you can recognise it when you arrive.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Why is there audio?</h3>
+                    <p className="text-muted-foreground">
+                        If you see an audio option on a marker, you can play it to hear what that specific area sounds like. This helps you prepare for the noise levels in that part of the building.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="sharing">
+            <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Sharing and Printing</h2>
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold">Can I print this map?</h3>
+                    <p className="text-muted-foreground">
+                        Yes. Look for the <strong>Export</strong> button. You can choose how you want the page to look and then click <strong>Print to PDF</strong>. This will give you a printable version that includes a key to explain the icons.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Can I share this map with others?</h3>
+                    <p className="text-muted-foreground">
+                        Yes. You can copy the web address (URL) from your browser and send it to anyone. They will be able to view the same map you are looking at.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">Can I change the map?</h3>
+                    <p className="text-muted-foreground">
+                        No. As a visitor, you have "View Only" access. You can see all the notes, photos, and icons, but you cannot move or delete them.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="troubleshooting">
+            <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Troubleshooting</h2>
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold">I cannot hear the audio.</h3>
+                    <p className="text-muted-foreground">
+                        Please check the volume settings on your device (computer or phone). If the volume is up and you still cannot hear it, the audio file may not be available for that specific marker.
+                    </p>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold">The map is hard to read.</h3>
+                    <p className="text-muted-foreground">
+                        You can try zooming in on the image to see more detail. If you are printing the map, try using the <strong>Icon Scale</strong> slider in the Export menu to make the icons larger before printing.
+                    </p>
+                </div>
+            </div>
+        </section>
     </div>
 );
 
