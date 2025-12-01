@@ -5,52 +5,69 @@ import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 
 type ShareDialogProps = {
   shareUrl: string | null;
+  editCode: string | null;
   onClose: () => void;
 };
 
-export function ShareDialog({ shareUrl, onClose }: ShareDialogProps) {
+export function ShareDialog({ shareUrl, editCode, onClose }: ShareDialogProps) {
   const { toast } = useToast();
 
-  const handleCopy = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      toast({ title: "Copied!", description: "The link has been copied to your clipboard." });
+  const handleCopy = (textToCopy: string, type: 'Link' | 'Code') => {
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
+      toast({ title: "Copied!", description: `The ${type} has been copied to your clipboard.` });
     }
   };
+
+  const fullEditUrl = `${shareUrl}?editCode=${editCode}`;
 
   if (!shareUrl) return null;
 
   return (
     <Dialog open={!!shareUrl} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Map</DialogTitle>
+          <DialogTitle>Share & Edit</DialogTitle>
           <DialogDescription>
-            Anyone with this link will be able to view a read-only version of your map.
+            Your map is saved. Use the links below to share or edit it later.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
-            <div className="grid flex-1 gap-2">
-                <Input
-                    id="link"
-                    defaultValue={shareUrl}
-                    readOnly
-                />
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="share-link" className="text-sm font-medium">View-Only Link</Label>
+                <p className="text-xs text-muted-foreground">Anyone with this link can view your map.</p>
+                <div className="flex items-center space-x-2">
+                    <Input id="share-link" value={shareUrl} readOnly />
+                    <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(shareUrl, 'Link')}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
-            <Button type="submit" size="icon" className="px-3" onClick={handleCopy}>
-                <span className="sr-only">Copy</span>
-                <Copy className="h-4 w-4" />
-            </Button>
+
+            <Separator />
+
+            <div className="space-y-2">
+                 <Label htmlFor="edit-code" className="text-sm font-medium">Your Private Edit Link</Label>
+                <p className="text-xs text-muted-foreground">
+                    <span className="font-bold">Important:</span> Save this link to edit your map later. Do not share it.
+                </p>
+                <div className="flex items-center space-x-2">
+                    <Input id="edit-code" value={fullEditUrl} readOnly />
+                    <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(fullEditUrl, 'Link')}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onClose}>Done</Button>
+        <DialogFooter className="sm:justify-end">
+          <Button onClick={onClose} type="button">Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-
-    

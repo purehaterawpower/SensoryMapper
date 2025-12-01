@@ -74,4 +74,5 @@ export type MapData = {
     mapImage: string;
     imageDimensions: { width: number, height: number };
     items: Item[];
+    editCode?: string;
 };

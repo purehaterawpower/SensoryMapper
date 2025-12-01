@@ -29,13 +29,18 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the map was created."
+        },
+        "editCode": {
+          "type": "string",
+          "description": "A secret code that allows editing of the map."
         }
       },
       "required": [
         "mapImage",
         "imageDimensions",
         "items",
-        "createdAt"
+        "createdAt",
+        "editCode"
       ]
     }
   },

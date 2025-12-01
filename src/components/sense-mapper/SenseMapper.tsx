@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -24,14 +25,16 @@ const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
 type SenseMapperProps = {
     initialData?: MapData;
     readOnly?: boolean;
+    mapId?: string;
 }
 
-export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps) {
+export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId }: SenseMapperProps) {
   const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [highlightedItem, setHighlightedItem] = useState<Item | null>(null);
+  const [readOnly, setReadOnly] = useState(initialReadOnly);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -57,12 +60,25 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [editCode, setEditCode] = useState<string | null>(null);
   const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
   const [exportIconScale, setExportIconScale] = useState(100);
   const [showNumberedIcons, setShowNumberedIcons] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    setReadOnly(initialReadOnly);
+    if (!initialReadOnly && mapId) {
+        // If we are in edit mode, check local storage for the edit code.
+        const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
+        const code = storedMaps[mapId];
+        if (code && window.location.search.includes(code)) {
+             // Already in edit mode.
+        }
+    }
+  }, [initialReadOnly, mapId]);
 
   useEffect(() => {
     if (initialData) {
@@ -725,14 +741,20 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             imageDimensions,
             items
         };
-        const { id, error } = await saveMap(mapData);
+        const { id, editCode: newEditCode, error } = await saveMap(mapData);
 
-        if (error || !id) {
+        if (error || !id || !newEditCode) {
             throw new Error(error || 'Failed to save map and get ID.');
         }
 
         const url = `${window.location.origin}/map/${id}`;
         setShareUrl(url);
+        setEditCode(newEditCode);
+        
+        // Store the edit code in localStorage
+        const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
+        storedMaps[id] = newEditCode;
+        localStorage.setItem('senseMapperEditCodes', JSON.stringify(storedMaps));
 
         toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
     } catch (error: any) {
@@ -831,6 +853,24 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             </div>
           </TooltipProvider>
         )}
+         <div className='absolute bottom-4 left-4 flex gap-2'>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Undo" disabled={true}>
+                        <Undo2 className='h-4 w-4'/>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Undo (Ctrl+Z)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Redo" disabled={true}>
+                        <Redo2 className='h-4 w-4'/>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Redo (Ctrl+Y)</TooltipContent>
+            </Tooltip>
+        </div>
         <div style={annotationEditorContainerStyle}>
           <AnnotationEditor
             item={selectedItem}
@@ -855,7 +895,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       </main>
       <ShareDialog
         shareUrl={shareUrl}
-        onClose={() => setShareUrl(null)}
+        editCode={editCode}
+        onClose={() => {
+          setShareUrl(null);
+          setEditCode(null);
+        }}
       />
     </div>
     {isPrinting && (
