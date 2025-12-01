@@ -159,7 +159,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     );
 }
 
-  const renderDrawingShape = () => {
+  function renderDrawingShape() {
     if (!drawingShape || readOnly) return null;
     const style = {
       stroke: 'hsl(var(--primary))',
@@ -180,37 +180,34 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       const handleSize = 8 / zoomLevel;
       return (
         <>
-           {drawingShape.points.length > 2 && (
-             <line
-                x1={drawingShape.points[drawingShape.points.length - 1].x}
-                y1={drawingShape.points[drawingShape.points.length - 1].y}
-                x2={drawingShape.points[0].x}
-                y2={drawingShape.points[0].y}
-                style={{ ...style, fill: 'none' }}
-              />
+          {drawingShape.points.length > 2 && (
+            <line
+              x1={drawingShape.points[drawingShape.points.length - 1].x}
+              y1={drawingShape.points[drawingShape.points.length - 1].y}
+              x2={drawingShape.points[0].x}
+              y2={drawingShape.points[0].y}
+              style={{ ...style, fill: 'none' }} />
           )}
-          <polyline points={currentPoints} style={{...style, fill: 'none', strokeDasharray: 'none'}} />
+          <polyline points={currentPoints} style={{ ...style, fill: 'none', strokeDasharray: 'none' }} />
           {drawingShape.points.length > 0 && (
             <line
-                x1={drawingShape.points[drawingShape.points.length - 1].x}
-                y1={drawingShape.points[drawingShape.points.length - 1].y}
-                x2={cursorPos.x}
-                y2={cursorPos.y}
-                style={{ ...style, fill: 'none' }}
-            />
+              x1={drawingShape.points[drawingShape.points.length - 1].x}
+              y1={drawingShape.points[drawingShape.points.length - 1].y}
+              x2={cursorPos.x}
+              y2={cursorPos.y}
+              style={{ ...style, fill: 'none' }} />
           )}
           {drawingShape.points.map((p: Point, i: number) => (
-             <rect
+            <rect
               key={i}
-              x={p.x - handleSize/2}
-              y={p.y - handleSize/2}
+              x={p.x - handleSize / 2}
+              y={p.y - handleSize / 2}
               width={handleSize}
               height={handleSize}
               fill={i === 0 ? "hsl(var(--primary))" : "white"}
               stroke="hsl(var(--primary))"
               strokeWidth={1 / zoomLevel}
-              style={{pointerEvents: 'none'}}
-            />
+              style={{ pointerEvents: 'none' }} />
           ))}
         </>
       );
