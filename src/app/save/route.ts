@@ -8,14 +8,17 @@ import { MapData } from '@/lib/types';
 export async function POST(req: NextRequest) {
   try {
     const { firestore } = initializeFirebase();
-    const mapData: MapData = await req.json();
+    // The request body includes items, even though it's not on the MapData type.
+    const mapData: MapData & { items: any[] } = await req.json();
 
-    if (!mapData.mapImage || !mapData.items || !mapData.imageDimensions) {
+    if (!mapData.mapImage || !mapData.imageDimensions || !mapData.items) {
         return NextResponse.json({ error: 'Invalid map data' }, { status: 400 });
     }
 
     const docRef = await addDoc(collection(firestore, 'sensoryMaps'), {
-      ...mapData,
+      mapImage: mapData.mapImage,
+      imageDimensions: mapData.imageDimensions,
+      items: mapData.items,
       createdAt: serverTimestamp()
     });
 
