@@ -144,7 +144,7 @@ export function Sidebar({
               );
             })}
         </div>
-        <Accordion type="single" collapsible className="w-full" defaultValue='facilities'>
+        <Accordion type="single" collapsible className="w-full" defaultValue={readOnly ? '' : 'facilities'}>
             <AccordionItem value="facilities" className="border-b-0">
                 <div className="flex items-center p-2 rounded-md hover:bg-muted">
                     <AccordionTrigger className="py-0 px-0 font-normal hover:no-underline flex-1">
@@ -198,9 +198,10 @@ export function Sidebar({
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col h-screen">
       <TooltipProvider delayDuration={100}>
         <div className="p-4 flex flex-col gap-4 border-b">
-            <h1 className="text-xl font-bold">SenseMapper</h1>
-            {!readOnly && (
-              <div className="flex gap-2">
+          <h1 className="text-xl font-bold">SenseMapper</h1>
+            <div className="flex gap-2">
+                {!readOnly && (
+                  <>
                   <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
                       {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
                       Share
@@ -261,13 +262,14 @@ export function Sidebar({
                       </div>
                     </PopoverContent>
                   </Popover>
-                  <Button asChild variant="outline" size="icon" className="h-9 w-9">
-                    <Link href="/faq" title="Frequently Asked Questions">
-                      <HelpCircle className="h-4 w-4" />
-                    </Link>
-                  </Button>
-              </div>
-            )}
+                  </>
+                )}
+                <Button asChild variant="outline" size="icon" className="h-9 w-9">
+                  <Link href="/faq" title="Frequently Asked Questions">
+                    <HelpCircle className="h-4 w-4" />
+                  </Link>
+                </Button>
+            </div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
