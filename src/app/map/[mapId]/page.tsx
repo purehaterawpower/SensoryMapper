@@ -7,14 +7,22 @@ import { notFound } from 'next/navigation';
 
 async function getMapData(mapId: string): Promise<MapData | null> {
     const { firestore } = initializeFirebase();
-    const mapRef = doc(firestore, 'maps', mapId);
+    const mapRef = doc(firestore, 'sensoryMaps', mapId);
     const mapSnap = await getDoc(mapRef);
 
     if (!mapSnap.exists()) {
         return null;
     }
 
-    return mapSnap.data() as MapData;
+    const data = mapSnap.data();
+    // The data from firestore will not be serializable, so we need to convert it.
+    // We are just removing the timestamp for now.
+    const serializableData = {
+        ...data,
+        createdAt: null,
+    }
+
+    return serializableData as MapData;
 }
 
 
@@ -31,5 +39,3 @@ export default async function SharedMapPage({ params }: { params: { mapId: strin
         </FirebaseProvider>
     );
 }
-
-    

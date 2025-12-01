@@ -3,151 +3,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * Core Philosophy: This ruleset enforces a strict user-ownership model for all
-     * user-generated content. All sensory maps and their associated annotations are
-     * private to the user who created them. A global collection of base maps is
-     * provided for public, read-only use.
-     *
-     * Data Structure: All private user data is hierarchically nested under the path
-     * /users/{userId}. This structure allows for simple, path-based authorization.
-     * Publicly accessible data, such as base maps, is stored in a separate,
-     * top-level collection (/baseMaps).
-     *
-     * Key Security Decisions:
-     * - User data is strictly segregated; users can only access documents within
-     *   their own /users/{userId} data tree.
-     * - Listing other users' data is explicitly disallowed.
-     * - The /baseMaps collection is read-only for all signed-in users, implying
-     *   it is managed by administrators and not intended for client-side writes.
-     * - The user request mentions a 'share function'. However, the data model
-     *   provided does not include any fields for sharing (e.g., a 'members' list).
-     *   Therefore, these rules enforce the most secure default of strict ownership,
-     *   and sharing functionality must be implemented in the data model before it
-     *   can be secured.
-     *
-     * Denormalization for Authorization: While not strictly required by the rules
-     * due to the path-based ownership model, the application reasoning suggests
-     * denormalizing a `mapId` onto `sensoryAnnotation` documents. These rules enforce
-     * the integrity of that relationship on create and its immutability on update.
-     *
-     * Structural Segregation: The ruleset leverages separate collections for private
-     * and public data. User-specific sensory maps are stored in a user subcollection,
-     * while globally available base maps are in a top-level collection. This is a
-     * secure and performant pattern.
+     * @description Controls access to the shared sensory maps.
+     *              These maps are publicly readable to allow for the 'share'
+     *              functionality, but creating new maps is allowed for any user
+     *              as the app does not have a user authentication system for writes.
+     * @path /sensoryMaps/{mapId}
+     * @allow (get, list) Anyone can read the maps.
+     * @allow (create) Anyone can create a new map.
+     * @deny (update, delete) No one can update or delete maps from the client.
      */
-
-    // --------------------------------------------------------------------------
-    // Helper Functions
-    // --------------------------------------------------------------------------
-
-    /**
-     * Checks if a user is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
+    match /sensoryMaps/{mapId} {
+      allow get, list: if true;
+      allow create: if true;
+      allow update, delete: if false;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the given userId.
-     * This is the primary function for enforcing document ownership.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Checks if a document exists AND the current user is the owner.
-     * CRITICAL for safe update and delete operations.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * On create, validates that the new annotation's internal mapId reference
-     * matches the mapId from the document path.
-     */
-    function hasValidAnnotationData(sensoryMapId) {
-      return request.resource.data.mapId == sensoryMapId;
-    }
-
-    // --------------------------------------------------------------------------
-    // Collection Rules
-    // --------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to the root user document. This allows a user
-     *              to create their own user document, which can be a container
-     *              for subcollections, but does not allow reading or writing it
-     *              after creation.
-     * @path /users/{userId}
-     * @allow (create) A new user (auth.uid: 'user_abc') creating their own document
-     *        at /users/user_abc.
-     * @deny (get) A user trying to read another user's root document.
-     * @principle Enforces Self-Creation for a user's own data space.
-     */
-    match /users/{userId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Secures a user's private collection of sensory maps. Only the
-     *              user who owns this data tree can perform any operations on it.
-     * @path /users/{userId}/sensoryMaps/{sensoryMapId}
-     * @allow (create) An authenticated user (auth.uid: 'user_abc') creating a map at
-     *        /users/user_abc/sensoryMaps/map_123.
-     * @deny (get) A different user (auth.uid: 'user_xyz') trying to read a map at
-     *       /users/user_abc/sensoryMaps/map_123.
-     * @principle Restricts access to a user's own data tree using path-based ownership.
-     */
-    match /users/{userId}/sensoryMaps/{sensoryMapId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures sensory annotations within a user's sensory map. Access is
-     *              granted based on ownership of the parent map. Enforces that the
-     *              annotation is correctly linked to its parent map upon creation.
-     * @path /users/{userId}/sensoryMaps/{sensoryMapId}/sensoryAnnotations/{sensoryAnnotationId}
-     * @allow (create) The map owner (auth.uid: 'user_abc') creating an annotation at
-     *        /users/user_abc/sensoryMaps/map_123/sensoryAnnotations/anno_456
-     *        with `mapId: 'map_123'` in its data.
-     * @deny (update) The map owner trying to change the `mapId` field of an
-     *       existing annotation.
-     * @principle Enforces document ownership and validates relational integrity.
-     */
-    match /users/{userId}/sensoryMaps/{sensoryMapId}/sensoryAnnotations/{sensoryAnnotationId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidAnnotationData(sensoryMapId);
-      allow update: if isExistingOwner(userId) && request.resource.data.mapId == resource.data.mapId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Defines rules for the global collection of base maps. These are
-     *              publicly readable by any signed-in user but cannot be modified
-     *              by clients, implying they are managed by an admin process.
-     * @path /baseMaps/{baseMapId}
-     * @allow (get) Any authenticated user reading a base map document.
-     * @deny (create) Any user trying to create a new base map document.
-     * @principle Provides public read access for shared resources while preventing
-     *            all client-side write operations for security.
-     */
-    match /baseMaps/{baseMapId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+    // Default deny all other collections
+    match /{path=**}/documents/{document} {
+      allow read, write: if false;
     }
   }
 }

@@ -177,8 +177,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 || e.button === 1) return;
+    if (e.button === 2 || e.button === 1) return; // Ignore right and middle mouse button
     
+    // In readOnly mode, all mouse down does is pan
     if (readOnly) {
         setIsPanning(true);
         setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
@@ -191,6 +192,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
+    // Logic for interacting with edit handles
     if (editingItemId) {
       const handleId = target.dataset.handleId;
       if (handleId) {
@@ -200,6 +202,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as PolygonShape).points || {x: 0, y: 0} });
         return;
       }
+      // Dragging the center of a shape
       if (target.dataset.itemType === 'shape-center' && target.dataset.itemId === editingItemId) {
         e.preventDefault();
         const item = items.find(i => i.id === editingItemId) as Shape;
@@ -213,14 +216,15 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
     }
 
+    // Logic for drawing tools
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
         e.preventDefault();
         
         if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
-            if (!isDrawing) {
+            if (!isDrawing) { // First click for a new polygon
                 setIsDrawing(true);
                 setDrawingShape({ shape: 'polygon', points: [coords] });
-            } else if (drawingShape) {
+            } else if (drawingShape) { // Subsequent clicks for the same polygon
                 const firstPoint = drawingShape.points[0];
                 const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
                 const clickRadius = 10 / zoomLevel;
@@ -230,13 +234,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
                 }
             }
-        } else {
+        } else { // For markers, rectangles, and circles
             setIsDrawing(true);
             setStartCoords(coords);
         }
         return;
     }
     
+    // Logic for the select tool
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId && activeTool.tool === 'select') {
       e.preventDefault();
@@ -251,6 +256,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return;
     }
         
+    // If not interacting with an item, start panning
     if (activeTool.tool === 'select' && !itemId) {
       e.preventDefault();
       setIsPanning(true);
@@ -335,13 +341,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (isDrawing && activeTool.tool === 'shape' && activeTool.shape === 'polygon' && drawingShape?.points?.length > 0) {
       const firstPoint = drawingShape.points[0];
       const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-      setShowPolygonTooltip(dist < 10 / zoomLevel && drawingShape.points.length > 2);
+      setShowPolygonTooltip(dist < 10 / zoomLevel && drawingShape.points.length > 3);
     } else {
       setShowPolygonTooltip(false);
     }
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
+    // Shared read-only logic
     if (readOnly) {
         setIsPanning(false);
         setPanStart(null);
@@ -363,6 +370,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         return;
     }
 
+    // Editable mode logic from here
     if (draggingItem) {
         if (didDrag) {
             const finalCoords = getMapCoordinates(e);
@@ -374,6 +382,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     const coords = getMapCoordinates(e);
 
+    // Create marker on simple click (no drag)
     if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
       const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === activeTool.type);
       const newMarker: Marker = {
@@ -389,6 +398,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setActiveTool({ tool: 'select' });
     }
     
+    // Create shape on drag
     if (isDrawing && activeTool.shape !== 'polygon' && didDrag && activeTool.type) {
         const shapeType = activeTool.type;
         const newShape: Shape = {
@@ -406,6 +416,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setActiveTool({ tool: 'select' });
     }
 
+    // Reset drawing state for non-polygon tools
     if (isDrawing && activeTool.shape !== 'polygon') {
       setIsDrawing(false);
       setDrawingShape(null);
@@ -421,6 +432,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setDraggingItem(null);
     }
     
+    // Handle item selection on click (no drag)
     if (!didDrag && activeTool.tool === 'select') {
         const target = e.target as HTMLElement;
         const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
@@ -431,16 +443,19 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             setHighlightedItem(item);
           }
         } else {
+          // Clicked on empty space
           setHighlightedItem(null);
           setSelectedItem(null);
           setEditingItemId(null);
         }
       }
     
+    // Reset didDrag state after a short delay
     setTimeout(() => setDidDrag(false), 0);
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
+    // In read-only mode, double click should open the annotation editor
     if (readOnly) {
       const target = e.target as HTMLElement;
       const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
@@ -453,10 +468,14 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
       return;
     }
+
+    // In edit mode, double click finishes a polygon
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
       finishDrawingPolygon();
       return;
     }
+
+    // In edit mode, double click on an item opens the editor
     const target = e.target as HTMLElement;
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId) {
@@ -509,11 +528,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if (newId) {
         const itemToEdit = items.find(i => i.id === newId);
         if (itemToEdit) {
-            setSelectedItem(itemToEdit);
+            setSelectedItem(itemToEdit); // Ensure the item is selected when toggling edit mode on
             setHighlightedItem(itemToEdit);
         }
       } else {
-        setSelectedItem(null);
+        setSelectedItem(null); // Deselect when toggling off
       }
       return newId;
     });
@@ -672,7 +691,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   }, [isPrinting]);
 
   const handleShare = async () => {
-    if (!mapImage || !imageDimensions) {
+    if (readOnly || !mapImage || !imageDimensions) {
         toast({ variant: 'destructive', title: 'Cannot Share', description: 'Please upload a map before sharing.' });
         return;
     }
@@ -690,7 +709,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         });
 
         if (!response.ok) {
-            throw new Error('Failed to save map to the server.');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save map to the server.');
         }
 
         const { id } = await response.json();

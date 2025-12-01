@@ -6,187 +6,63 @@
       "type": "object",
       "description": "Represents a sensory map created within the SenseMapper application.",
       "properties": {
-        "id": {
+        "mapImage": {
           "type": "string",
-          "description": "Unique identifier for the Sensory Map entity."
+          "description": "Data URL of the base map image."
         },
-        "name": {
-          "type": "string",
-          "description": "The name of the sensory map."
+        "imageDimensions": {
+          "type": "object",
+          "properties": {
+            "width": { "type": "number" },
+            "height": { "type": "number" }
+          },
+          "required": ["width", "height"]
         },
-        "description": {
-          "type": "string",
-          "description": "A description of the sensory map."
-        },
-        "baseMap": {
-          "type": "string",
-          "description": "Reference to the BaseMap entity. (Relationship: BaseMap 1:1 SensoryMap)"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "baseMap"
-      ]
-    },
-    "BaseMap": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "BaseMap",
-      "type": "object",
-      "description": "Represents the base map or floor plan used for a SensoryMap.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the BaseMap entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the base map."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the image used for the base map.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "imageUrl"
-      ]
-    },
-    "SensoryAnnotation": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SensoryAnnotation",
-      "type": "object",
-      "description": "Represents a sensory annotation (marker or zone) placed on a SensoryMap.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the SensoryAnnotation entity."
-        },
-        "mapId": {
-          "type": "string",
-          "description": "Reference to the SensoryMap entity. (Relationship: SensoryMap 1:N SensoryAnnotation)"
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of annotation (marker or zone).",
-          "format": "enum",
+        "items": {
+          "type": "array",
           "items": {
-            "type": "string"
-          }
+            "type": "object"
+          },
+          "description": "An array of sensory annotations (markers and shapes)."
         },
-        "sensoryType": {
+        "createdAt": {
           "type": "string",
-          "description": "The type of sensory input (Touch, Vestibular, Proprioception, Vision, Hearing, Smell, Taste).",
-          "format": "enum",
-          "items": {
-            "type": "string"
-          }
-        },
-        "x": {
-          "type": "number",
-          "description": "X-coordinate of the annotation on the base map."
-        },
-        "y": {
-          "type": "number",
-          "description": "Y-coordinate of the annotation on the base map."
-        },
-        "width": {
-          "type": "number",
-          "description": "Width of the annotation (for zones)."
-        },
-        "height": {
-          "type": "number",
-          "description": "Height of the annotation (for zones)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the sensory input at this annotation."
+          "format": "date-time",
+          "description": "The timestamp when the map was created."
         }
       },
       "required": [
-        "id",
-        "mapId",
-        "type",
-        "sensoryType",
-        "x",
-        "y",
-        "description"
+        "mapImage",
+        "imageDimensions",
+        "items",
+        "createdAt"
       ]
     }
   },
   "auth": {
     "providers": [
-      "password",
       "anonymous"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/sensoryMaps/{sensoryMapId}",
+        "path": "/sensoryMaps/{mapId}",
         "definition": {
           "entityName": "SensoryMap",
           "schema": {
             "$ref": "#/backend/entities/SensoryMap"
           },
-          "description": "Stores sensory maps owned by a specific user.",
+          "description": "Stores shared sensory maps, which are publicly readable.",
           "params": [
             {
-              "name": "userId",
-              "description": "The ID of the user who owns the sensory map."
-            },
-            {
-              "name": "sensoryMapId",
+              "name": "mapId",
               "description": "The unique ID of the sensory map."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/sensoryMaps/{sensoryMapId}/sensoryAnnotations/{sensoryAnnotationId}",
-        "definition": {
-          "entityName": "SensoryAnnotation",
-          "schema": {
-            "$ref": "#/backend/entities/SensoryAnnotation"
-          },
-          "description": "Stores sensory annotations (markers, zones) associated with a specific sensory map. Includes denormalized 'ownerId' field copied from the parent SensoryMap for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The ID of the user who owns the sensory map and annotation."
-            },
-            {
-              "name": "sensoryMapId",
-              "description": "The unique ID of the sensory map to which the annotation belongs."
-            },
-            {
-              "name": "sensoryAnnotationId",
-              "description": "The unique ID of the sensory annotation."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/baseMaps/{baseMapId}",
-        "definition": {
-          "entityName": "BaseMap",
-          "schema": {
-            "$ref": "#/backend/entities/BaseMap"
-          },
-          "description": "Stores global base maps or floor plans.",
-          "params": [
-            {
-              "name": "baseMapId",
-              "description": "The unique ID of the base map."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the SenseMapper application, focusing on secure and scalable data management for sensory maps and annotations. The primary goal is to ensure authorization independence and clear separation of concerns.\n\n1.  **User-Owned Sensory Maps and Annotations:** Sensory maps are owned by individual users and stored under `/users/{userId}/sensoryMaps/{sensoryMapId}`. Sensory Annotations are similarly structured under `/users/{userId}/sensoryMaps/{sensoryMapId}/sensoryAnnotations/{sensoryAnnotationId}`. This structure uses path-based ownership, simplifying security rules and enabling efficient data retrieval.\n\n2.  **Base Maps:** Base maps, although referenced by SensoryMaps, are stored globally in a `/baseMaps/{baseMapId}` collection. This assumes base maps are either created and managed by admins or made publicly available. If base maps need to be private to users, they should be moved under `/users/{userId}/baseMaps/{baseMapId}`.\n\n3.  **Authorization Independence:** Since the SensoryAnnotations live as a subcollection of SensoryMaps, the `SensoryAnnotation` document has a denormalized `ownerId` field, copied from the SensoryMap. This allows security rules for SensoryAnnotations to be independent from the parent SensoryMap document.\n\n4. **QAPs (Rules are not filters):** The structure is set up to avoid filtering on the client side. List operations are secured by the path-based ownership, which restricts access to the user's own data and authorized shared documents. The homogeneous security posture of collections further simplifies security rules and ensures that all documents within a collection have the same access control policies.\n\nThis design allows for secure list operations (QAPs) since access to sensory maps and annotations is controlled at the path level, preventing unauthorized data exposure. The structure prioritizes authorization independence and leverages path-based ownership and membership maps for clear access control.  This explicit structure enhances debuggability and maintainability of security rules."
+    "reasoning": "The structure is simplified to a single top-level collection `sensoryMaps` to store the shared maps. This is a public collection where anyone can read the maps, but writing is restricted. This aligns with the 'share' functionality where a read-only version of the map is generated. The app does not have user authentication for editing, so a user-centric data structure is not needed at this time."
   }
 }
