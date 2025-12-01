@@ -12,6 +12,7 @@ import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
 import { Plus, Minus } from 'lucide-react';
 import { saveMap } from '@/app/actions';
+import { interpolateColor } from '@/lib/color-utils';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -209,7 +210,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (editingItemId) {
       const handleId = target.dataset.handleId;
       if (handleId) {
-        e.preventDefault();
         const handleIndex = parseInt(handleId, 10);
         const item = items.find(i => i.id === editingItemId) as Shape;
         setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as PolygonShape).points || {x: 0, y: 0} });
@@ -217,7 +217,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       }
       // Dragging the center of a shape
       if (target.dataset.itemType === 'shape-center' && target.dataset.itemId === editingItemId) {
-        e.preventDefault();
         const item = items.find(i => i.id === editingItemId) as Shape;
         let itemStartPos: Point | Point[] = { x: 0, y: 0 };
         if (item.shape === 'rectangle') itemStartPos = { x: item.x, y: item.y };
@@ -231,7 +230,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     // Logic for drawing tools
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
-        e.preventDefault();
         
         if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
             if (!isDrawing) { // First click for a new polygon
@@ -257,7 +255,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     // Logic for the select tool
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId && activeTool.tool === 'select') {
-      e.preventDefault();
       const item = items.find(i => i.id === itemId)!;
       let itemStartPos: Point | Point[] = {x:0, y:0};
       if(item.shape === 'marker') itemStartPos = { x: item.x, y: item.y };
@@ -271,7 +268,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         
     // If not interacting with an item, start panning
     if (activeTool.tool === 'select' && !itemId) {
-      e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
@@ -520,6 +516,13 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     toast({ title: "Saved!", description: "Your annotation has been saved." });
   };
   
+  const handleLiveAnnotationUpdate = (itemId: string, data: Partial<Item>) => {
+    if (readOnly) return;
+    setItems(prevItems => 
+      prevItems.map(i => (i.id === itemId ? { ...i, ...data } : i))
+    );
+  };
+
   const handleDeleteItem = (itemId: string) => {
     if (readOnly) return;
     setItems(items.filter(m => m.id !== itemId));
@@ -804,6 +807,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                 }
             }}
             onSave={handleSaveAnnotation}
+            onLiveUpdate={handleLiveAnnotationUpdate}
             onDelete={handleDeleteItem}
             onToggleEditMode={handleToggleEditMode}
             readOnly={readOnly}

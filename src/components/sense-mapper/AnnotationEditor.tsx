@@ -20,12 +20,13 @@ type AnnotationEditorProps = {
   onSave: (itemId: string, data: Partial<Item>) => void;
   onDelete: (itemId: string) => void;
   onToggleEditMode: (itemId: string) => void;
+  onLiveUpdate: (itemId: string, data: Partial<Item>) => void;
   readOnly?: boolean;
   panOffset: Point;
   zoomLevel: number;
 };
 
-export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
+export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, onLiveUpdate, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
   const [iconSize, setIconSize] = useState(50);
@@ -123,7 +124,12 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   }
 
   const handleSliderChange = (value: number[]) => {
-    setIntensity(value[0]);
+    const newIntensity = value[0];
+    setIntensity(newIntensity);
+    if (item && showIntensitySlider) {
+      const newColor = interpolateColor(newIntensity);
+      onLiveUpdate(item.id, { color: newColor, intensity: newIntensity });
+    }
   }
   
   const handleSizeSliderChange = (value: number[]) => {
@@ -161,7 +167,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   };
   
   const sliderColor = showIntensitySlider ? interpolateColor(intensity) : '';
-  const headerColor = ALL_SENSORY_DATA[item.type].color;
+  const headerColor = showIntensitySlider ? (item.color || sliderColor) : ALL_SENSORY_DATA[item.type].color;
 
   return (
     <Popover open={!!item} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -181,7 +187,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
             <div className={`flex items-center gap-3 ${readOnly ? 'mb-1' : ''}`}>
                 <div 
                     className="p-2 rounded-lg shadow-sm shrink-0" 
-                    style={{backgroundColor: showIntensitySlider ? sliderColor : headerColor}}
+                    style={{backgroundColor: headerColor}}
                 >
                     <Icon className="w-6 h-6 text-white" />
                 </div>
