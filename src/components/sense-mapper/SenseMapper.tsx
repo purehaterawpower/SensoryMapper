@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
 import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape, PrintOrientation, DrawingShape } from '@/lib/types';
-import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
+import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES, SENSORY_STIMULI_TYPES } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { PrintableReport } from './PrintableReport';
 import { ShareDialog } from './ShareDialog';
@@ -239,7 +239,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
         updateItems(prev => [...prev, newShape]);
-        setSelectedItem(newShape);
+        
+        setTimeout(() => {
+          setSelectedItem(newShape);
+        }, 50);
+
         setHighlightedItem(newShape);
         setEditingItemId(null);
     }
@@ -465,7 +469,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         size: isFacility ? 50 : undefined,
       };
       updateItems(prev => [...prev, newMarker]);
-      setSelectedItem(newMarker);
+      
+      setTimeout(() => {
+        setSelectedItem(newMarker);
+      }, 50);
+
       setHighlightedItem(newMarker);
       setActiveTool({ tool: 'select' });
     }
@@ -484,7 +492,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
         updateItems(prev => [...prev, newShape]);
-        setSelectedItem(newShape);
+        
+        setTimeout(() => {
+          setSelectedItem(newShape);
+        }, 50);
+
         setHighlightedItem(newShape);
         setActiveTool({ tool: 'select' });
     }
@@ -622,23 +634,26 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         }
     }
     
-    const type = activeTool.type || ALL_SENSORY_TYPES[0];
+    let currentType = activeTool.type;
+    if (!currentType || SENSORY_STIMULI_TYPES.includes(currentType as SensoryType) && event.key.toLowerCase() !== 'm') {
+      currentType = ALL_SENSORY_TYPES[0];
+    }
 
     switch (event.key.toLowerCase()) {
       case 'v':
         setActiveTool({ tool: 'select' });
         break;
       case 'm':
-        setActiveTool({ tool: 'marker', type });
+        setActiveTool({ tool: 'marker', type: currentType });
         break;
       case 'r':
-        setActiveTool({ tool: 'shape', shape: 'rectangle', type });
+        setActiveTool({ tool: 'shape', shape: 'rectangle', type: currentType });
         break;
       case 'c':
-        setActiveTool({ tool: 'shape', shape: 'circle', type });
+        setActiveTool({ tool: 'shape', shape: 'circle', type: currentType });
         break;
       case 'p':
-        setActiveTool({ tool: 'shape', shape: 'polygon', type });
+        setActiveTool({ tool: 'shape', shape: 'polygon', type: currentType });
         break;
       case 'escape':
         if (isDrawing) {
