@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
-import { Item, Point, Marker } from "@/lib/types";
+import { Item, Point, Marker, ItemType } from "@/lib/types";
 import { Trash2, Edit, Upload, X, Music } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,25 @@ type AnnotationEditorProps = {
   readOnly?: boolean;
   panOffset: Point;
   zoomLevel: number;
+};
+
+const getContextualQuestion = (type: ItemType): string => {
+    switch (type) {
+        case 'vision':
+            return 'What does it look like?';
+        case 'hearing':
+            return 'What does it sound like?';
+        case 'smell':
+            return 'What does it smell like?';
+        case 'touch':
+            return 'What does it feel like?';
+        case 'movement':
+            return 'What is the movement like?';
+        case 'space':
+            return 'What is the sense of space?';
+        default:
+            return 'What are the details?';
+    }
 };
 
 export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, onLiveUpdate, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
@@ -101,7 +120,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const showSizeSlider = isFacility && !readOnly;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
   
-  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
+  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. ${getContextualQuestion(item.type)} Consider: ${sensoryDescription}`;
 
   const handleSave = () => {
     const data: Partial<Item> = { description, imageUrl: image, audioUrl: audio };
