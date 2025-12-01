@@ -20,16 +20,16 @@ const EditorFAQ = () => (
       <h2 className="text-2xl font-semibold border-b pb-2 mb-4">General</h2>
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold">What is SensoryMapper?</h3>
-          <p className="text-muted-foreground">
-            SensoryMapper is a web app that helps you create sensory maps for buildings. You can upload a floor plan and add details about sights, sounds, smells, and practical amenities. This helps people navigate spaces more comfortably.
-          </p>
-        </div>
-        <div>
             <h3 className="text-lg font-semibold">What is a sensory map?</h3>
             <p className="text-muted-foreground">
                 A sensory map shows you the layout of a building along with important sensory details. It highlights areas that might be loud, bright, smelly, or crowded. It also shows you where to find practical facilities.
             </p>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold">What is SensoryMapper?</h3>
+          <p className="text-muted-foreground">
+            SensoryMapper is a web app that helps you create sensory maps for buildings. You can upload a floor plan and add details about sights, sounds, smells, and practical amenities. This helps people navigate spaces more comfortably.
+          </p>
         </div>
         <div>
           <h3 className="text-lg font-semibold">Who is it for?</h3>
