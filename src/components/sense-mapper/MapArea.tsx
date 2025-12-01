@@ -1,7 +1,7 @@
 'use client';
 
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
-import { Item, Marker, Shape, Point, ActiveTool } from "@/lib/types";
+import { Item, Marker, Shape, Point, ActiveTool, NumberedItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import React, { forwardRef, useRef } from "react";
 import { EditHandles } from './EditHandles';
@@ -15,7 +15,7 @@ import Image from "next/image";
 type MapAreaProps = {
   mapImage: string | null;
   imageDimensions: { width: number, height: number } | null;
-  items: Item[];
+  items: Item[] | NumberedItem[];
   visibleLayers: Record<string, boolean>;
   drawingShape: any;
   highlightedItem: Item | null;
@@ -28,6 +28,7 @@ type MapAreaProps = {
   activeTool: ActiveTool;
   readOnly?: boolean;
   zoomLevel: number;
+  showNumberedIcons?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
@@ -46,6 +47,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   activeTool,
   readOnly = false,
   zoomLevel,
+  showNumberedIcons = false,
   ...props
 }, ref) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +70,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     return 'default';
   }
 
-  const renderMarker = (marker: Marker) => {
+  const renderMarker = (marker: Marker | NumberedItem) => {
     if (!visibleLayers[marker.type]) return null;
     const { icon: Icon } = ALL_SENSORY_DATA[marker.type];
     const isHighlighted = highlightedItem?.id === marker.id;
@@ -77,6 +79,8 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const scaleFactor = isFacility ? 0.8 + ((marker.size ?? 50) / 100) * 1.2 : 1;
     const iconSize = 20 * scaleFactor;
     const padding = 6 * scaleFactor;
+
+    const numberSize = 16 * (0.9 + (scaleFactor - 1) * 0.5);
 
     const itemStyle: React.CSSProperties = {
         position: 'absolute',
@@ -100,28 +104,49 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         className="pointer-events-auto"
       >
         <div className={cn(
-            "rounded-full shadow-lg transition-all flex items-center justify-center", 
+            "rounded-full shadow-lg transition-all flex items-center justify-center relative", 
             isHighlighted && 'ring-2 ring-offset-2 ring-primary ring-offset-background'
             )}
             style={containerStyle}
           >
           <Icon className="text-white" style={{width: iconSize, height: iconSize}} />
+          {showNumberedIcons && 'number' in marker && (
+            <div 
+              className="absolute -top-1 -right-1 bg-background text-foreground rounded-full flex items-center justify-center font-bold border"
+              style={{ width: numberSize, height: numberSize, fontSize: numberSize * 0.7 }}
+            >
+              {marker.number}
+            </div>
+          )}
         </div>
       </div>
     );
   };
   
-  const renderShape = (shape: Shape) => {
+  const renderShape = (shape: Shape | NumberedItem) => {
     if (!visibleLayers[shape.type]) return null;
 
     const isEditing = editingItemId === shape.id;
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
+    
+    let center: { x: number, y: number } = { x: 0, y: 0 };
+    if (shape.shape === 'rectangle') {
+      center = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+    } else if (shape.shape === 'circle') {
+      center = { x: shape.cx, y: shape.cy };
+    } else if (shape.shape === 'polygon') {
+      let xSum = 0, ySum = 0;
+      shape.points.forEach(p => { xSum += p.x; ySum += p.y; });
+      center = { x: xSum / shape.points.length, y: ySum / shape.points.length };
+    }
+
+
     const commonProps: React.SVGProps<any> = {
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill: color,
-        fillOpacity: 0.6,
-        stroke: isEditing ? ALL_SENSORY_DATA[shape.type].color : 'none',
+        fillOpacity: showNumberedIcons ? 0.4 : 0.6,
+        stroke: isEditing || showNumberedIcons ? ALL_SENSORY_DATA[shape.type].color : 'none',
         strokeWidth: 2 / zoomLevel,
         filter: isEditing ? 'none' : "url(#soft-glow)",
         style: {
@@ -154,7 +179,24 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                       {...commonProps}
                   />
               )}
-            {isEditing && <EditHandles shape={shape} />}
+            {isEditing && <EditHandles shape={shape as Shape} />}
+             {showNumberedIcons && 'number' in shape && (
+                <text
+                    x={center.x}
+                    y={center.y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="white"
+                    stroke="black"
+                    strokeWidth={0.5 / zoomLevel}
+                    paintOrder="stroke"
+                    fontSize={18 / zoomLevel}
+                    fontWeight="bold"
+                    style={{pointerEvents: "none"}}
+                >
+                    {shape.number}
+                </text>
+            )}
         </g>
     );
 }
@@ -220,7 +262,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     height: imageDimensions.height,
   } : { width: '100%', height: '100%'};
   
-  const shapeItems = items.filter(item => item.shape !== 'marker') as Shape[];
+  const shapeItems = items.filter(item => item.shape !== 'marker') as (Shape[] | NumberedItem[]);
 
   return (
     <div 

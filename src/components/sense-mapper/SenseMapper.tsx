@@ -27,10 +27,7 @@ type SenseMapperProps = {
 }
 
 export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps) {
-  const [history, setHistory] = useState<Item[][]>([initialData?.items || []]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-  const items = history[historyIndex];
-
+  const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -62,64 +59,15 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
   const [exportIconScale, setExportIconScale] = useState(100);
+  const [showNumberedIcons, setShowNumberedIcons] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  
-  const updateItems = useCallback((newItems: Item[] | ((prevItems: Item[]) => Item[]), fromHistory = false) => {
-    if (fromHistory) {
-      // When undoing/redoing, we just set the items without changing history
-      setHistory(prevHistory => {
-        const updatedHistory = [...prevHistory];
-        updatedHistory[historyIndex] = Array.isArray(newItems) ? newItems : newItems(updatedHistory[historyIndex]);
-        return updatedHistory;
-      });
-      return;
-    }
-
-    setHistory(prevHistory => {
-      const currentItems = prevHistory[historyIndex];
-      const resultItems = Array.isArray(newItems) ? newItems : newItems(currentItems);
-      
-      // If the new items are the same as the current ones, do nothing.
-      if (JSON.stringify(resultItems) === JSON.stringify(currentItems)) {
-        return prevHistory;
-      }
-      
-      const newHistory = prevHistory.slice(0, historyIndex + 1);
-      newHistory.push(resultItems);
-      setHistoryIndex(newHistory.length - 1);
-      return newHistory;
-    });
-  }, [historyIndex]);
-
-  const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      setHistoryIndex(prevIndex => prevIndex - 1);
-      setSelectedItem(null);
-      setHighlightedItem(null);
-      setEditingItemId(null);
-    }
-  }, [historyIndex]);
-
-  const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(prevIndex => prevIndex + 1);
-      setSelectedItem(null);
-      setHighlightedItem(null);
-      setEditingItemId(null);
-    }
-  }, [history, historyIndex]);
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
-
 
   useEffect(() => {
     if (initialData) {
         handleImageLoad(initialData.mapImage, false);
-        setHistory([initialData.items]);
-        setHistoryIndex(0);
+        setItems(initialData.items);
     }
   }, [initialData]);
 
@@ -130,7 +78,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
       if (resetState) {
-        updateItems([]);
+        setItems([]);
         setSelectedItem(null);
         setEditingItemId(null);
         setHighlightedItem(null);
@@ -177,7 +125,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const handleHandleDrag = (handleIndex: number, newPos: Point) => {
     if (!editingItemId || readOnly) return;
     
-    const newItems = items.map(item => {
+    setItems(items.map(item => {
       if (item.id !== editingItemId) return item;
       
       let updatedShape = {...item} as Shape;
@@ -219,9 +167,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         updatedShape.points = newPoints;
       }
       return updatedShape;
-    });
-
-    updateItems(newItems, true); // Live update, don't create new history entry
+    }));
   }
 
   const finishDrawingPolygon = () => {
@@ -235,10 +181,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             description: '',
             imageUrl: null,
             audioUrl: null,
-            color: ALL_SENSORY_DATA[shapeType].color,
+            color: interpolateColor(50),
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
-        updateItems(prev => [...prev, newShape]);
+        setItems(prev => [...prev, newShape]);
         
         setTimeout(() => {
           setSelectedItem(newShape);
@@ -360,7 +306,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
           handleHandleDrag(draggingItem.handleIndex, coords);
         } else if (draggingItem.type === 'item') {
-            const newItems = items.map(item => {
+            setItems(prevItems => prevItems.map(item => {
                 if (item.id !== draggingItem.id) return item;
                 
                 let updatedItem = { ...item };
@@ -381,8 +327,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     }));
                 }
                 return updatedItem;
-            });
-            updateItems(newItems, true);
+            }));
         }
         return;
     }
@@ -420,7 +365,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     } else {
       setShowPolygonTooltip(false);
     }
-  }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, items, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag, updateItems]);
+  }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, items, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag]);
   
   const handleMouseUp = useCallback((e: React.MouseEvent | MouseEvent) => {
     // Shared read-only logic
@@ -447,13 +392,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     // Editable mode logic from here
     if (draggingItem) {
-        // Finalize the drag operation by creating a new history state
-        const finalItems = items; // items state is already updated live
         setDraggingItem(null);
-        // This check prevents creating history entries for simple clicks
-        if (didDrag) {
-            updateItems(finalItems);
-        }
     }
 
     const coords = getMapCoordinates(e);
@@ -468,7 +407,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         x: coords.x, y: coords.y, description: '', imageUrl: null, audioUrl: null,
         size: isFacility ? 50 : undefined,
       };
-      updateItems(prev => [...prev, newMarker]);
+      setItems(prev => [...prev, newMarker]);
       
       setTimeout(() => {
         setSelectedItem(newMarker);
@@ -488,10 +427,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             description: '',
             imageUrl: null,
             audioUrl: null,
-            color: ALL_SENSORY_DATA[shapeType].color,
+            color: interpolateColor(50),
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
-        updateItems(prev => [...prev, newShape]);
+        setItems(prev => [...prev, newShape]);
         
         setTimeout(() => {
           setSelectedItem(newShape);
@@ -533,7 +472,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     
     // Reset didDrag state after a short delay
     setTimeout(() => setDidDrag(false), 0);
-  }, [readOnly, didDrag, draggingItem, isDrawing, activeTool, items, drawingShape, isPanning, getMapCoordinates, updateItems]);
+  }, [readOnly, didDrag, draggingItem, isDrawing, activeTool, items, drawingShape, isPanning, getMapCoordinates]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -578,7 +517,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleSaveAnnotation = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
-    updateItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
+    setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
     const updatedItem = items.find(i => i.id === itemId); // This will use the old items state, needs a fix
@@ -588,12 +527,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleLiveAnnotationUpdate = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
-    updateItems(items.map(i => (i.id === itemId ? { ...i, ...data } : i)), true);
+    setItems(items.map(i => (i.id === itemId ? { ...i, ...data } : i)));
   };
 
   const handleDeleteItem = (itemId: string) => {
     if (readOnly) return;
-    updateItems(items.filter(m => m.id !== itemId));
+    setItems(items.filter(m => m.id !== itemId));
     setSelectedItem(null);
     setHighlightedItem(null);
     setEditingItemId(null);
@@ -619,19 +558,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly) return;
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
-    }
-
-    if (event.ctrlKey || event.metaKey) {
-        if (event.key.toLowerCase() === 'z') {
-            event.preventDefault();
-            handleUndo();
-            return;
-        }
-        if (event.key.toLowerCase() === 'y') {
-            event.preventDefault();
-            handleRedo();
-            return;
-        }
     }
     
     let currentType = activeTool.type;
@@ -670,7 +596,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setActiveTool({tool: 'select'});
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly, handleUndo, handleRedo]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -836,6 +762,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setActiveTool({ ...activeTool, shape });
     }
   };
+  
+  const numberedItems = items.map((item, index) => ({ ...item, number: index + 1 }));
 
 
   return (
@@ -855,6 +783,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setPrintOrientation={setPrintOrientation}
         exportIconScale={exportIconScale}
         setExportIconScale={setExportIconScale}
+        items={items}
+        showNumberedIcons={showNumberedIcons}
+        setShowNumberedIcons={setShowNumberedIcons}
       />
       <main className="flex-1 relative flex flex-col">
         {!readOnly && activeTool.tool === 'shape' && (
@@ -867,7 +798,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             ref={mapRef}
             mapImage={mapImage}
             imageDimensions={imageDimensions}
-            items={items}
+            items={showNumberedIcons ? numberedItems : items}
             visibleLayers={visibleLayers}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -886,31 +817,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             readOnly={readOnly}
             activeTool={activeTool}
             zoomLevel={zoomLevel}
+            showNumberedIcons={showNumberedIcons}
         />
         {mapImage && (
           <TooltipProvider>
-            <div className='absolute bottom-4 left-4 flex items-center gap-2 bg-card p-2 rounded-full shadow-lg border'>
-                {!readOnly && (
-                  <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!canUndo} className="rounded-full h-9 w-9">
-                          <Undo2 className="w-5 h-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Undo (Ctrl+Z)</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                      <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!canRedo} className="rounded-full h-9 w-9">
-                              <Redo2 className="w-5 h-5" />
-                          </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Redo (Ctrl+Y)</TooltipContent>
-                  </Tooltip>
-                  </>
-                )}
-            </div>
             <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
                 <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom in">
                     <Plus className='h-4 w-4'/>

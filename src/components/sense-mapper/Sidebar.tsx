@@ -1,7 +1,7 @@
 'use client';
 
 import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
-import { ItemType, ActiveTool, PrintOrientation } from "@/lib/types";
+import { Item, ItemType, ActiveTool, PrintOrientation } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ScrollArea } from "../ui/scroll-area";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -31,6 +32,9 @@ type SidebarProps = {
   exportIconScale: number;
   setExportIconScale: (scale: number) => void;
   readOnly?: boolean;
+  items: Item[];
+  showNumberedIcons: boolean;
+  setShowNumberedIcons: (show: boolean) => void;
 };
 
 export function Sidebar({ 
@@ -46,7 +50,10 @@ export function Sidebar({
   setPrintOrientation,
   exportIconScale,
   setExportIconScale,
-  readOnly 
+  readOnly,
+  items,
+  showNumberedIcons,
+  setShowNumberedIcons
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
   const pathname = usePathname();
@@ -184,6 +191,39 @@ export function Sidebar({
       </>
     );
   }
+  
+  const renderNumberedItems = () => (
+    <div className="p-4 space-y-3">
+        <h3 className="text-lg font-semibold px-2">Annotations</h3>
+        <ScrollArea className="h-[calc(100vh-400px)]">
+            <div className="space-y-2 pr-4">
+                {items.map((item, index) => {
+                    if (!visibleLayers[item.type]) return null;
+                    const { name, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
+                    return (
+                        <div key={item.id} className="text-sm p-2 rounded-md border bg-muted/30">
+                            <div className="flex items-start gap-3">
+                                <div className="font-bold text-muted-foreground">{index + 1}.</div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="p-1 rounded-md" style={{ backgroundColor: item.color || color }}>
+                                            <Icon className="w-3 h-3 text-white" />
+                                        </div>
+                                        <span className="font-semibold">{name}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-snug">
+                                        {item.description || "No details provided."}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </ScrollArea>
+    </div>
+);
+
 
   const handleExportClick = () => {
     onExportPDF();
@@ -271,26 +311,6 @@ export function Sidebar({
         <div className="flex-1 overflow-y-auto">
           {!readOnly ? (
             <>
-              <div className="p-4 flex items-center border-b">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button 
-                          variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
-                          size="icon" 
-                          className="rounded-full" 
-                          onClick={() => setActiveTool({ tool: 'select' })}
-                          aria-label="Select Tool (V)"
-                        >
-                          <MousePointer className="w-5 h-5" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs text-center">
-                        <p className="font-bold">Select</p>
-                        <p>Select, move, and edit items on the map. (V)</p>
-                    </TooltipContent>
-                  </Tooltip>
-              </div>
-
               <div className="p-4 space-y-4">
                   <h2 className="text-lg font-semibold px-2">Map Categories</h2>
                   {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
@@ -307,11 +327,27 @@ export function Sidebar({
                       {readOnly ? 'Map Key' : 'View Layers'}
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 space-y-4">
+                      {readOnly && (
+                        <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
+                           <Label htmlFor="show-numbered-icons" className="flex-1 font-normal">Show Icons with Numbers</Label>
+                           <Checkbox
+                              id="show-numbered-icons"
+                              checked={showNumberedIcons}
+                              onCheckedChange={(checked) => setShowNumberedIcons(!!checked)}
+                           />
+                        </div>
+                      )}
                       {renderLayerCheckboxes()}
                   </AccordionContent>
                   </AccordionItem>
               </Accordion>
           </div>
+           {readOnly && showNumberedIcons && (
+              <>
+                  <Separator />
+                  {renderNumberedItems()}
+              </>
+          )}
         </div>
       </TooltipProvider>
     </aside>

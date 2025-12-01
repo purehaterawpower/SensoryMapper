@@ -61,6 +61,8 @@ export type Shape = RectangleShape | CircleShape | PolygonShape;
 
 export type Item = Marker | Shape;
 
+export type NumberedItem = Item & { number: number };
+
 export type DrawingShape = 'rectangle' | 'circle' | 'polygon';
 export type ActiveTool = {
   tool: 'select' | 'shape' | 'marker';
