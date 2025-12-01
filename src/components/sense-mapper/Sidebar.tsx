@@ -12,7 +12,6 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Slider } from "../ui/slider";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
 
@@ -152,49 +151,41 @@ export function Sidebar({
               );
             })}
         </div>
-        <div>
-            <h3 className="text-sm font-semibold px-2 mb-1 text-muted-foreground">Facilities</h3>
-            <div className="flex items-center p-2 rounded-md hover:bg-muted">
-              <div className="flex items-center space-x-2 flex-1">
-                <div className={`p-1 rounded-md bg-gray-400`}>
-                  {/* Generic Icon for the group */}
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="facilities" className="border-b-0">
+                <div className="flex items-center p-2 rounded-md hover:bg-muted">
+                    <AccordionTrigger className="flex-1 py-0">
+                        <div className="flex items-center space-x-2">
+                           <div className={`p-1 rounded-md bg-gray-400`} />
+                            <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer">All Facilities</Label>
+                        </div>
+                    </AccordionTrigger>
+                    <Checkbox
+                        id="layer-facilities-group"
+                        checked={masterCheckboxState}
+                        onCheckedChange={(checked) => handleFacilityGroupToggle(!!checked)}
+                    />
                 </div>
-                <Label htmlFor="layer-facilities-group" className="flex-1 font-normal">All Facilities</Label>
-                <Checkbox
-                  id="layer-facilities-group"
-                  checked={masterCheckboxState}
-                  onCheckedChange={(checked) => handleFacilityGroupToggle(!!checked)}
-                />
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="ml-2 px-2">
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
+                <AccordionContent className="pt-1 pl-4 space-y-1">
                   {PRACTICAL_AMENITY_TYPES.map(type => {
                      const { icon: Icon, name } = ALL_SENSORY_DATA[type];
                      return (
-                        <DropdownMenuCheckboxItem
-                          key={type}
-                          checked={visibleLayers[type]}
-                          onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-                          onSelect={(e) => e.preventDefault()} // Prevent dropdown from closing
-                        >
-                           <div className="flex items-center gap-2">
-                              <div className={`p-1 rounded-md`} style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
+                        <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
+                            <div className="p-1 rounded-md" style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
                                 <Icon className="w-4 h-4 text-white" />
-                              </div>
-                              <span>{name}</span>
-                           </div>
-                        </DropdownMenuCheckboxItem>
+                            </div>
+                            <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
+                            <Checkbox
+                                id={`layer-${type}`}
+                                checked={visibleLayers[type]}
+                                onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+                            />
+                        </div>
                      )
                   })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-        </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
       </>
     );
   }
