@@ -4,6 +4,7 @@ import { Item, Marker, Shape } from '@/lib/types';
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
 import Image from 'next/image';
 import { Progress } from '../ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 type PrintableReportProps = {
   mapImage: string | null;
@@ -194,7 +195,6 @@ export function PrintableReport({
   imageDimensions,
   items,
 }: PrintableReportProps) {
-  // All visible items get a number for the map and are included in the list
   const listItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
 
   return (
@@ -209,56 +209,68 @@ export function PrintableReport({
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-4">
         <h2 className="text-2xl font-bold">Annotations</h2>
-        <div className="space-y-6">
-          {listItems.length > 0 ? (
-            listItems.map((item) => {
-              const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
-              const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietRoom';
-              return (
-                <div key={item.id} className="p-4 border rounded-lg" style={{ breakInside: 'avoid' }}>
-                  <div className="flex items-start gap-3 mb-2">
-                    <div className="font-bold text-lg w-6 text-center pt-1">{item.number}.</div>
-                    <div className="p-1.5 rounded-md mt-1" style={{ backgroundColor: item.color || color }}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className='flex-1'>
-                      <h3 className="text-lg font-semibold">{categoryName}</h3>
-                      {isSensoryArea && item.intensity !== undefined && (
-                        <div className='flex items-center gap-2 mt-1'>
-                            <span className="text-xs text-slate-600">Level:</span>
-                            <Progress value={item.intensity} className="h-2 w-24" style={{ '--primary': item.color } as React.CSSProperties} />
-                             <span className="text-xs text-slate-600 w-16">
-                                {item.intensity < 33 ? 'Low' : item.intensity < 66 ? 'Medium' : 'High'}
-                            </span>
-                        </div>
+        {listItems.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]">#</TableHead>
+                <TableHead className="w-[120px]">Category</TableHead>
+                <TableHead>Details</TableHead>
+                <TableHead className="w-[150px]">Image</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {listItems.map((item) => {
+                const { name: categoryName, icon: Icon, color } = ALL_SENSORY_DATA[item.type];
+                const isSensoryArea = item.shape !== 'marker' && item.type !== 'quietRoom';
+                return (
+                  <TableRow key={item.id} style={{ breakInside: 'avoid' }}>
+                    <TableCell className="font-medium align-top">{item.number}.</TableCell>
+                    <TableCell className="align-top">
+                      <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-md mt-1" style={{ backgroundColor: item.color || color }}>
+                              <Icon className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="font-semibold">{categoryName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top">
+                        {item.description ? (
+                            <p className="text-sm">{item.description}</p>
+                        ) : (
+                            <p className="text-sm text-slate-500">No description provided.</p>
+                        )}
+                        {isSensoryArea && item.intensity !== undefined && (
+                            <div className='flex items-center gap-2 mt-2'>
+                                <span className="text-xs text-slate-600">Level:</span>
+                                <Progress value={item.intensity} className="h-2 w-24" style={{ '--primary': item.color } as React.CSSProperties} />
+                                <span className="text-xs text-slate-600 w-16">
+                                    {item.intensity < 33 ? 'Low' : item.intensity < 66 ? 'Medium' : 'High'}
+                                </span>
+                            </div>
+                        )}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {item.imageUrl && (
+                         <Image
+                            src={item.imageUrl}
+                            alt={`Annotation image for ${categoryName}`}
+                            width={150}
+                            height={100}
+                            className="rounded-md object-cover"
+                          />
                       )}
-                    </div>
-                  </div>
-                  <div className="grid gap-4 ml-9" style={{ gridTemplateColumns: item.imageUrl ? '1fr 150px' : '1fr' }}>
-                    {item.description ? (
-                        <p className="text-sm">{item.description}</p>
-                    ) : (
-                        (!item.imageUrl) && <p className='text-sm text-slate-500'>No details provided for this item.</p>
-                    )}
-                    {item.imageUrl && (
-                       <Image
-                          src={item.imageUrl}
-                          alt={`Annotation image for ${categoryName}`}
-                          width={150}
-                          height={100}
-                          className="rounded-md object-cover"
-                        />
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p>No annotations have been added to the map.</p>
-          )}
-        </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        ) : (
+          <p>No annotations have been added to the map.</p>
+        )}
       </div>
     </div>
   );
