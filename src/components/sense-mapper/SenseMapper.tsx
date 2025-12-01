@@ -162,6 +162,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             type: shapeType,
             description: '',
             imageUrl: null,
+            audioUrl: null,
             color: ALL_SENSORY_DATA[shapeType].color,
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
