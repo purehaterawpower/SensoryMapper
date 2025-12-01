@@ -853,24 +853,26 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
             </div>
           </TooltipProvider>
         )}
-         <div className='absolute bottom-4 left-4 flex gap-2'>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Undo" disabled={true}>
-                        <Undo2 className='h-4 w-4'/>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Undo (Ctrl+Z)</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Redo" disabled={true}>
-                        <Redo2 className='h-4 w-4'/>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Redo (Ctrl+Y)</TooltipContent>
-            </Tooltip>
-        </div>
+         <TooltipProvider>
+            <div className='absolute bottom-4 left-4 flex gap-2'>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Undo" disabled={true}>
+                            <Undo2 className='h-4 w-4'/>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Undo (Ctrl+Z)</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={() => {}} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Redo" disabled={true}>
+                            <Redo2 className='h-4 w-4'/>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Redo (Ctrl+Y)</TooltipContent>
+                </Tooltip>
+            </div>
+        </TooltipProvider>
         <div style={annotationEditorContainerStyle}>
           <AnnotationEditor
             item={selectedItem}
