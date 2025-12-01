@@ -356,12 +356,14 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                             <Trash2 className="w-4 h-4" />
                         </Button>
                         <div className="flex gap-2">
+                            {/*
                             {isShape && (
                                 <Button onClick={handleToggleEditMode} variant="outline" size="sm" title="Adjust Shape">
                                     <Edit className="h-3.5 w-3.5 mr-2" />
                                     Adjust Shape
                                 </Button>
                             )}
+                            */}
                             <Button onClick={handleSave} size="sm">Save Changes</Button>
                         </div>
                     </div>
