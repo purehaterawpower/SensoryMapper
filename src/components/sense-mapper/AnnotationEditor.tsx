@@ -103,11 +103,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
 
   const handleSave = () => {
-    const data: Partial<Item> = { 
-        description, 
-        imageUrl: image || undefined, 
-        audioUrl: audio || undefined 
-    };
+    const data: Partial<Item> = { description, imageUrl: image, audioUrl: audio };
     if (showIntensitySlider) {
       data.color = interpolateColor(intensity);
       data.intensity = intensity;
