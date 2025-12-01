@@ -738,23 +738,21 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
-      {!readOnly && (
-          <Sidebar
-            activeTool={activeTool}
-            setActiveTool={setActiveTool}
-            visibleLayers={visibleLayers}
-            onLayerVisibilityChange={handleLayerVisibilityChange}
-            onExportPDF={handleExportPDF}
-            isExporting={isPrinting}
-            onShare={handleShare}
-            isSharing={isSharing}
-            readOnly={readOnly}
-            printOrientation={printOrientation}
-            setPrintOrientation={setPrintOrientation}
-            exportIconScale={exportIconScale}
-            setExportIconScale={setExportIconScale}
-          />
-      )}
+      <Sidebar
+        activeTool={activeTool}
+        setActiveTool={setActiveTool}
+        visibleLayers={visibleLayers}
+        onLayerVisibilityChange={handleLayerVisibilityChange}
+        onExportPDF={handleExportPDF}
+        isExporting={isPrinting}
+        onShare={handleShare}
+        isSharing={isSharing}
+        readOnly={readOnly}
+        printOrientation={printOrientation}
+        setPrintOrientation={setPrintOrientation}
+        exportIconScale={exportIconScale}
+        setExportIconScale={setExportIconScale}
+      />
       <main className="flex-1 relative flex flex-col">
         <MapArea
             ref={mapRef}

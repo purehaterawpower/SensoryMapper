@@ -161,89 +161,143 @@ export function Sidebar({
         <Separator/>
 
         {!readOnly && (
-            <div className="p-4 flex items-center justify-around border-b">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Button 
-                        variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
-                        size="icon" 
-                        className="rounded-full" 
-                        onClick={() => setActiveTool({ tool: 'select' })}
-                        aria-label="Select Tool (V)"
-                      >
-                        <MousePointer className="w-5 h-5" />
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-center">
-                      <p className="font-bold">Select</p>
-                      <p>Select, move, and edit items on the map. (V)</p>
-                  </TooltipContent>
-                </Tooltip>
-                <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
+            <>
+                <div className="p-4 flex items-center justify-around border-b">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button 
+                            variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
+                            size="icon" 
+                            className="rounded-full" 
+                            onClick={() => setActiveTool({ tool: 'select' })}
+                            aria-label="Select Tool (V)"
+                          >
+                            <MousePointer className="w-5 h-5" />
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs text-center">
+                          <p className="font-bold">Select</p>
+                          <p>Select, move, and edit items on the map. (V)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div className="space-y-4">
+                        <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                        {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
+                        {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+                    </div>
+                    <Separator />
+                    <Accordion type="multiple" className="w-full" defaultValue={['export-options', 'view-layers']}>
+                      <AccordionItem value="export-options" className="border-b-0">
+                          <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                              Export Options
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-2 space-y-4 px-2">
+                              <div>
+                                  <Label className="text-sm font-medium">Page Orientation</Label>
+                                  <RadioGroup 
+                                      value={printOrientation} 
+                                      onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                                      className="mt-2"
+                                  >
+                                      <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="portrait" id="portrait" />
+                                          <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="landscape" id="landscape" />
+                                          <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                                      </div>
+                                  </RadioGroup>
+                              </div>
+                              <div className="grid gap-2">
+                                <Label>Icon Size</Label>
+                                <Slider
+                                  value={[exportIconScale]}
+                                  onValueChange={(value) => setExportIconScale(value[0])}
+                                  min={50}
+                                  max={150}
+                                  step={10}
+                                />
+                                 <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Small</span>
+                                    <span>Default</span>
+                                    <span>Large</span>
+                                </div>
+                              </div>
+                          </AccordionContent>
+                      </AccordionItem>
+                        <AccordionItem value="view-layers" className="border-b-0">
+                        <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                            View Layers
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-2 space-y-4">
+                            {renderLayerCheckboxes('Sensory', SENSORY_STIMULI_TYPES)}
+                            {renderLayerCheckboxes('Facilities', PRACTICAL_AMENITY_TYPES)}
+                        </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                </div>
+            </>
+        )}
+        
+        {readOnly && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <Accordion type="multiple" className="w-full" defaultValue={['export-options', 'view-layers']}>
+                  <AccordionItem value="export-options" className="border-b-0">
+                      <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                          Export Options
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-2 space-y-4 px-2">
+                          <div>
+                              <Label className="text-sm font-medium">Page Orientation</Label>
+                              <RadioGroup 
+                                  value={printOrientation} 
+                                  onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                                  className="mt-2"
+                              >
+                                  <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="portrait" id="portrait" />
+                                      <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="landscape" id="landscape" />
+                                      <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                                  </div>
+                              </RadioGroup>
+                          </div>
+                          <div className="grid gap-2">
+                            <Label>Icon Size</Label>
+                            <Slider
+                              value={[exportIconScale]}
+                              onValueChange={(value) => setExportIconScale(value[0])}
+                              min={50}
+                              max={150}
+                              step={10}
+                            />
+                             <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Small</span>
+                                <span>Default</span>
+                                <span>Large</span>
+                            </div>
+                          </div>
+                      </AccordionContent>
+                  </AccordionItem>
+                    <AccordionItem value="view-layers" className="border-b-0">
+                    <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                        Map Key
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 space-y-4">
+                        {renderLayerCheckboxes('Sensory', SENSORY_STIMULI_TYPES)}
+                        {renderLayerCheckboxes('Facilities', PRACTICAL_AMENITY_TYPES)}
+                    </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
         )}
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <div className="space-y-4">
-                <h2 className="text-lg font-semibold px-2">{readOnly ? 'Map Key' : 'Map Categories'}</h2>
-                {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
-                {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
-            </div>
-            
-            <Separator />
-
-            <Accordion type="multiple" className="w-full" defaultValue={['export-options', 'view-layers']}>
-              <AccordionItem value="export-options" className="border-b-0">
-                  <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
-                      Export Options
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 space-y-4 px-2">
-                      <div>
-                          <Label className="text-sm font-medium">Page Orientation</Label>
-                          <RadioGroup 
-                              value={printOrientation} 
-                              onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
-                              className="mt-2"
-                          >
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="portrait" id="portrait" />
-                                  <Label htmlFor="portrait" className="font-normal">Portrait</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="landscape" id="landscape" />
-                                  <Label htmlFor="landscape" className="font-normal">Landscape</Label>
-                              </div>
-                          </RadioGroup>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Icon Size</Label>
-                        <Slider
-                          value={[exportIconScale]}
-                          onValueChange={(value) => setExportIconScale(value[0])}
-                          min={50}
-                          max={150}
-                          step={10}
-                        />
-                         <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Small</span>
-                            <span>Default</span>
-                            <span>Large</span>
-                        </div>
-                      </div>
-                  </AccordionContent>
-              </AccordionItem>
-                <AccordionItem value="view-layers" className="border-b-0">
-                <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
-                    View Layers
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 space-y-4">
-                    {renderLayerCheckboxes('Sensory', SENSORY_STIMULI_TYPES)}
-                    {renderLayerCheckboxes('Facilities', PRACTICAL_AMENITY_TYPES)}
-                </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-
-        </div>
       </TooltipProvider>
     </aside>
   );
