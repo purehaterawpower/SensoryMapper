@@ -6,6 +6,8 @@ export type AmenityType = 'quietRoom' | 'seating' | 'toilets' | 'exit' | 'help' 
 
 export type ItemType = SensoryType | AmenityType;
 
+export type PrintOrientation = 'portrait' | 'landscape';
+
 export type BaseInfo = {
   name: string;
   description: string;

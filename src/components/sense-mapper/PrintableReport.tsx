@@ -1,6 +1,6 @@
 'use client';
 
-import { Item, Marker, Shape } from '@/lib/types';
+import { Item, Marker, PrintOrientation, Shape } from '@/lib/types';
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
 import Image from 'next/image';
 import { Progress } from '../ui/progress';
@@ -10,6 +10,7 @@ type PrintableReportProps = {
   mapImage: string | null;
   imageDimensions: { width: number; height: number } | null;
   items: Item[];
+  printOrientation: PrintOrientation;
 };
 
 type NumberedItem = Item & { number: number };
@@ -194,13 +195,14 @@ export function PrintableReport({
   mapImage,
   imageDimensions,
   items,
+  printOrientation,
 }: PrintableReportProps) {
   const listItems: NumberedItem[] = items.map((item, index) => ({ ...item, number: index + 1 }));
 
   return (
     <div className="p-8 bg-white text-black">
       <style>
-        {`@page { size: A4; margin: 20mm; }`}
+        {`@page { size: A4 ${printOrientation}; margin: 20mm; }`}
       </style>
       <div className="space-y-8" style={{ breakAfter: 'page' }}>
         <h1 className="text-3xl font-bold">Sensory Map Report</h1>

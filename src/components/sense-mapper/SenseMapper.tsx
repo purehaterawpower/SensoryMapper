@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape } from '@/lib/types';
+import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape, PrintOrientation } from '@/lib/types';
 import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { PrintableReport } from './PrintableReport';
@@ -53,6 +53,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
 
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -689,6 +690,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         onShare={handleShare}
         isSharing={isSharing}
         readOnly={readOnly}
+        printOrientation={printOrientation}
+        setPrintOrientation={setPrintOrientation}
       />
       <main className="flex-1 relative flex flex-col">
         <MapArea
@@ -754,6 +757,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
               mapImage={mapImage}
               imageDimensions={imageDimensions}
               items={items.filter(item => visibleLayers[item.type])}
+              printOrientation={printOrientation}
             />
         </div>
     )}

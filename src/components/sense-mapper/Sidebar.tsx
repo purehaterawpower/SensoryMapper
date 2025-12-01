@@ -1,7 +1,7 @@
 'use client';
 
 import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
-import { ItemType, ActiveTool } from "@/lib/types";
+import { ItemType, ActiveTool, PrintOrientation } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,10 +21,12 @@ type SidebarProps = {
   isExporting: boolean;
   onShare: () => void;
   isSharing: boolean;
+  printOrientation: PrintOrientation;
+  setPrintOrientation: (orientation: PrintOrientation) => void;
   readOnly?: boolean;
 };
 
-export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, readOnly }: SidebarProps) {
+export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisibilityChange, onExportPDF, isExporting, onShare, isSharing, printOrientation, setPrintOrientation, readOnly }: SidebarProps) {
 
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
@@ -61,7 +63,6 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
         >
           {types.map(type => {
             const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
-            const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
             
             return (
               <Tooltip key={type}>
@@ -125,16 +126,16 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
       <TooltipProvider delayDuration={100}>
         
-        <div className="p-4 flex flex-wrap gap-2 justify-between items-center">
+        <div className="p-4 flex flex-col gap-4">
             <h1 className="text-xl font-bold">SenseMapper</h1>
             <div className="flex gap-2">
                 {!readOnly && (
-                <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm">
+                <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
                     {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
                     Share
                 </Button>
                 )}
-                <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm">
+                <Button onClick={onExportPDF} disabled={isExporting} variant="outline" size="sm" className="flex-1">
                     {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
                     Export
                 </Button>
@@ -173,8 +174,32 @@ export function Sidebar({ activeTool, setActiveTool, visibleLayers, onLayerVisib
             </div>
             
             <Separator />
-            
-            <Accordion type="single" collapsible className="w-full" defaultValue="view-layers">
+
+            <Accordion type="multiple" className="w-full" defaultValue={['view-layers']}>
+              <AccordionItem value="export-options" className="border-b-0">
+                  <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                      Export Options
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 space-y-4 px-2">
+                      <div>
+                          <Label className="text-sm font-medium">Page Orientation</Label>
+                          <RadioGroup 
+                              value={printOrientation} 
+                              onValueChange={(value) => setPrintOrientation(value as PrintOrientation)}
+                              className="mt-2"
+                          >
+                              <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="portrait" id="portrait" />
+                                  <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="landscape" id="landscape" />
+                                  <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                              </div>
+                          </RadioGroup>
+                      </div>
+                  </AccordionContent>
+              </AccordionItem>
                 <AccordionItem value="view-layers" className="border-b-0">
                 <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
                     View Layers
