@@ -16,16 +16,19 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
   if (shape.shape === 'rectangle') {
     const { x, y, width, height } = shape;
     handles = [
-      { x, y },
-      { x: x + width, y },
-      { x: x + width, y: y + height },
-      { x, y: y + height },
+      { x, y }, // top-left
+      { x: x + width, y }, // top-right
+      { x: x + width, y: y + height }, // bottom-right
+      { x, y: y + height }, // bottom-left
     ];
     center = { x: x + width / 2, y: y + height / 2 };
   } else if (shape.shape === 'circle') {
     const { cx, cy, radius } = shape;
     handles = [
-      { x: cx + radius, y: cy } // Just one handle for the radius
+      { x: cx + radius, y: cy },
+      { x: cx, y: cy + radius },
+      { x: cx - radius, y: cy },
+      { x: cx, y: cy - radius },
     ];
     center = { x: cx, y: cy };
   } else if (shape.shape === 'polygon') {

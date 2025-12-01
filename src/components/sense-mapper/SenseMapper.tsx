@@ -127,18 +127,29 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
       if (updatedShape.shape === 'rectangle') {
         const { x, y, width, height } = updatedShape;
-        const corners = [{x,y}, {x:x+width, y}, {x:x+width, y:y+height}, {x, y:y+height}];
-        
-        const oppositeCorner = corners[(handleIndex + 2) % 4];
-        const newX = Math.min(newPos.x, oppositeCorner.x);
-        const newY = Math.min(newPos.y, oppositeCorner.y);
-        const newMaxX = Math.max(newPos.x, oppositeCorner.x);
-        const newMaxY = Math.max(newPos.y, oppositeCorner.y);
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
 
-        updatedShape.x = newX;
-        updatedShape.y = newY;
-        updatedShape.width = newMaxX - newX;
-        updatedShape.height = newMaxY - newY;
+        const originalHandleVector = {
+          x: (handleIndex === 0 || handleIndex === 3 ? x : x + width) - centerX,
+          y: (handleIndex === 0 || handleIndex === 1 ? y : y + height) - centerY
+        };
+
+        const newHandleVector = { x: newPos.x - centerX, y: newPos.y - centerY };
+
+        const originalDist = Math.sqrt(originalHandleVector.x ** 2 + originalHandleVector.y ** 2);
+        if (originalDist === 0) return updatedShape;
+
+        const projection = (newHandleVector.x * originalHandleVector.x + newHandleVector.y * originalHandleVector.y) / originalDist;
+        const scale = projection / originalDist;
+
+        if (isFinite(scale)) {
+          updatedShape.x = centerX - (width / 2) * scale;
+          updatedShape.y = centerY - (height / 2) * scale;
+          updatedShape.width = width * scale;
+          updatedShape.height = height * scale;
+        }
+
       } else if (updatedShape.shape === 'circle') {
         const dx = newPos.x - updatedShape.cx;
         const dy = newPos.y - updatedShape.cy;
@@ -458,16 +469,15 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   }, [readOnly, didDrag, draggingItem, isDrawing, activeTool, items, drawingShape, isPanning, getMapCoordinates, handleHandleDrag]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+    const item = items.find(i => i.id === itemId);
+
     // In read-only mode, double click should open the annotation editor
     if (readOnly) {
-      const target = e.target as HTMLElement;
-      const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-      if (itemId) {
-          const item = items.find(i => i.id === itemId);
-          if (item) {
-              setSelectedItem(item);
-              setHighlightedItem(item);
-          }
+      if (item) {
+        setSelectedItem(item);
+        setHighlightedItem(item);
       }
       return;
     }
@@ -478,14 +488,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       return;
     }
 
-    // In edit mode, double click on an item opens the editor
-    const target = e.target as HTMLElement;
-    const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
-    if (itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (item) {
-            setSelectedItem(item);
-        }
+    // In edit mode, double click on an item toggles its edit state
+    if (item && item.shape !== 'marker') {
+        handleToggleEditMode(item.id);
     }
   };
 
@@ -531,11 +536,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       if (newId) {
         const itemToEdit = items.find(i => i.id === newId);
         if (itemToEdit) {
-            setSelectedItem(itemToEdit); // Ensure the item is selected when toggling edit mode on
+            setSelectedItem(null); 
             setHighlightedItem(itemToEdit);
         }
-      } else {
-        setSelectedItem(null); // Deselect when toggling off
       }
       return newId;
     });
