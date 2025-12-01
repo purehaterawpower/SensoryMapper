@@ -169,7 +169,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
             <div ref={triggerRef} />
         </PopoverTrigger>
       <PopoverContent 
-        className="w-80 shadow-xl" 
+        className="w-96 shadow-xl" 
         side="right" 
         align="center" 
         alignOffset={-140} 
