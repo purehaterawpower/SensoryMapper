@@ -145,48 +145,46 @@ export function Sidebar({
             })}
         </div>
         <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="facilities" className="border-b-0">
-                <AccordionTrigger className="flex w-full items-center p-2 rounded-md hover:bg-muted hover:no-underline">
-                    <div className="flex items-center space-x-2 flex-1">
-                        <div className={`p-1 rounded-md bg-gray-400`} />
-                        <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer flex-1 text-left">Facilities</Label>
-                    </div>
-                     <Checkbox
-                        id="layer-facilities-group"
-                        checked={masterCheckboxState}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          PRACTICAL_AMENITY_TYPES.forEach(type => {
-                            onLayerVisibilityChange(type, !areAllFacilitiesVisible);
-                          });
-                        }}
-                        onCheckedChange={(checked) => {
-                          PRACTICAL_AMENITY_TYPES.forEach(type => {
-                            onLayerVisibilityChange(type, !!checked);
-                          });
-                        }}
-                        className="ml-auto"
-                    />
-                </AccordionTrigger>
-                <AccordionContent className="pt-1 pl-4 space-y-1">
-                  {PRACTICAL_AMENITY_TYPES.map(type => {
-                     const { icon: Icon, name } = ALL_SENSORY_DATA[type];
-                     return (
-                        <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
-                            <div className="p-1 rounded-md" style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
-                                <Icon className="w-4 h-4 text-white" />
-                            </div>
-                            <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
-                            <Checkbox
-                                id={`layer-${type}`}
-                                checked={visibleLayers[type]}
-                                onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
-                            />
+          <AccordionItem value="facilities" className="border-b-0">
+            <AccordionTrigger asChild>
+              <div className="flex w-full items-center p-2 rounded-md hover:bg-muted cursor-pointer hover:no-underline">
+                <div className="flex items-center space-x-2 flex-1">
+                  <div className={`p-1 rounded-md bg-gray-400`} />
+                  <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer flex-1 text-left">Facilities</Label>
+                </div>
+                <Checkbox
+                  id="layer-facilities-group"
+                  checked={masterCheckboxState}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const nextState = !areAllFacilitiesVisible;
+                    PRACTICAL_AMENITY_TYPES.forEach(type => {
+                      onLayerVisibilityChange(type, nextState);
+                    });
+                  }}
+                  className="ml-auto"
+                />
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-1 pl-4 space-y-1">
+              {PRACTICAL_AMENITY_TYPES.map(type => {
+                 const { icon: Icon, name } = ALL_SENSORY_DATA[type];
+                 return (
+                    <div key={type} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
+                        <div className="p-1 rounded-md" style={{ backgroundColor: ALL_SENSORY_DATA[type].color }}>
+                            <Icon className="w-4 h-4 text-white" />
                         </div>
-                     )
-                  })}
-                </AccordionContent>
-            </AccordionItem>
+                        <Label htmlFor={`layer-${type}`} className="flex-1 font-normal">{name}</Label>
+                        <Checkbox
+                            id={`layer-${type}`}
+                            checked={visibleLayers[type]}
+                            onCheckedChange={(checked) => onLayerVisibilityChange(type, !!checked)}
+                        />
+                    </div>
+                 )
+              })}
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </>
     );
@@ -198,10 +196,10 @@ export function Sidebar({
   }
 
   return (
-    <aside id="sidebar" className="w-80 bg-card border-r flex flex-col">
+    <aside id="sidebar" className="w-80 bg-card border-r flex flex-col h-screen">
       <TooltipProvider delayDuration={100}>
         
-        <div className="p-4 flex flex-col gap-4">
+        <div className="p-4 flex flex-col gap-4 border-b">
             <h1 className="text-xl font-bold">SenseMapper</h1>
             {!readOnly && (
               <div className="flex gap-2">
@@ -274,53 +272,51 @@ export function Sidebar({
             )}
         </div>
         
-        {!readOnly ? (
-          <>
-            <Separator/>
-            <div className="p-4 flex items-center justify-around border-b">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Button 
-                        variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
-                        size="icon" 
-                        className="rounded-full" 
-                        onClick={() => setActiveTool({ tool: 'select' })}
-                        aria-label="Select Tool (V)"
-                      >
-                        <MousePointer className="w-5 h-5" />
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-center">
-                      <p className="font-bold">Select</p>
-                      <p>Select, move, and edit items on the map. (V)</p>
-                  </TooltipContent>
-                </Tooltip>
-                <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          {!readOnly && (
+            <>
+              <div className="p-4 flex items-center justify-around border-b">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button 
+                          variant={activeTool.tool === 'select' ? 'secondary' : 'ghost'} 
+                          size="icon" 
+                          className="rounded-full" 
+                          onClick={() => setActiveTool({ tool: 'select' })}
+                          aria-label="Select Tool (V)"
+                        >
+                          <MousePointer className="w-5 h-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-center">
+                        <p className="font-bold">Select</p>
+                        <p>Select, move, and edit items on the map. (V)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <p className="text-sm text-muted-foreground">Select a category below to start drawing</p>
+              </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <div className="space-y-4">
-                    <h2 className="text-lg font-semibold px-2">Map Categories</h2>
-                    {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
-                    {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
-                </div>
-                <Separator />
-            </div>
-          </>
-        ) : null}
+              <div className="p-4 space-y-4">
+                  <h2 className="text-lg font-semibold px-2">Map Categories</h2>
+                  {renderTypeSection('Sensory', SENSORY_STIMULI_TYPES)}
+                  {renderTypeSection('Facilities', PRACTICAL_AMENITY_TYPES)}
+              </div>
+              <Separator />
+            </>
+          )}
 
-        
-         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <Accordion type="single" collapsible className="w-full" defaultValue={'view-layers'}>
-                <AccordionItem value="view-layers" className="border-b-0">
-                <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
-                    {readOnly ? 'Map Key' : 'View Layers'}
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 space-y-4">
-                    {renderLayerCheckboxes()}
-                </AccordionContent>
-                </AccordionItem>
-            </Accordion>
+          <div className="p-4 space-y-4">
+              <Accordion type="single" collapsible className="w-full" defaultValue={'view-layers'}>
+                  <AccordionItem value="view-layers" className="border-b-0">
+                  <AccordionTrigger className="py-2 px-2 text-lg font-semibold hover:no-underline rounded-md hover:bg-muted">
+                      {readOnly ? 'Map Key' : 'View Layers'}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 space-y-4">
+                      {renderLayerCheckboxes()}
+                  </AccordionContent>
+                  </AccordionItem>
+              </Accordion>
+          </div>
         </div>
       </TooltipProvider>
     </aside>
