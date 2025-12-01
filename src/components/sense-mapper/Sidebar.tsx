@@ -270,10 +270,10 @@ export function Sidebar({
               </div>
             )}
         </div>
-        <Separator/>
         
-        {!readOnly && (
+        {!readOnly ? (
           <>
+            <Separator/>
             <div className="p-4 flex items-center justify-around border-b">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -304,7 +304,7 @@ export function Sidebar({
                 <Separator />
             </div>
           </>
-        )}
+        ) : <Separator/>}
 
         
          <div className="flex-1 overflow-y-auto p-4 space-y-4">
