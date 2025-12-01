@@ -18,12 +18,15 @@ export async function saveMap(mapData: MapData) {
       createdAt: serverTimestamp()
     });
     
-    revalidatePath('/map/[mapId]');
+    // Revalidate the path for the newly created map to ensure it can be fetched immediately.
+    revalidatePath(`/map/${docRef.id}`);
+    
     return { id: docRef.id, error: null };
 
   } catch (error: any) {
     console.error('Error saving map:', error);
-    const errorMessage = error.message || 'Failed to save map';
+    // Return a more structured error to the client.
+    const errorMessage = error.message || 'Failed to save map due to a server error.';
     return { id: null, error: errorMessage };
   }
 }

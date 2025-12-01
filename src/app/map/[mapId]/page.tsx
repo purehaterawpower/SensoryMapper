@@ -15,9 +15,11 @@ async function getMapData(mapId: string): Promise<MapData | null> {
 
     const data = mapSnap.data();
     
-    // Convert Firestore Timestamp to null for serialization, as it's not needed on the client for read-only view
+    // Convert Firestore Timestamp to a serializable format (e.g., null or ISO string)
+    // before sending it to the client component.
     const serializableData: any = { ...data };
     if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
+        // We don't need the creation date on the read-only client view, so setting to null is safe.
         serializableData.createdAt = null;
     }
 
