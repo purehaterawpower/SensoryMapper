@@ -62,7 +62,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
   const getCursor = () => {
     if (isPanning) return 'grabbing';
-    if (readOnly) return 'default';
+    if (readOnly) return 'grab';
     if (activeTool.tool === 'select') return 'grab';
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') return 'crosshair';
     return 'default';
@@ -83,7 +83,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         left: marker.x,
         top: marker.y,
         transform: 'translate(-50%, -50%)',
-        cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
+        cursor: isPanning ? 'grabbing' : ((activeTool.tool === 'select' || readOnly) ? 'pointer' : 'crosshair'),
       };
       
     const containerStyle: React.CSSProperties = {
@@ -126,7 +126,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         stroke: color,
         strokeWidth: isHighlighted || isEditing ? 3 / zoomLevel : 2 / zoomLevel,
         style: {
-            cursor: isPanning ? 'grabbing' : (activeTool.tool === 'select' ? 'pointer' : 'crosshair'),
+            cursor: isPanning ? 'grabbing' : ((activeTool.tool === 'select' || readOnly) ? 'pointer' : 'crosshair'),
         },
     };
 
@@ -164,7 +164,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 }
 
   const renderDrawingShape = () => {
-    if (!drawingShape) return null;
+    if (!drawingShape || readOnly) return null;
     const style = {
       stroke: 'hsl(var(--primary))',
       strokeWidth: 2 / zoomLevel,
@@ -184,7 +184,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       const handleSize = 8 / zoomLevel;
       return (
         <>
-           {drawingShape.points.length > 3 && (
+           {drawingShape.points.length > 2 && (
              <line
                 x1={drawingShape.points[drawingShape.points.length - 1].x}
                 y1={drawingShape.points[drawingShape.points.length - 1].y}

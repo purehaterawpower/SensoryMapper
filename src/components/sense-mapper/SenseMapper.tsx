@@ -177,7 +177,16 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!mapImage || readOnly || e.button === 2 || e.button === 1) return;
+    if (e.button === 2 || e.button === 1) return;
+    
+    if (readOnly) {
+        setIsPanning(true);
+        setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+        return;
+    }
+
+    if (!mapImage) return;
+
     setDidDrag(false);
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
@@ -261,6 +270,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         return;
     }
 
+    if (readOnly) return;
+
     if (draggingItem) {
         setDidDrag(true);
         const dx = coords.x - draggingItem.startPos.x;
@@ -324,13 +335,32 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (isDrawing && activeTool.tool === 'shape' && activeTool.shape === 'polygon' && drawingShape?.points?.length > 0) {
       const firstPoint = drawingShape.points[0];
       const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-      setShowPolygonTooltip(dist < 10 / zoomLevel);
+      setShowPolygonTooltip(dist < 10 / zoomLevel && drawingShape.points.length > 2);
     } else {
       setShowPolygonTooltip(false);
     }
   };
   
   const handleMouseUp = (e: React.MouseEvent) => {
+    if (readOnly) {
+        setIsPanning(false);
+        setPanStart(null);
+        if (!didDrag) {
+            const target = e.target as HTMLElement;
+            const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+            if (itemId) {
+                const item = items.find(i => i.id === itemId);
+                if (item) {
+                    setSelectedItem(item);
+                }
+            } else {
+                setSelectedItem(null);
+            }
+        }
+        setDidDrag(false);
+        return;
+    }
+
     if (draggingItem) {
         if (didDrag) {
             const finalCoords = getMapCoordinates(e);
@@ -711,8 +741,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             onContextMenu={handleContextMenu}
             onMapUpload={handleMapUpload}
             drawingShape={drawingShape}
-            highlightedItem={highlightedItem}
-            editingItemId={editingItemId}
+            highlightedItem={readOnly ? null : highlightedItem}
+            editingItemId={readOnly ? null : editingItemId}
             cursorPos={cursorPos}
             showPolygonTooltip={showPolygonTooltip}
             transformStyle={transformStyle}
