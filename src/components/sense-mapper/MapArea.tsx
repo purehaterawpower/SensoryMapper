@@ -114,7 +114,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
   const renderShape = (shape: Shape) => {
     if (!visibleLayers[shape.type]) return null;
 
-    const isHighlighted = highlightedItem?.id === shape.id;
     const isEditing = editingItemId === shape.id;
     const gradientId = `grad-${shape.id}`;
     
@@ -261,19 +260,11 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                       {shapeItems.map(shape => {
                           const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
                           const gradientId = `grad-${shape.id}`;
-                          if (shape.shape === 'polygon') {
-                            // For polygons, a simple linear gradient might not be perfect, but it's a start.
-                            // A more complex solution might involve calculating the shape's centroid.
-                            return (
-                                <radialGradient id={gradientId} key={gradientId} cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stopColor={color} stopOpacity="0.6" />
-                                    <stop offset="100%" stopColor={color} stopOpacity="0" />
-                                </radialGradient>
-                            );
-                          }
+
                           return (
-                            <radialGradient id={gradientId} key={gradientId}>
+                            <radialGradient id={gradientId} key={gradientId} cx="50%" cy="50%" r="50%">
                                 <stop offset="0%" stopColor={color} stopOpacity="0.6" />
+                                <stop offset="80%" stopColor={color} stopOpacity="0.1" />
                                 <stop offset="100%" stopColor={color} stopOpacity="0" />
                             </radialGradient>
                           );
