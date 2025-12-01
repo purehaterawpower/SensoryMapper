@@ -54,16 +54,12 @@ export function Sidebar({
 
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
-
-    if (activeTool.type === type) {
-      setActiveTool({ tool: 'select' });
+    
+    const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
+    if (isAmenity) {
+      setActiveTool({ tool: 'marker', type });
     } else {
-      const isAmenity = PRACTICAL_AMENITY_TYPES.includes(type as any);
-      if (isAmenity) {
-        setActiveTool({ tool: 'marker', type });
-      } else {
-        setActiveTool({ tool: 'shape', shape: 'polygon', type });
-      }
+      setActiveTool({ tool: 'shape', shape: 'polygon', type });
     }
   };
 
