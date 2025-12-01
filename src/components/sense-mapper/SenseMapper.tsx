@@ -14,6 +14,7 @@ import { Plus, Minus, Redo2, Undo2 } from 'lucide-react';
 import { saveMap } from '@/app/actions';
 import { interpolateColor } from '@/lib/color-utils';
 import { ShapeToolbar } from './ShapeToolbar';
+import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -839,10 +840,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setPrintOrientation={setPrintOrientation}
         exportIconScale={exportIconScale}
         setExportIconScale={setExportIconScale}
-        onUndo={handleUndo}
-        canUndo={canUndo}
-        onRedo={handleRedo}
-        canRedo={canRedo}
       />
       <main className="flex-1 relative flex flex-col">
         {!readOnly && activeTool.tool === 'shape' && (
@@ -876,6 +873,29 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             zoomLevel={zoomLevel}
         />
         {mapImage && (
+          <TooltipProvider>
+            <div className='absolute bottom-4 left-4 flex items-center gap-2 bg-card p-2 rounded-full shadow-lg border'>
+                {!readOnly && (
+                  <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!canUndo} className="rounded-full h-9 w-9">
+                          <Undo2 className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Undo (Ctrl+Z)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!canRedo} className="rounded-full h-9 w-9">
+                              <Redo2 className="w-5 h-5" />
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">Redo (Ctrl+Y)</TooltipContent>
+                  </Tooltip>
+                  </>
+                )}
+            </div>
             <div className='absolute bottom-4 right-4 flex flex-col gap-2'>
                 <Button onClick={() => handleZoom('in')} size='icon' variant='outline' className='rounded-full h-9 w-9 bg-background/80 backdrop-blur-sm' aria-label="Zoom in">
                     <Plus className='h-4 w-4'/>
@@ -884,6 +904,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     <Minus className='h-4 w-4'/>
                 </Button>
             </div>
+          </TooltipProvider>
         )}
         <div style={annotationEditorContainerStyle}>
           <AnnotationEditor
