@@ -81,7 +81,7 @@ export function Sidebar({
           disabled={readOnly}
         >
           {types.map(type => {
-            const { icon: Icon, name, color, description } = ALL_SENSory_DATA[type];
+            const { icon: Icon, name, color, description } = ALL_SENSORY_DATA[type];
             
             return (
               <Tooltip key={type}>
@@ -144,12 +144,12 @@ export function Sidebar({
               );
             })}
         </div>
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full" defaultValue='facilities'>
             <AccordionItem value="facilities" className="border-b-0">
                 <AccordionTrigger asChild>
                     <div className="flex w-full items-center p-2 rounded-md hover:bg-muted cursor-pointer hover:no-underline">
                         <div className="flex items-center space-x-2 flex-1">
-                            <div className="p-1 rounded-md bg-gray-400" />
+                             <div className="w-4 h-4 rounded-full bg-gray-400 border" />
                             <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer flex-1 text-left">Facilities</Label>
                         </div>
                         <Checkbox
