@@ -25,10 +25,7 @@ type SenseMapperProps = {
 }
 
 export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps) {
-  const [history, setHistory] = useState<Item[][]>([initialData?.items || []]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-  const items = history[historyIndex];
-
+  const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -64,30 +61,10 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  const updateItems = (newItems: Item[] | ((prevItems: Item[]) => Item[])) => {
-    const updatedItems = typeof newItems === 'function' ? newItems(items) : newItems;
-    const newHistory = history.slice(0, historyIndex + 1);
-    setHistory([...newHistory, updatedItems]);
-    setHistoryIndex(newHistory.length);
-  };
-  
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-    }
-  };
-  
   useEffect(() => {
     if (initialData) {
         handleImageLoad(initialData.mapImage, false);
-        setHistory([initialData.items]);
-        setHistoryIndex(0);
+        setItems(initialData.items);
     }
   }, [initialData]);
 
@@ -98,7 +75,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
       if (resetState) {
-        updateItems([]);
+        setItems([]);
         setSelectedItem(null);
         setEditingItemId(null);
         setHighlightedItem(null);
@@ -144,7 +121,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleHandleDrag = (handleIndex: number, newPos: Point) => {
     if (!editingItemId || readOnly) return;
-    const newItems = items.map(item => {
+    setItems(items.map(item => {
       if (item.id !== editingItemId) return item;
       
       let updatedShape = {...item} as Shape;
@@ -186,11 +163,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         updatedShape.points = newPoints;
       }
       return updatedShape;
-    });
-
-    const currentHistory = [...history];
-    currentHistory[historyIndex] = newItems;
-    setHistory(currentHistory);
+    }));
   }
 
   const finishDrawingPolygon = () => {
@@ -207,7 +180,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             color: ALL_SENSORY_DATA[shapeType].color,
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
-        updateItems(prev => [...prev, newShape]);
+        setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
         setHighlightedItem(newShape);
         setEditingItemId(null);
@@ -324,8 +297,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         if (draggingItem.type === 'handle' && draggingItem.handleIndex !== undefined) {
           handleHandleDrag(draggingItem.handleIndex, coords);
         } else if (draggingItem.type === 'item') {
-            const currentHistory = [...history];
-            currentHistory[historyIndex] = items.map(item => {
+            setItems(items.map(item => {
                 if (item.id !== draggingItem.id) return item;
                 
                 let updatedItem = { ...item };
@@ -346,8 +318,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                     }));
                 }
                 return updatedItem;
-            });
-            setHistory(currentHistory);
+            }));
         }
         return;
     }
@@ -385,7 +356,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     } else {
       setShowPolygonTooltip(false);
     }
-  }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag, history, historyIndex, items]);
+  }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, items, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag]);
   
   const handleMouseUp = useCallback((e: React.MouseEvent | MouseEvent) => {
     // Shared read-only logic
@@ -412,9 +383,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
 
     // Editable mode logic from here
     if (draggingItem) {
-        if (didDrag) {
-            updateItems(items); // Push final state to history
-        }
+        setDraggingItem(null);
     }
 
     const coords = getMapCoordinates(e);
@@ -429,7 +398,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         x: coords.x, y: coords.y, description: '', imageUrl: null, audioUrl: null,
         size: isFacility ? 50 : undefined,
       };
-      updateItems(prev => [...prev, newMarker]);
+      setItems(prev => [...prev, newMarker]);
       setSelectedItem(newMarker);
       setHighlightedItem(newMarker);
       setActiveTool({ tool: 'select' });
@@ -448,7 +417,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             color: ALL_SENSORY_DATA[shapeType].color,
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
-        updateItems(prev => [...prev, newShape]);
+        setItems(prev => [...prev, newShape]);
         setSelectedItem(newShape);
         setHighlightedItem(newShape);
         setActiveTool({ tool: 'select' });
@@ -464,10 +433,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (isPanning) {
       setIsPanning(false);
       setPanStart(null);
-    }
-    
-    if (draggingItem) {
-        setDraggingItem(null);
     }
     
     // Handle item selection on click (no drag)
@@ -535,7 +500,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleSaveAnnotation = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
-    updateItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
+    setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
     const updatedItem = items.find(i => i.id === itemId); // This will use the old items state, needs a fix
@@ -545,15 +510,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   
   const handleLiveAnnotationUpdate = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
-    const newItems = items.map(i => (i.id === itemId ? { ...i, ...data } : i));
-    const currentHistory = [...history];
-    currentHistory[historyIndex] = newItems;
-    setHistory(currentHistory);
+    setItems(items.map(i => (i.id === itemId ? { ...i, ...data } : i)));
   };
 
   const handleDeleteItem = (itemId: string) => {
     if (readOnly) return;
-    updateItems(items.filter(m => m.id !== itemId));
+    setItems(items.filter(m => m.id !== itemId));
     setSelectedItem(null);
     setHighlightedItem(null);
     setEditingItemId(null);
@@ -579,22 +541,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (readOnly) return;
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
-    }
-
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
-      event.preventDefault();
-      if(event.shiftKey) {
-        handleRedo();
-      } else {
-        handleUndo();
-      }
-      return;
-    }
-
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'y') {
-      event.preventDefault();
-      handleRedo();
-      return;
     }
     
     const type = activeTool.type || ALL_SENSORY_TYPES[0];
@@ -624,7 +570,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setActiveTool({tool: 'select'});
         break;
     }
-  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly, historyIndex, history.length]);
+  }, [editingItemId, selectedItem, isDrawing, activeTool, readOnly]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -802,10 +748,6 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setPrintOrientation={setPrintOrientation}
         exportIconScale={exportIconScale}
         setExportIconScale={setExportIconScale}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
       />
       <main className="flex-1 relative flex flex-col">
         <MapArea

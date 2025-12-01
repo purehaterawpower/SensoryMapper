@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, FileDown, Loader2, Share2, HelpCircle, Undo2, Redo2 } from "lucide-react";
+import { MousePointer, FileDown, Loader2, Share2, HelpCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -31,10 +31,6 @@ type SidebarProps = {
   setPrintOrientation: (orientation: PrintOrientation) => void;
   exportIconScale: number;
   setExportIconScale: (scale: number) => void;
-  onUndo: () => void;
-  onRedo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
   readOnly?: boolean;
 };
 
@@ -51,10 +47,6 @@ export function Sidebar({
   setPrintOrientation,
   exportIconScale,
   setExportIconScale,
-  onUndo,
-  onRedo,
-  canUndo,
-  canRedo,
   readOnly 
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
@@ -293,22 +285,6 @@ export function Sidebar({
                     </TooltipContent>
                   </Tooltip>
                   <Separator orientation="vertical" className="h-6 mx-2" />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full" onClick={onUndo} disabled={!canUndo}>
-                        <Undo2 className="w-5 h-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
-                  </Tooltip>
-                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full" onClick={onRedo} disabled={!canRedo}>
-                        <Redo2 className="w-5 h-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
-                  </Tooltip>
               </div>
 
               <div className="p-4 space-y-4">
