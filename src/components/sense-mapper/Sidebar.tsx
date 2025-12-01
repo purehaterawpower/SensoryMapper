@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, FileDown, Loader2, Share2, ChevronDown } from "lucide-react";
+import { MousePointer, FileDown, Loader2, Share2, HelpCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Slider } from "../ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
+import Link from "next/link";
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -264,6 +265,11 @@ export function Sidebar({
                     </div>
                   </PopoverContent>
                 </Popover>
+                <Button asChild variant="outline" size="icon" className="h-9 w-9">
+                  <Link href="/faq" title="Frequently Asked Questions">
+                    <HelpCircle className="h-4 w-4" />
+                  </Link>
+                </Button>
             </div>
         </div>
         <Separator/>
