@@ -11,6 +11,7 @@ import { PrintableReport } from './PrintableReport';
 import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
 import { Plus, Minus } from 'lucide-react';
+import { saveMap } from '@/app/actions';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
@@ -228,7 +229,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                 const firstPoint = drawingShape.points[0];
                 const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
                 const clickRadius = 10 / zoomLevel;
-                if (drawingShape.points.length > 2 && dist < clickRadius) {
+                if (drawingShape.points.length > 3 && dist < clickRadius) {
                     finishDrawingPolygon();
                 } else {
                     setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
@@ -341,7 +342,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     if (isDrawing && activeTool.tool === 'shape' && activeTool.shape === 'polygon' && drawingShape?.points?.length > 0) {
       const firstPoint = drawingShape.points[0];
       const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
-      setShowPolygonTooltip(dist < 10 / zoomLevel && drawingShape.points.length > 3);
+      setShowPolygonTooltip(dist < 10 / zoomLevel && drawingShape.points.length > 2);
     } else {
       setShowPolygonTooltip(false);
     }
@@ -702,18 +703,12 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             imageDimensions,
             items
         };
-        const response = await fetch('/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mapData),
-        });
+        const { id, error } = await saveMap(mapData);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to save map to the server.');
+        if (error || !id) {
+            throw new Error(error || 'Failed to save map and get ID.');
         }
 
-        const { id } = await response.json();
         const url = `${window.location.origin}/map/${id}`;
         setShareUrl(url);
 

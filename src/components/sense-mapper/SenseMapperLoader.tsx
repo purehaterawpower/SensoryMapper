@@ -24,5 +24,3 @@ type SenseMapperLoaderProps = {
 export default function SenseMapperLoader({ initialData, readOnly }: SenseMapperLoaderProps) {
   return <SenseMapper initialData={initialData} readOnly={readOnly} />;
 }
-
-    

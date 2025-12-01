@@ -1,12 +1,11 @@
 import SenseMapperLoader from '@/components/sense-mapper/SenseMapperLoader';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/server';
 import { doc, getDoc } from 'firebase/firestore';
 import { MapData } from '@/lib/types';
-import { FirebaseProvider } from '@/firebase/provider';
 import { notFound } from 'next/navigation';
 
 async function getMapData(mapId: string): Promise<MapData | null> {
-    const { firestore } = initializeFirebase();
+    const { firestore } = await initializeFirebase();
     const mapRef = doc(firestore, 'sensoryMaps', mapId);
     const mapSnap = await getDoc(mapRef);
 
@@ -34,8 +33,6 @@ export default async function SharedMapPage({ params }: { params: { mapId: strin
     }
     
     return (
-        <FirebaseProvider>
-            <SenseMapperLoader initialData={mapData} readOnly={true} />
-        </FirebaseProvider>
+        <SenseMapperLoader initialData={mapData} readOnly={true} />
     );
 }
