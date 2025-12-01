@@ -14,7 +14,7 @@ import { Plus, Minus, Redo2, Undo2 } from 'lucide-react';
 import { saveMap } from '@/app/actions';
 import { interpolateColor } from '@/lib/color-utils';
 import { ShapeToolbar } from './ShapeToolbar';
-import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   acc[layer] = true;
