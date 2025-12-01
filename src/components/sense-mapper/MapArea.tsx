@@ -122,7 +122,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill: `url(#${gradientId})`,
-        stroke: isHighlighted || isEditing ? ALL_SENSORY_DATA[shape.type].color : 'none',
+        stroke: isEditing ? ALL_SENSORY_DATA[shape.type].color : 'none',
         strokeWidth: 2 / zoomLevel,
         style: {
             cursor: isPanning ? 'grabbing' : ((activeTool.tool === 'select' || readOnly) ? 'pointer' : 'crosshair'),
