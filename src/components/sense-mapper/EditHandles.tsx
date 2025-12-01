@@ -51,7 +51,6 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           strokeWidth="1"
           data-handle-id={index}
           style={{ cursor: 'nwse-resize' }}
-          onMouseDown={(e) => e.stopPropagation()} // Prevent item drag
         />
       ))}
       {center && (
@@ -65,7 +64,6 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           data-item-id={shape.id}
           data-item-type="shape-center"
           style={{ cursor: 'move' }}
-          onMouseDown={(e) => e.stopPropagation()}
         />
       )}
     </g>
