@@ -115,14 +115,16 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     if (!visibleLayers[shape.type]) return null;
 
     const isEditing = editingItemId === shape.id;
-    const gradientId = `grad-${shape.id}`;
+    const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     
     const commonProps: React.SVGProps<any> = {
         'data-item-id': shape.id,
         'data-item-type': 'shape',
-        fill: `url(#${gradientId})`,
+        fill: color,
+        fillOpacity: 0.6,
         stroke: isEditing ? ALL_SENSORY_DATA[shape.type].color : 'none',
         strokeWidth: 2 / zoomLevel,
+        filter: isEditing ? 'none' : "url(#soft-glow)",
         style: {
             cursor: isPanning ? 'grabbing' : ((activeTool.tool === 'select' || readOnly) ? 'pointer' : 'crosshair'),
         },
@@ -257,18 +259,9 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                   </Tooltip>
                   <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
                     <defs>
-                      {shapeItems.map(shape => {
-                          const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
-                          const gradientId = `grad-${shape.id}`;
-
-                          return (
-                            <radialGradient id={gradientId} key={gradientId} cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor={color} stopOpacity="0.6" />
-                                <stop offset="80%" stopColor={color} stopOpacity="0.1" />
-                                <stop offset="100%" stopColor={color} stopOpacity="0" />
-                            </radialGradient>
-                          );
-                      })}
+                        <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="8" result="coloredBlur" />
+                        </filter>
                     </defs>
                     {shapeItems.map(item => renderShape(item as Shape))}
                     {renderDrawingShape()}
@@ -305,5 +298,3 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 });
 
 MapArea.displayName = "MapArea";
-
-    
