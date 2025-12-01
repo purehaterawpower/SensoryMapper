@@ -358,7 +358,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                 {/* Action Buttons - Only visible in Edit Mode */}
                 {!readOnly && (
                     <div className="flex justify-between items-center pt-2 mt-2 border-t">
-                        <Button variant="ghost" size="icon" onClick={handleDelete} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete item" aria-label="Delete item">
+                        <Button variant="destructive" size="icon" onClick={handleDelete} className="transition-colors" title="Delete item" aria-label="Delete item">
                             <Trash2 className="w-4 h-4" />
                         </Button>
                         <div className="flex gap-2">
@@ -378,3 +378,5 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
     </Popover>
   );
 }
+
+    
