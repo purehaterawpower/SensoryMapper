@@ -241,7 +241,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                 const firstPoint = drawingShape.points[0];
                 const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
                 const clickRadius = 10 / zoomLevel;
-                if (drawingShape.points.length > 3 && dist < clickRadius) {
+
+                if (drawingShape.points.length > 2 && dist < clickRadius) {
                     finishDrawingPolygon();
                 } else {
                     setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
