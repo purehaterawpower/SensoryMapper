@@ -117,14 +117,6 @@ export function Sidebar({
 
   const renderLayerCheckboxes = () => {
     
-    const handleFacilityGroupToggle = (e: React.MouseEvent) => {
-      e.stopPropagation(); 
-      const currentCheckedState = areAllFacilitiesVisible;
-      PRACTICAL_AMENITY_TYPES.forEach(type => {
-        onLayerVisibilityChange(type, !currentCheckedState);
-      });
-    };
-
     const areAllFacilitiesVisible = PRACTICAL_AMENITY_TYPES.every(type => visibleLayers[type]);
     const areSomeFacilitiesVisible = PRACTICAL_AMENITY_TYPES.some(type => visibleLayers[type]);
     
@@ -154,23 +146,28 @@ export function Sidebar({
         </div>
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="facilities" className="border-b-0">
-                <div className="flex items-center p-2 rounded-md hover:bg-muted">
-                    <AccordionTrigger className="flex-1 py-0">
-                        <div className="flex items-center space-x-2 flex-1">
-                           <div className={`p-1 rounded-md bg-gray-400`} />
-                            <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer flex-1">Facilities</Label>
-                        </div>
-                    </AccordionTrigger>
-                    <Checkbox
+                <AccordionTrigger className="flex w-full items-center p-2 rounded-md hover:bg-muted hover:no-underline">
+                    <div className="flex items-center space-x-2 flex-1">
+                        <div className={`p-1 rounded-md bg-gray-400`} />
+                        <Label htmlFor="layer-facilities-group" className="font-normal cursor-pointer flex-1 text-left">Facilities</Label>
+                    </div>
+                     <Checkbox
                         id="layer-facilities-group"
                         checked={masterCheckboxState}
-                        onCheckedChange={(checked) => {
-                           PRACTICAL_AMENITY_TYPES.forEach(type => {
-                              onLayerVisibilityChange(type, !!checked);
-                           });
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          PRACTICAL_AMENITY_TYPES.forEach(type => {
+                            onLayerVisibilityChange(type, !areAllFacilitiesVisible);
+                          });
                         }}
+                        onCheckedChange={(checked) => {
+                          PRACTICAL_AMENITY_TYPES.forEach(type => {
+                            onLayerVisibilityChange(type, !!checked);
+                          });
+                        }}
+                        className="ml-auto"
                     />
-                </div>
+                </AccordionTrigger>
                 <AccordionContent className="pt-1 pl-4 space-y-1">
                   {PRACTICAL_AMENITY_TYPES.map(type => {
                      const { icon: Icon, name } = ALL_SENSORY_DATA[type];
