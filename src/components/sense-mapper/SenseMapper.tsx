@@ -99,7 +99,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       reader.onerror = () => {
         toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
       };
-      reader.readDataURL(file);
+      reader.readAsDataURL(file);
     } else {
       toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
@@ -352,9 +352,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
                 const item = items.find(i => i.id === itemId);
                 if (item) {
                     setSelectedItem(item);
+                    setHighlightedItem(item);
                 }
             } else {
                 setSelectedItem(null);
+                setHighlightedItem(null);
             }
         }
         setDidDrag(false);
@@ -439,7 +441,18 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
-    if (readOnly) return;
+    if (readOnly) {
+      const target = e.target as HTMLElement;
+      const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
+      if (itemId) {
+          const item = items.find(i => i.id === itemId);
+          if (item) {
+              setSelectedItem(item);
+              setHighlightedItem(item);
+          }
+      }
+      return;
+    }
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
       finishDrawingPolygon();
       return;
@@ -549,9 +562,8 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   }, [handleKeyDown]);
   
   useEffect(() => {
-    if (readOnly) return;
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if(draggingItem || isDrawing || panStart) {
+      if(draggingItem || isDrawing || (isPanning && panStart)) {
         const mapRect = mapRef.current?.getBoundingClientRect();
         if (mapRect) {
             const syntheticEvent = {
@@ -581,7 +593,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [draggingItem, isDrawing, panStart, readOnly, isPanning]);
+  }, [draggingItem, isDrawing, panStart, readOnly, isPanning, handleMouseMove, handleMouseUp]);
 
   const handleWheel = (e: React.WheelEvent) => {
     if (!mapRef.current) return;
@@ -741,7 +753,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             onContextMenu={handleContextMenu}
             onMapUpload={handleMapUpload}
             drawingShape={drawingShape}
-            highlightedItem={readOnly ? null : highlightedItem}
+            highlightedItem={highlightedItem}
             editingItemId={readOnly ? null : editingItemId}
             cursorPos={cursorPos}
             showPolygonTooltip={showPolygonTooltip}
@@ -766,8 +778,11 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             item={selectedItem}
             onClose={() => {
                 setSelectedItem(null);
-                if (!items.find(it => it.id === editingItemId)) {
+                if (!readOnly && !items.find(it => it.id === editingItemId)) {
                     setEditingItemId(null);
+                }
+                if(readOnly) {
+                  setHighlightedItem(null);
                 }
             }}
             onSave={handleSaveAnnotation}
