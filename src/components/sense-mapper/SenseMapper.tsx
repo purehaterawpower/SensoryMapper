@@ -265,7 +265,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     }
   };
   
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent | MouseEvent) => {
     const coords = getMapCoordinates(e);
     setCursorPos(coords);
 
@@ -346,9 +346,9 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     } else {
       setShowPolygonTooltip(false);
     }
-  };
+  }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag, items]);
   
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = useCallback((e: React.MouseEvent | MouseEvent) => {
     // Shared read-only logic
     if (readOnly) {
         setIsPanning(false);
@@ -390,7 +390,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         id: crypto.randomUUID(),
         type: activeTool.type,
         shape: 'marker',
-        x: coords.x, y: coords.y, description: '', imageUrl: null,
+        x: coords.x, y: coords.y, description: '', imageUrl: null, audioUrl: null,
         size: isFacility ? 50 : undefined,
       };
       setItems(prev => [...prev, newMarker]);
@@ -408,6 +408,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             type: shapeType,
             description: '',
             imageUrl: null,
+            audioUrl: null,
             color: ALL_SENSORY_DATA[shapeType].color,
             intensity: shapeType === 'quietRoom' ? undefined : 50,
         };
@@ -453,7 +454,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
     
     // Reset didDrag state after a short delay
     setTimeout(() => setDidDrag(false), 0);
-  };
+  }, [readOnly, didDrag, draggingItem, isDrawing, activeTool, items, drawingShape, isPanning, getMapCoordinates, handleHandleDrag]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     // In read-only mode, double click should open the annotation editor
@@ -589,9 +590,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
             const syntheticEvent = {
                 clientX: e.clientX,
                 clientY: e.clientY,
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            } as unknown as React.MouseEvent;
+            } as React.MouseEvent;
             handleMouseMove(syntheticEvent);
         }
       }
@@ -738,7 +737,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
   return (
     <>
     <div id="app-container" className="flex h-screen w-full bg-background font-body text-foreground">
-      <Sidebar
+      {!readOnly && <Sidebar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         visibleLayers={visibleLayers}
@@ -752,7 +751,7 @@ export function SenseMapper({ initialData, readOnly = false }: SenseMapperProps)
         setPrintOrientation={setPrintOrientation}
         exportIconScale={exportIconScale}
         setExportIconScale={setExportIconScale}
-      />
+      />}
       <main className="flex-1 relative flex flex-col">
         <MapArea
             ref={mapRef}
