@@ -7,6 +7,22 @@ type EditHandlesProps = {
   shape: Shape;
 };
 
+const getCursorForHandle = (handle: Point, center: Point): string => {
+    const angle = Math.atan2(handle.y - center.y, handle.x - center.x) * 180 / Math.PI;
+
+    if (angle > -22.5 && angle <= 22.5) return 'ew-resize'; // Right
+    if (angle > 22.5 && angle <= 67.5) return 'nwse-resize'; // Bottom-right (reversed for svg coords)
+    if (angle > 67.5 && angle <= 112.5) return 'ns-resize'; // Bottom
+    if (angle > 112.5 && angle <= 157.5) return 'nesw-resize'; // Bottom-left (reversed)
+    if (angle > 157.5 || angle <= -157.5) return 'ew-resize'; // Left
+    if (angle > -157.5 && angle <= -112.5) return 'nwse-resize'; // Top-left (reversed)
+    if (angle > -112.5 && angle <= -67.5) return 'ns-resize'; // Top
+    if (angle > -67.5 && angle <= -22.5) return 'nesw-resize'; // Top-right (reversed)
+
+    return 'default';
+};
+
+
 export const EditHandles = ({ shape }: EditHandlesProps) => {
   let handles: Point[] = [];
   let center: Point | null = null;
@@ -39,7 +55,7 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
 
   return (
     <g>
-      {handles.map((handle, index) => (
+      {center && handles.map((handle, index) => (
         <rect
           key={index}
           x={handle.x - halfHandle}
@@ -50,7 +66,7 @@ export const EditHandles = ({ shape }: EditHandlesProps) => {
           stroke={shape.color || "hsl(var(--primary))"}
           strokeWidth="1"
           data-handle-id={index}
-          style={{ cursor: 'nwse-resize' }}
+          style={{ cursor: getCursorForHandle(handle, center as Point) }}
         />
       ))}
       {center && (
