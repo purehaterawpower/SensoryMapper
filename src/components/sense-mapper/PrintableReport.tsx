@@ -269,7 +269,7 @@ export function PrintableReport({
             </TableBody>
           </Table>
         ) : (
-          <p>No annotations have been added to the map.</p>
+          <p className="text-sm">No annotations have been added to the map.</p>
         )}
       </div>
     </div>
