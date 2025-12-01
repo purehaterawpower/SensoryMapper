@@ -95,9 +95,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const showSizeSlider = isFacility;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
   
-  const placeholderText = readOnly
-    ? 'No description provided.'
-    : `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
+  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
+  const noDescriptionText = 'No description provided.';
 
   const handleSave = () => {
     const data: Partial<Item> = { description, imageUrl: image };
@@ -164,14 +163,23 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[120px]"
-                    placeholder={placeholderText}
-                    readOnly={readOnly}
-                />
+                {readOnly ? (
+                    <div className="min-h-[120px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm">
+                        {description ? (
+                            <p>{description}</p>
+                        ) : (
+                            <p className="text-muted-foreground">{noDescriptionText}</p>
+                        )}
+                    </div>
+                ) : (
+                    <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="min-h-[120px]"
+                        placeholder={placeholderText}
+                    />
+                )}
             </div>
             
             <div className="grid gap-2">
