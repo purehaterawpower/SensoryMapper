@@ -7,8 +7,12 @@ import { getFirestore } from 'firebase/firestore';
 
 let _serverApp: FirebaseApp;
 
+/**
+ * Initializes and returns a server-side Firebase instance.
+ * Ensures that initialization only happens once.
+ */
 export async function initializeFirebase() {
-  if (!getApps().length) {
+  if (!getApps().some(app => app.name === 'server')) {
     try {
       _serverApp = initializeApp(firebaseConfig, 'server');
     } catch (e) {
