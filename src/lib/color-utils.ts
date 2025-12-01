@@ -2,6 +2,7 @@
 
 
 
+
 function lerpColor(color1: string, color2: string, factor: number): string {
     const c1 = hexToRgb(color1);
     const c2 = hexToRgb(color2);
@@ -27,18 +28,25 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 
-const LOW_COLOR = '#409AF5';    // Blue
+const LOW_COLOR = '#409AF5';     // Blue
 const NEUTRAL_COLOR = '#FFFFFF'; // White
-const HIGH_COLOR = '#F97316';   // Orange-600 from Tailwind
-
+const MID_COLOR = '#FACC15';   // Yellow
+const HIGH_COLOR = '#F97316';    // Orange
+const PEAK_COLOR = '#DC2626';    // Red
 
 export function interpolateColor(intensity: number): string {
-    if (intensity <= 50) {
+    if (intensity <= 25) {
         // Blue to White
-        return lerpColor(LOW_COLOR, NEUTRAL_COLOR, intensity / 50);
+        return lerpColor(LOW_COLOR, NEUTRAL_COLOR, intensity / 25);
+    } else if (intensity <= 50) {
+        // White to Yellow
+        return lerpColor(NEUTRAL_COLOR, MID_COLOR, (intensity - 25) / 25);
+    } else if (intensity <= 75) {
+        // Yellow to Orange
+        return lerpColor(MID_COLOR, HIGH_COLOR, (intensity - 50) / 25);
     } else {
-        // White to Orange
-        return lerpColor(NEUTRAL_COLOR, HIGH_COLOR, (intensity - 50) / 50);
+        // Orange to Red
+        return lerpColor(HIGH_COLOR, PEAK_COLOR, (intensity - 75) / 25);
     }
 }
 
@@ -50,28 +58,31 @@ export function colorToIntensity(hexColor?: string): number | undefined {
     if (!hexColor) return undefined;
     
     const targetRgb = hexToRgb(hexColor);
-    const lowRgb = hexToRgb(LOW_COLOR);
-    const neutralRgb = hexToRgb(NEUTRAL_COLOR);
-    const highRgb = hexToRgb(HIGH_COLOR);
     
-    // Segment 1: Low to Neutral (Blue to White)
-    const l1 = { p1: lowRgb, p2: neutralRgb };
-    const t1 = project(targetRgb, l1);
-    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, NEUTRAL_COLOR, t1));
-    const intensity1 = t1 * 50;
+    const segments = [
+        { p1: hexToRgb(LOW_COLOR), p2: hexToRgb(NEUTRAL_COLOR), intensityStart: 0, intensityEnd: 25 },
+        { p1: hexToRgb(NEUTRAL_COLOR), p2: hexToRgb(MID_COLOR), intensityStart: 25, intensityEnd: 50 },
+        { p1: hexToRgb(MID_COLOR), p2: hexToRgb(HIGH_COLOR), intensityStart: 50, intensityEnd: 75 },
+        { p1: hexToRgb(HIGH_COLOR), p2: hexToRgb(PEAK_COLOR), intensityStart: 75, intensityEnd: 100 },
+    ];
 
-    // Segment 2: Neutral to High (White to Orange)
-    const l2 = { p1: neutralRgb, p2: highRgb };
-    const t2 = project(targetRgb, l2);
-    const d2 = colorDistance(targetRgb, lerpColor(NEUTRAL_COLOR, HIGH_COLOR, t2));
-    const intensity2 = 50 + (t2 * 50);
+    let bestMatch = {
+        intensity: 0,
+        distance: Infinity,
+    };
 
-    // Find the closest segment
-    if (d1 < d2) {
-        return Math.round(intensity1);
-    } else {
-        return Math.round(intensity2);
-    }
+    segments.forEach(segment => {
+        const t = project(targetRgb, segment);
+        const projectedColorHex = lerpColor(rgbToHex(segment.p1.r, segment.p1.g, segment.p1.b), rgbToHex(segment.p2.r, segment.p2.g, segment.p2.b), t);
+        const d = colorDistance(targetRgb, hexToRgb(projectedColorHex));
+        
+        if (d < bestMatch.distance) {
+            bestMatch.distance = d;
+            bestMatch.intensity = segment.intensityStart + t * (segment.intensityEnd - segment.intensityStart);
+        }
+    });
+
+    return Math.round(bestMatch.intensity);
 }
 
 // Project point p onto line segment l
