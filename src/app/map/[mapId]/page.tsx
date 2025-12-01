@@ -26,9 +26,14 @@ async function getMapData(mapId: string): Promise<MapData | null> {
     return serializableData as MapData;
 }
 
+type Props = {
+  params: Promise<{ mapId: string }>
+}
 
-export default async function SharedMapPage({ params }: { params: { mapId: string } }) {
-    const mapData = await getMapData(params.mapId);
+export default async function SharedMapPage(props: Props) {
+    const params = await props.params;
+    const { mapId } = params;
+    const mapData = await getMapData(mapId);
 
     if (!mapData) {
         notFound();
