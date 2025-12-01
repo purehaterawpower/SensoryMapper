@@ -1,6 +1,7 @@
 
 
 
+
 function lerpColor(color1: string, color2: string, factor: number): string {
     const c1 = hexToRgb(color1);
     const c2 = hexToRgb(color2);
@@ -27,16 +28,17 @@ function rgbToHex(r: number, g: number, b: number): string {
 
 
 const LOW_COLOR = '#409AF5';    // Blue
-const MEDIUM_COLOR = '#F97316'; // Orange-600 from Tailwind
-const HIGH_COLOR = '#EF4444';   // Red-500 from Tailwind
+const NEUTRAL_COLOR = '#FFFFFF'; // White
+const HIGH_COLOR = '#F97316';   // Orange-600 from Tailwind
+
 
 export function interpolateColor(intensity: number): string {
     if (intensity <= 50) {
-        // Blue to Orange
-        return lerpColor(LOW_COLOR, MEDIUM_COLOR, intensity / 50);
+        // Blue to White
+        return lerpColor(LOW_COLOR, NEUTRAL_COLOR, intensity / 50);
     } else {
-        // Orange to Red
-        return lerpColor(MEDIUM_COLOR, HIGH_COLOR, (intensity - 50) / 50);
+        // White to Orange
+        return lerpColor(NEUTRAL_COLOR, HIGH_COLOR, (intensity - 50) / 50);
     }
 }
 
@@ -49,19 +51,19 @@ export function colorToIntensity(hexColor?: string): number | undefined {
     
     const targetRgb = hexToRgb(hexColor);
     const lowRgb = hexToRgb(LOW_COLOR);
-    const mediumRgb = hexToRgb(MEDIUM_COLOR);
+    const neutralRgb = hexToRgb(NEUTRAL_COLOR);
     const highRgb = hexToRgb(HIGH_COLOR);
     
-    // Segment 1: Low to Medium
-    const l1 = { p1: lowRgb, p2: mediumRgb };
+    // Segment 1: Low to Neutral (Blue to White)
+    const l1 = { p1: lowRgb, p2: neutralRgb };
     const t1 = project(targetRgb, l1);
-    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, MEDIUM_COLOR, t1));
+    const d1 = colorDistance(targetRgb, lerpColor(LOW_COLOR, NEUTRAL_COLOR, t1));
     const intensity1 = t1 * 50;
 
-    // Segment 2: Medium to High
-    const l2 = { p1: mediumRgb, p2: highRgb };
+    // Segment 2: Neutral to High (White to Orange)
+    const l2 = { p1: neutralRgb, p2: highRgb };
     const t2 = project(targetRgb, l2);
-    const d2 = colorDistance(targetRgb, lerpColor(MEDIUM_COLOR, HIGH_COLOR, t2));
+    const d2 = colorDistance(targetRgb, lerpColor(NEUTRAL_COLOR, HIGH_COLOR, t2));
     const intensity2 = 50 + (t2 * 50);
 
     // Find the closest segment
