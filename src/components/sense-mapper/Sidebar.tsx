@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, FileDown, Loader2, Share2, HelpCircle } from "lucide-react";
+import { MousePointer, FileDown, Loader2, Share2, HelpCircle, Undo2, Redo2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -31,6 +32,10 @@ type SidebarProps = {
   setPrintOrientation: (orientation: PrintOrientation) => void;
   exportIconScale: number;
   setExportIconScale: (scale: number) => void;
+  onUndo: () => void;
+  canUndo: boolean;
+  onRedo: () => void;
+  canRedo: boolean;
   readOnly?: boolean;
 };
 
@@ -47,6 +52,10 @@ export function Sidebar({
   setPrintOrientation,
   exportIconScale,
   setExportIconScale,
+  onUndo,
+  canUndo,
+  onRedo,
+  canRedo,
   readOnly 
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
@@ -55,7 +64,13 @@ export function Sidebar({
   const handleToolChange = (type: ItemType) => {
     if (readOnly) return;
     
-    setActiveTool({ tool: 'marker', type });
+    const isSensory = SENSORY_STIMULI_TYPES.includes(type);
+    
+    if (isSensory) {
+      setActiveTool({ tool: 'shape', type: type, shape: 'rectangle' });
+    } else {
+      setActiveTool({ tool: 'marker', type: type });
+    }
   };
 
   const renderTypeSection = (title: string, types: ItemType[]) => {
@@ -266,7 +281,7 @@ export function Sidebar({
         <div className="flex-1 overflow-y-auto">
           {!readOnly ? (
             <>
-              <div className="p-4 flex items-center border-b">
+              <div className="p-4 flex items-center border-b justify-between">
                   <Tooltip>
                     <TooltipTrigger asChild>
                         <Button 
@@ -285,6 +300,24 @@ export function Sidebar({
                     </TooltipContent>
                   </Tooltip>
                   <Separator orientation="vertical" className="h-6 mx-2" />
+                  <div className="flex gap-1">
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={onUndo} disabled={!canUndo} className="rounded-full">
+                                  <Undo2 className="w-5 h-5" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">Undo (Ctrl+Z)</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={onRedo} disabled={!canRedo} className="rounded-full">
+                                  <Redo2 className="w-5 h-5" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">Redo (Ctrl+Y)</TooltipContent>
+                      </Tooltip>
+                  </div>
               </div>
 
               <div className="p-4 space-y-4">

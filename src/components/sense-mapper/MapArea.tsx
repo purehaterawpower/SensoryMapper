@@ -116,7 +116,6 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
 
     const isEditing = editingItemId === shape.id;
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
-    
     const commonProps: React.SVGProps<any> = {
         'data-item-id': shape.id,
         'data-item-type': 'shape',
