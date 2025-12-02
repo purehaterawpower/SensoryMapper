@@ -129,6 +129,12 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     const isEditing = editingItemId === shape.id;
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     
+    // --- OPACITY CONFIGURATION ---
+    // Change this value to set the base opacity of the shape before filtering.
+    // Lower values (e.g., 0.5) will make the entire glow effect more transparent.
+    const BASE_OPACITY = 0.4; 
+    // ----------------------------
+
     let center: { x: number, y: number } = { x: 0, y: 0 };
     if (shape.shape === 'rectangle') {
       center = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
@@ -145,7 +151,9 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
         'data-item-id': shape.id,
         'data-item-type': 'shape',
         fill: color,
-        fillOpacity: showNumberedIcons ? 0.4 : 0.6,
+        // In view mode, we use BASE_OPACITY. This feeds into the filter.
+        // If you lower BASE_OPACITY, the resulting glow layers will all be proportionately fainter.
+        fillOpacity: isEditing || showNumberedIcons ? 0.5 : BASE_OPACITY, 
         stroke: isEditing || showNumberedIcons ? ALL_SENSORY_DATA[shape.type].color : 'none',
         strokeWidth: 2 / zoomLevel,
         filter: isEditing ? 'none' : "url(#soft-glow)",
@@ -296,11 +304,31 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     </TooltipContent>
                   </Tooltip>
                   <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
-                    <defs>
-                        <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="50" result="coloredBlur" />
-                        </filter>
-                    </defs>
+                  <filter id="soft-glow" x="-200%" y="-200%" width="500%" height="500%" colorInterpolationFilters="sRGB">
+    {/* Layer 1: Ambient */}
+    <feGaussianBlur in="SourceGraphic" stdDeviation="81" result="ambient" />
+    <feComponentTransfer in="ambient" result="ambientLow">
+        <feFuncA type="linear" slope="3.75" /> 
+    </feComponentTransfer>
+
+    {/* Layer 2: Glow */}
+    <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="glow" />
+    <feComponentTransfer in="glow" result="glowMed">
+        <feFuncA type="linear" slope="0.65" /> 
+    </feComponentTransfer>
+    
+    {/* Layer 3: Core */}
+    <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="core" />
+    <feComponentTransfer in="core" result="coreDense">
+        <feFuncA type="linear" slope="0.9" /> 
+    </feComponentTransfer>
+    
+    <feMerge>
+        <feMergeNode in="ambientLow" />
+        <feMergeNode in="glowMed" />
+        <feMergeNode in="coreDense" /> 
+    </feMerge>
+</filter>
                     {shapeItems.map(item => renderShape(item as Shape))}
                     {renderDrawingShape()}
                   </svg>
