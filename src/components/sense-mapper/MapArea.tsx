@@ -132,7 +132,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
     // --- OPACITY CONFIGURATION ---
     // Change this value to set the base opacity of the shape before filtering.
     // Lower values (e.g., 0.5) will make the entire glow effect more transparent.
-    const BASE_OPACITY = 0.4; 
+    const BASE_OPACITY = 0.5; 
     // ----------------------------
 
     let center: { x: number, y: number } = { x: 0, y: 0 };
@@ -305,22 +305,11 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                   </Tooltip>
                   <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
                   <filter id="soft-glow" x="-200%" y="-200%" width="500%" height="500%" colorInterpolationFilters="sRGB">
-    {/* Layer 1: Ambient */}
-    <feGaussianBlur in="SourceGraphic" stdDeviation="81" result="ambient" />
-    <feComponentTransfer in="ambient" result="ambientLow">
-        <feFuncA type="linear" slope="3.75" /> 
-    </feComponentTransfer>
-
-    {/* Layer 2: Glow */}
-    <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="glow" />
-    <feComponentTransfer in="glow" result="glowMed">
-        <feFuncA type="linear" slope="0.65" /> 
-    </feComponentTransfer>
-    
+  
     {/* Layer 3: Core */}
-    <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="core" />
+    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="core" />
     <feComponentTransfer in="core" result="coreDense">
-        <feFuncA type="linear" slope="0.9" /> 
+        <feFuncA type="linear" slope=".9" /> 
     </feComponentTransfer>
     
     <feMerge>
