@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
-import { Item, Point, Marker, ItemType } from "@/lib/types";
-import { Trash2, Edit, Upload, X, Music } from "lucide-react";
+import { Item, Point, Marker } from "@/lib/types";
+import { Trash2, Edit, Upload, X, FileAudio } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
@@ -20,39 +20,19 @@ type AnnotationEditorProps = {
   onSave: (itemId: string, data: Partial<Item>) => void;
   onDelete: (itemId: string) => void;
   onToggleEditMode: (itemId: string) => void;
-  onLiveUpdate: (itemId: string, data: Partial<Item>) => void;
   readOnly?: boolean;
   panOffset: Point;
   zoomLevel: number;
 };
 
-const getContextualQuestion = (type: ItemType): string => {
-    switch (type) {
-        case 'vision':
-            return 'What does it look like?';
-        case 'hearing':
-            return 'What does it sound like?';
-        case 'smell':
-            return 'What does it smell like?';
-        case 'touch':
-            return 'What does it feel like?';
-        case 'movement':
-            return 'What is the movement like?';
-        case 'space':
-            return 'What is the sense of space?';
-        default:
-            return 'What are the details?';
-    }
-};
-
-export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, onLiveUpdate, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
+export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
   const [description, setDescription] = useState('');
   const [intensity, setIntensity] = useState(50);
   const [iconSize, setIconSize] = useState(50);
   const [image, setImage] = useState<string | null>(null);
   const [audio, setAudio] = useState<string | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
@@ -120,7 +100,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const showSizeSlider = isFacility && !readOnly;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
   
-  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. ${getContextualQuestion(item.type)} Consider: ${sensoryDescription}`;
+  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
 
   const handleSave = () => {
     const data: Partial<Item> = { description, imageUrl: image, audioUrl: audio };
@@ -143,12 +123,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   }
 
   const handleSliderChange = (value: number[]) => {
-    const newIntensity = value[0];
-    setIntensity(newIntensity);
-    if (item && showIntensitySlider) {
-      const newColor = interpolateColor(newIntensity);
-      onLiveUpdate(item.id, { color: newColor, intensity: newIntensity });
-    }
+    setIntensity(value[0]);
   }
   
   const handleSizeSliderChange = (value: number[]) => {
@@ -173,8 +148,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const handleAudioUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({ variant: 'destructive', title: 'File too large', description: 'Please upload an audio file smaller than 5MB.'});
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit to prevent Firestore document size errors
+        toast({ variant: 'destructive', title: 'File too large', description: 'Please upload an audio file smaller than 2MB.'});
         return;
       }
       const reader = new FileReader();
@@ -186,7 +161,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   };
   
   const sliderColor = showIntensitySlider ? interpolateColor(intensity) : '';
-  const headerColor = showIntensitySlider ? (item.color || sliderColor) : ALL_SENSORY_DATA[item.type].color;
+  const headerColor = ALL_SENSORY_DATA[item.type].color;
 
   return (
     <Popover open={!!item} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -194,7 +169,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
             <div ref={triggerRef} />
         </PopoverTrigger>
       <PopoverContent 
-        className="w-96 shadow-xl" 
+        className="w-80 shadow-xl" 
         side="right" 
         align="center" 
         alignOffset={-140} 
@@ -206,7 +181,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
             <div className={`flex items-center gap-3 ${readOnly ? 'mb-1' : ''}`}>
                 <div 
                     className="p-2 rounded-lg shadow-sm shrink-0" 
-                    style={{backgroundColor: headerColor}}
+                    style={{backgroundColor: showIntensitySlider ? sliderColor : headerColor}}
                 >
                     <Icon className="w-6 h-6 text-white" />
                 </div>
@@ -224,25 +199,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
             {/* CONTENT SECTION */}
             <div className="grid gap-4">
-                {/* Description Section */}
-                <div className="grid gap-2">
-                    {!readOnly && <Label htmlFor="description">Description</Label>}
-                    
-                    {readOnly ? (
-                        <div className="text-sm leading-relaxed text-foreground/90 p-3 bg-muted/50 rounded-md">
-                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
-                        </div>
-                    ) : (
-                        <Textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="min-h-[100px] resize-none"
-                            placeholder={placeholderText}
-                        />
-                    )}
-                </div>
-                
                 {/* Image Section - Hidden in readOnly if no image exists */}
                 {(!readOnly || image) && (
                     <div className="grid gap-2">
@@ -257,17 +213,18 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                 )}
                             </div>
                         ) : (
+                            // Only show upload controls if NOT readOnly
                             !readOnly && (
                                 <>
                                 <Input
                                     type="file"
                                     id="image-upload"
-                                    ref={imageInputRef}
+                                    ref={fileInputRef}
                                     className="hidden"
                                     accept="image/*"
                                     onChange={handleImageUpload}
                                 />
-                                <Button variant="outline" className="w-full border-dashed" onClick={() => imageInputRef.current?.click()}>
+                                <Button variant="outline" className="w-full border-dashed" onClick={() => fileInputRef.current?.click()}>
                                     <Upload className="mr-2 h-4 w-4" />
                                     Upload Photo
                                 </Button>
@@ -276,21 +233,22 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                         )}
                     </div>
                 )}
-                
+
                 {/* Audio Section */}
                 {(!readOnly || audio) && (
                     <div className="grid gap-2">
-                         {!readOnly && <Label>Audio</Label>}
-                         {audio ? (
-                             <div className="relative rounded-lg overflow-hidden border bg-muted p-2">
-                                <audio controls src={audio} className="w-full" />
+                        {!readOnly && <Label>Audio Note</Label>}
+                        {audio ? (
+                            <div className="relative rounded-lg border bg-muted p-2 flex items-center gap-2">
+                                <FileAudio className="h-5 w-5 text-muted-foreground shrink-0" />
+                                <audio controls src={audio} className="h-8 w-full max-w-[200px]" />
                                 {!readOnly && (
-                                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 shadow-sm" onClick={() => setAudio(null)} aria-label="Remove audio">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-muted-foreground hover:text-destructive" onClick={() => setAudio(null)} aria-label="Remove audio">
                                         <X className="h-4 w-4" />
                                     </Button>
                                 )}
                             </div>
-                         ) : (
+                        ) : (
                             !readOnly && (
                                 <>
                                 <Input
@@ -302,14 +260,33 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                     onChange={handleAudioUpload}
                                 />
                                 <Button variant="outline" className="w-full border-dashed" onClick={() => audioInputRef.current?.click()}>
-                                    <Music className="mr-2 h-4 w-4" />
+                                    <FileAudio className="mr-2 h-4 w-4" />
                                     Upload Audio
                                 </Button>
                                 </>
                             )
-                         )}
+                        )}
                     </div>
                 )}
+
+                {/* Description Section */}
+                <div className="grid gap-2">
+                    {!readOnly && <Label htmlFor="description">Description</Label>}
+                    
+                    {readOnly ? (
+                        <div className="text-sm leading-relaxed text-foreground/90">
+                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
+                        </div>
+                    ) : (
+                        <Textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[100px] resize-none"
+                            placeholder={placeholderText}
+                        />
+                    )}
+                </div>
 
                 {/* Sensory Intensity - Meter vs Slider */}
                 {showIntensitySlider && (
@@ -377,7 +354,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                 {/* Action Buttons - Only visible in Edit Mode */}
                 {!readOnly && (
                     <div className="flex justify-between items-center pt-2 mt-2 border-t">
-                        <Button variant="destructive" size="icon" onClick={handleDelete} className="transition-colors" title="Delete item" aria-label="Delete item">
+                        <Button variant="ghost" size="icon" onClick={handleDelete} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete item" aria-label="Delete item">
                             <Trash2 className="w-4 h-4" />
                         </Button>
                         <div className="flex gap-2">

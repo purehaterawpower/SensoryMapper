@@ -76,3 +76,4 @@ export type MapData = {
     items: Item[];
     editCode?: string;
 };
+
