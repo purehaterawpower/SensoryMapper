@@ -208,7 +208,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
       strokeWidth: 2 / zoomLevel,
       strokeDasharray: '5,5',
       fill: 'hsl(var(--primary))',
-      fillOpacity: 0.2,
+      fillOpacity: 0.3,
       pointerEvents: 'none' as const
     };
     if (drawingShape.shape === 'rectangle') {
@@ -298,7 +298,7 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                   <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
                     <defs>
                         <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="8" result="coloredBlur" />
+                            <feGaussianBlur stdDeviation="50" result="coloredBlur" />
                         </filter>
                     </defs>
                     {shapeItems.map(item => renderShape(item as Shape))}
