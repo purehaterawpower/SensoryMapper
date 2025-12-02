@@ -53,6 +53,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const [panOffset, setPanOffset] = useState<Point>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<Point | null>(null);
+  const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
 
   const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
@@ -130,7 +131,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     setVisibleLayers(prev => ({ ...prev, [layer]: visible }));
   };
   
-  const getMapCoordinates = (e: React.MouseEvent | MouseEvent): Point => {
+  const getMapCoordinates = (e: React.MouseEvent | MouseEvent | React.Touch | Touch): Point => {
     if (!mapRef.current) return { x: 0, y: 0 };
     const mapRect = mapRef.current.getBoundingClientRect();
     const x = (e.clientX - mapRect.left - panOffset.x) / zoomLevel;
@@ -530,6 +531,64 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       }
     }
   };
+
+  // --- Touch Event Handlers for Pinch-to-Zoom ---
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault(); // Prevent browser default actions like page zoom
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      setTouchStartDistance(Math.sqrt(dx * dx + dy * dy));
+    } else if (e.touches.length === 1) {
+      setIsPanning(true);
+      setPanStart({ x: e.touches[0].clientX - panOffset.x, y: e.touches[0].clientY - panOffset.y });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStartDistance !== null && mapRef.current) {
+      e.preventDefault();
+      const rect = mapRef.current.getBoundingClientRect();
+      
+      const t1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      const t2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
+
+      const currentDist = Math.sqrt(Math.pow(t1.x - t2.x, 2) + Math.pow(t1.y - t2.y, 2));
+      const scaleAmount = currentDist / touchStartDistance;
+      const newZoom = Math.min(Math.max(0.1, zoomLevel * scaleAmount), 10);
+
+      // Get midpoint of touch
+      const midPointScreen = { x: (t1.x + t2.x) / 2, y: (t1.y + t2.y) / 2 };
+
+      // Get world coordinates of the midpoint
+      const worldX = (midPointScreen.x - rect.left - panOffset.x) / zoomLevel;
+      const worldY = (midPointScreen.y - rect.top - panOffset.y) / zoomLevel;
+      
+      // Calculate new pan offset to keep the world point under the screen midpoint
+      const newPanX = midPointScreen.x - rect.left - worldX * newZoom;
+      const newPanY = midPointScreen.y - rect.top - worldY * newZoom;
+
+      setZoomLevel(newZoom);
+      setPanOffset({ x: newPanX, y: newPanY });
+      setTouchStartDistance(currentDist); // Update for continuous zoom
+
+    } else if (e.touches.length === 1 && isPanning && panStart) {
+      const newX = e.touches[0].clientX - panStart.x;
+      const newY = e.touches[0].clientY - panStart.y;
+      setPanOffset({ x: newX, y: newY });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      setTouchStartDistance(null);
+    }
+    if (e.touches.length < 1) {
+      setIsPanning(false);
+      setPanStart(null);
+    }
+  };
   
   const handleSaveAnnotation = (itemId: string, data: Partial<Item>) => {
     if (readOnly) return;
@@ -828,6 +887,9 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
             onDoubleClick={handleDoubleClick}
             onWheel={handleWheel}
             onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onMapUpload={handleMapUpload}
             drawingShape={drawingShape}
             highlightedItem={highlightedItem}
@@ -886,7 +948,6 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
                 }
             }}
             onSave={handleSaveAnnotation}
-            onLiveUpdate={handleLiveAnnotationUpdate}
             onDelete={handleDeleteItem}
             onToggleEditMode={handleToggleEditMode}
             readOnly={readOnly}

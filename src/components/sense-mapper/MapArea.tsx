@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
@@ -304,20 +305,42 @@ export const MapArea = forwardRef<HTMLDivElement, MapAreaProps>(({
                     </TooltipContent>
                   </Tooltip>
                   <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
-                  <filter id="soft-glow" x="-200%" y="-200%" width="500%" height="500%" colorInterpolationFilters="sRGB">
-  
-    {/* Layer 3: Core */}
-    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="core" />
-    <feComponentTransfer in="core" result="coreDense">
-        <feFuncA type="linear" slope=".9" /> 
-    </feComponentTransfer>
-    
-    <feMerge>
-        <feMergeNode in="ambientLow" />
-        <feMergeNode in="glowMed" />
-        <feMergeNode in="coreDense" /> 
-    </feMerge>
-</filter>
+                  <defs>
+                    {/* 
+                      --- SVG FILTER FOR SENSORY AREA GLOW ---
+                      This filter creates a multi-layered, soft glow effect for shapes.
+                      It consists of three main layers stacked on top of each other.
+                    */}
+                    <filter id="soft-glow" x="-200%" y="-200%" width="500%" height="500%">
+                      
+                      {/* Layer 1: Ambient Throw (The widest, faintest layer) */}
+                      {/* A large blur radius creates a wide, diffused outer glow. */}
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="ambient" />
+                      {/* We reduce its opacity to make it a subtle background effect. */}
+                      <feComponentTransfer in="ambient" result="ambientLow">
+                        <feFuncA type="linear" slope="0.4" />
+                      </feComponentTransfer>
+
+                      {/* Layer 2: Mid-Glow (The main color body) */}
+                      {/* A medium blur to create the main body of the glow, softer than the original shape. */}
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="glow" />
+                      {/* We use a higher opacity for this layer to make it more prominent. */}
+                      <feComponentTransfer in="glow" result="glowMed">
+                        <feFuncA type="linear" slope="0.6" />
+                      </feComponentTransfer>
+                      
+                      {/* Layer 3: Hot Core (The shape's center) */}
+                      {/* A small blur to soften the hard edges of the original shape itself. */}
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="core" />
+                      
+                      {/* Merge all layers together. Order matters: bottom layer first. */}
+                      <feMerge>
+                        <feMergeNode in="ambientLow" />
+                        <feMergeNode in="glowMed" />
+                        <feMergeNode in="core" /> 
+                      </feMerge>
+                    </filter>
+                  </defs>
                     {shapeItems.map(item => renderShape(item as Shape))}
                     {renderDrawingShape()}
                   </svg>
