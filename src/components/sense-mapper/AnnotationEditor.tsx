@@ -197,7 +197,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
         sideOffset={10} 
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-4">
             {/* HEADER SECTION */}
             <div className={`flex items-center gap-3 ${readOnly ? 'mb-1' : ''}`}>
                 <div 
@@ -218,11 +218,11 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                 </div>
             </div>
 
-            {/* CONTENT SECTION */}
-            <div className="grid gap-4">
+            {/* CONTENT SECTION - Refactored to use flexbox */}
+            <div className="flex flex-col gap-4">
                 
                 {/* Description Section */}
-                <div className="grid gap-2">
+                <div className="space-y-2">
                     {!readOnly && <Label htmlFor="description">Description</Label>}
                     
                     {readOnly ? (
@@ -240,10 +240,10 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                     )}
                 </div>
 
-                {/* Image Section - Hidden in readOnly if no image exists */}
+                {/* Image Section */}
                 {(!readOnly || image) && (
-                    <div>
-                        {!readOnly && <Label className="mb-2 block">Image</Label>}
+                    <div className="space-y-2">
+                        {!readOnly && <Label>Image</Label>}
                         {image ? (
                             <div className="relative rounded-lg overflow-hidden border bg-muted">
                                 <Image src={image} alt="Annotation image" width={288} height={162} className="object-cover w-full aspect-video" />
@@ -254,7 +254,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                 )}
                             </div>
                         ) : (
-                            // Only show upload controls if NOT readOnly
                             !readOnly && (
                                 <div>
                                     <Input
@@ -277,8 +276,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
                 {/* Audio Section */}
                 {(!readOnly || audio) && (
-                    <div>
-                        {!readOnly && <Label className="mb-2 block">Audio Note</Label>}
+                    <div className="space-y-2">
+                        {!readOnly && <Label>Audio Note</Label>}
                         {audio ? (
                             <div className="relative rounded-lg border bg-muted p-2 flex items-center gap-2">
                                 <FileAudio className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -310,15 +309,14 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                     </div>
                 )}
 
-                {/* Sensory Intensity - Meter vs Slider */}
+                {/* Sensory Intensity */}
                 {showIntensitySlider && (
-                    <div className={`grid gap-2 ${readOnly ? 'mt-1' : ''}`}>
+                    <div className={`space-y-2 ${readOnly ? 'mt-1' : ''}`}>
                         <Label className={readOnly ? "text-xs uppercase text-muted-foreground font-semibold" : ""}>
                             Sensory Intensity
                         </Label>
                         
                         {readOnly ? (
-                            // READ ONLY: Visual Meter
                             <div className="space-y-1.5">
                                 <div className="h-2.5 w-full bg-secondary/50 rounded-full overflow-hidden">
                                     <div 
@@ -335,7 +333,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                 </div>
                             </div>
                         ) : (
-                            // EDIT MODE: Slider
                             <>
                                 <Slider
                                     value={[intensity]}
@@ -355,9 +352,9 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                     </div>
                 )}
                 
-                {/* Size Slider - Only visible in Edit Mode */}
+                {/* Size Slider */}
                 {showSizeSlider && (
-                    <div className="grid gap-4 pt-2">
+                    <div className="space-y-2 pt-2">
                         <Label>Icon Size</Label>
                         <Slider
                             value={[iconSize]}
@@ -373,7 +370,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                     </div>
                 )}
 
-                {/* Action Buttons - Only visible in Edit Mode */}
+                {/* Action Buttons */}
                 {!readOnly && (
                     <div className="flex justify-between items-center pt-2 mt-2 border-t">
                         <Button variant="ghost" size="icon" onClick={handleDelete} className="text-muted-foreground hover:text-destructive transition-colors" title="Delete item" aria-label="Delete item">
