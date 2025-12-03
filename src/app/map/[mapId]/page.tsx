@@ -32,7 +32,7 @@ async function getMapData(mapId: string): Promise<MapData | null> {
 }
 
 type Props = {
-  params: { mapId: string };
+  params: Promise<{ mapId: string }>;
   searchParams: { editCode?: string };
 }
 
@@ -54,7 +54,7 @@ async function canEdit(mapId: string, providedEditCode?: string): Promise<boolea
 
 
 export default async function SharedMapPage(props: Props) {
-    const { mapId } = props.params;
+    const { mapId } = await props.params;
     const { editCode: queryEditCode } = props.searchParams;
 
     const mapData = await getMapData(mapId);
