@@ -25,7 +25,8 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, edit
     // The editCode is sensitive and should only be returned if it's going to be used securely.
     // In this case, it's passed to a server component that decides the readOnly state.
     const editCode = serializableData.editCode;
-    delete serializableData.editCode;
+    // We don't delete the editCode from the data passed to the client here.
+    // The loader will handle it.
 
     return { mapData: serializableData as MapData, editCode };
 }
@@ -49,7 +50,20 @@ export default async function SharedMapPage(props: Props) {
     const isEditing = !!(queryEditCode && correctEditCode && queryEditCode === correctEditCode);
     const readOnly = !isEditing;
     
+    // We only pass the editCode to the client if it's correct.
+    const editCodeForClient = isEditing ? queryEditCode : undefined;
+
+    // Remove the edit code from the initial data passed to the client if not editing.
+    if(readOnly && mapData) {
+        delete mapData.editCode;
+    }
+    
     return (
-        <SenseMapperLoader initialData={mapData} readOnly={readOnly} mapId={mapId}/>
+        <SenseMapperLoader 
+            initialData={mapData} 
+            readOnly={readOnly} 
+            mapId={mapId} 
+            editCode={editCodeForClient}
+        />
     );
 }
