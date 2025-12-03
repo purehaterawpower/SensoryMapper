@@ -4,18 +4,22 @@ service cloud.firestore {
 
     /**
      * @description Controls access to the shared sensory maps.
-     *              These maps are publicly readable to allow for the 'share'
-     *              functionality, but creating new maps is allowed for any user
-     *              as the app does not have a user authentication system for writes.
+     *              These maps are publicly readable. Creating new maps is allowed for
+     *              any user. Updates are only allowed if the request contains the
+     *              correct `editCode` for the document.
      * @path /sensoryMaps/{mapId}
      * @allow (get, list) Anyone can read the maps.
      * @allow (create) Anyone can create a new map.
-     * @deny (update, delete) No one can update or delete maps from the client.
+     * @allow (update) The user can update if they provide the correct edit code.
+     * @deny (delete) No one can delete maps from the client.
      */
     match /sensoryMaps/{mapId} {
       allow get, list: if true;
       allow create: if true;
-      allow update, delete: if false;
+      // The editCode is a secret field. Only someone who knows the code can update the map.
+      // The server action (`updateMap`) enforces this check.
+      allow update: if request.resource.data.editCode == resource.data.editCode;
+      allow delete: if false;
     }
 
     // Default deny all other collections

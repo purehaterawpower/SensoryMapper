@@ -24,9 +24,7 @@ export function ShareDialog({ shareUrl, editCode, onClose }: ShareDialogProps) {
     }
   };
 
-  const fullEditUrl = `${shareUrl}?editCode=${editCode}`;
-
-  if (!shareUrl) return null;
+  const fullEditUrl = shareUrl && editCode ? `${shareUrl}?editCode=${editCode}` : null;
 
   return (
     <Dialog open={!!shareUrl} onOpenChange={(open) => !open && onClose()}>
@@ -42,27 +40,30 @@ export function ShareDialog({ shareUrl, editCode, onClose }: ShareDialogProps) {
                 <Label htmlFor="share-link" className="text-sm font-medium">View-Only Link</Label>
                 <p className="text-xs text-muted-foreground">Anyone with this link can view your map.</p>
                 <div className="flex items-center space-x-2">
-                    <Input id="share-link" value={shareUrl} readOnly />
-                    <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(shareUrl, 'Link')}>
+                    <Input id="share-link" value={shareUrl || ''} readOnly />
+                    <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(shareUrl || '', 'Link')}>
                         <Copy className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
+            {fullEditUrl && (
+              <>
+                <Separator />
 
-            <Separator />
-
-            <div className="space-y-2">
-                 <Label htmlFor="edit-code" className="text-sm font-medium">Your Private Edit Link</Label>
-                <p className="text-xs text-muted-foreground">
-                    <span className="font-bold">Important:</span> Save this link to edit your map later. Do not share it.
-                </p>
-                <div className="flex items-center space-x-2">
-                    <Input id="edit-code" value={fullEditUrl} readOnly />
-                    <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(fullEditUrl, 'Link')}>
-                        <Copy className="h-4 w-4" />
-                    </Button>
+                <div className="space-y-2">
+                    <Label htmlFor="edit-code" className="text-sm font-medium">Your Private Edit Link</Label>
+                    <p className="text-xs text-muted-foreground">
+                        <span className="font-bold">Important:</span> Save this link to edit your map later. Do not share it.
+                    </p>
+                    <div className="flex items-center space-x-2">
+                        <Input id="edit-code" value={fullEditUrl} readOnly />
+                        <Button type="button" size="icon" className="shrink-0" onClick={() => handleCopy(fullEditUrl, 'Link')}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
-            </div>
+              </>
+            )}
         </div>
         <DialogFooter className="sm:justify-end">
           <Button onClick={onClose} type="button">Done</Button>

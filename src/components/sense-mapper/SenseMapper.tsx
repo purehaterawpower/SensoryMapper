@@ -12,7 +12,7 @@ import { PrintableReport } from './PrintableReport';
 import { ShareDialog } from './ShareDialog';
 import { Button } from '../ui/button';
 import { Plus, Minus, Redo2, Undo2 } from 'lucide-react';
-import { saveMap } from '@/app/actions';
+import { createMap, updateMap } from '@/app/actions';
 import { interpolateColor } from '@/lib/color-utils';
 import { ShapeToolbar } from './ShapeToolbar';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
@@ -28,6 +28,7 @@ type SenseMapperProps = {
     initialData?: MapData;
     readOnly?: boolean;
     mapId?: string;
+    editCode?: string;
 }
 
 // Debounce function
@@ -39,7 +40,7 @@ function useDebouncedEffect(effect: () => void, deps: React.DependencyList, dela
     }, [...(deps || []), delay]);
 }
 
-export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId }: SenseMapperProps) {
+export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId: initialMapId, editCode: initialEditCode }: SenseMapperProps) {
   const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
@@ -70,9 +71,12 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
   
   const [isPrinting, setIsPrinting] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [editCode, setEditCode] = useState<string | null>(null);
+  
+  const [mapId, setMapId] = useState<string | undefined>(initialMapId);
+  const [editCode, setEditCode] = useState<string | undefined>(initialEditCode);
+
   const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
   const [exportIconScale, setExportIconScale] = useState(100);
   const [showNumberedIcons, setShowNumberedIcons] = useState(false);
@@ -105,7 +109,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   }, []);
 
   useDebouncedEffect(() => {
-    if (!readOnly && !initialData) { // Only save for new, editable sessions
+    if (!readOnly && !mapId) { // Only save for new, unsaved sessions
         try {
             const sessionData = {
                 mapImage,
@@ -119,20 +123,14 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
             console.error("Failed to save session to localStorage:", error);
         }
     }
-  }, [mapImage, imageDimensions, items, zoomLevel, panOffset, readOnly, initialData], 1000);
+  }, [mapImage, imageDimensions, items, zoomLevel, panOffset, readOnly, mapId], 1000);
 
 
   useEffect(() => {
     setReadOnly(initialReadOnly);
-    if (!initialReadOnly && mapId) {
-        // If we are in edit mode, check local storage for the edit code.
-        const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
-        const code = storedMaps[mapId];
-        if (code && window.location.search.includes(code)) {
-             // Already in edit mode.
-        }
-    }
-  }, [initialReadOnly, mapId]);
+    setMapId(initialMapId);
+    setEditCode(initialEditCode);
+  }, [initialReadOnly, initialMapId, initialEditCode]);
 
   useEffect(() => {
     if (initialData) {
@@ -155,6 +153,8 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         setHighlightedItem(null);
         setZoomLevel(1);
         setPanOffset({ x: 0, y: 0 });
+        setMapId(undefined);
+        setEditCode(undefined);
         if (!initialData) {
             localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
@@ -847,42 +847,53 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     }
   }, [isPrinting]);
 
-  const handleShare = async () => {
+  const handleSave = async () => {
     if (readOnly || !mapImage || !imageDimensions) {
-        toast({ variant: 'destructive', title: 'Cannot Share', description: 'Please upload a map before sharing.' });
+        toast({ variant: 'destructive', title: 'Cannot Save', description: 'Please upload a map before saving.' });
         return;
     }
-    setIsSharing(true);
+    setIsSaving(true);
     try {
-        const mapData: MapData = {
-            mapImage,
-            imageDimensions,
-            items
-        };
-        const { id, editCode: newEditCode, error } = await saveMap(mapData);
-
-        if (error || !id || !newEditCode) {
-            throw new Error(error || 'Failed to save map and get ID.');
-        }
-
-        const url = `${window.location.origin}/map/${id}`;
-        setShareUrl(url);
-        setEditCode(newEditCode);
+        const mapData: MapData = { mapImage, imageDimensions, items };
         
-        // Store the edit code in localStorage
-        const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
-        storedMaps[id] = newEditCode;
-        localStorage.setItem('senseMapperEditCodes', JSON.stringify(storedMaps));
+        if (mapId && editCode) {
+            // This is an existing map, so update it.
+            const { id, error } = await updateMap(mapId, mapData, editCode);
+            if (error || !id) {
+                throw new Error(error || 'Failed to update map.');
+            }
+            toast({ title: 'Map Updated!', description: 'Your changes have been saved.' });
+        } else {
+            // This is a new map, so create it.
+            const { id, editCode: newEditCode, error } = await createMap(mapData);
+            if (error || !id || !newEditCode) {
+                throw new Error(error || 'Failed to save map and get ID.');
+            }
+            
+            // This is now a saved map, so update state
+            setMapId(id);
+            setEditCode(newEditCode);
 
-        // Clear the local session for the new map
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
+            const url = `${window.location.origin}/map/${id}`;
+            setShareUrl(url); // Show the share dialog
 
-        toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
+            // Store the edit code so the user can edit later
+            const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
+            storedMaps[id] = newEditCode;
+            localStorage.setItem('senseMapperEditCodes', JSON.stringify(storedMaps));
+
+            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear session data
+
+            // Redirect to the new editable map URL
+            window.history.replaceState(null, '', `/map/${id}?editCode=${newEditCode}`);
+
+            toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
+        }
     } catch (error: any) {
-        console.error("Sharing failed:", error);
-        toast({ variant: 'destructive', title: 'Sharing Failed', description: error.message || 'Could not create a shareable link.' });
+        console.error("Saving failed:", error);
+        toast({ variant: 'destructive', title: 'Saving Failed', description: error.message || 'Could not save the map.' });
     } finally {
-        setIsSharing(false);
+        setIsSaving(false);
     }
   };
 
@@ -919,8 +930,8 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         onLayerVisibilityChange={handleLayerVisibilityChange}
         onExportPDF={handleExportPDF}
         isExporting={isPrinting}
-        onShare={handleShare}
-        isSharing={isSharing}
+        onSave={handleSave}
+        isSaving={isSaving}
         readOnly={readOnly}
         printOrientation={printOrientation}
         setPrintOrientation={setPrintOrientation}
@@ -929,6 +940,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         items={items}
         showNumberedIcons={showNumberedIcons}
         setShowNumberedIcons={setShowNumberedIcons}
+        isExistingMap={!!mapId}
       />
       <main className="flex-1 relative flex flex-col">
         {!readOnly && activeTool.tool === 'shape' && (
@@ -1018,14 +1030,15 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
           />
         </div>
       </main>
-      <ShareDialog
-        shareUrl={shareUrl}
-        editCode={editCode}
-        onClose={() => {
-          setShareUrl(null);
-          setEditCode(null);
-        }}
-      />
+      {editCode && (
+        <ShareDialog
+          shareUrl={shareUrl}
+          editCode={editCode}
+          onClose={() => {
+            setShareUrl(null);
+          }}
+        />
+      )}
     </div>
     {isPrinting && (
         <div id="printable-report">

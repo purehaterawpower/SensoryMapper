@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MousePointer, FileDown, Loader2, Share2, HelpCircle } from "lucide-react";
+import { FileDown, Loader2, Save, Share2, HelpCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -25,8 +25,8 @@ type SidebarProps = {
   onLayerVisibilityChange: (layer: ItemType, visible: boolean) => void;
   onExportPDF: () => void;
   isExporting: boolean;
-  onShare: () => void;
-  isSharing: boolean;
+  onSave: () => void;
+  isSaving: boolean;
   printOrientation: PrintOrientation;
   setPrintOrientation: (orientation: PrintOrientation) => void;
   exportIconScale: number;
@@ -35,6 +35,7 @@ type SidebarProps = {
   items: Item[];
   showNumberedIcons: boolean;
   setShowNumberedIcons: (show: boolean) => void;
+  isExistingMap: boolean;
 };
 
 export function Sidebar({ 
@@ -44,8 +45,8 @@ export function Sidebar({
   onLayerVisibilityChange, 
   onExportPDF, 
   isExporting, 
-  onShare, 
-  isSharing, 
+  onSave, 
+  isSaving, 
   printOrientation, 
   setPrintOrientation,
   exportIconScale,
@@ -53,7 +54,8 @@ export function Sidebar({
   readOnly,
   items,
   showNumberedIcons,
-  setShowNumberedIcons
+  setShowNumberedIcons,
+  isExistingMap
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
   const pathname = usePathname();
@@ -239,9 +241,9 @@ export function Sidebar({
           <h1 className="text-xl font-bold">Sensory Mapper</h1>
           <div className="flex gap-2">
             {!readOnly && (
-              <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">
-                  {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-                  Share
+              <Button onClick={onSave} disabled={isSaving} variant="outline" size="sm" className="flex-1">
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  {isExistingMap ? 'Save & Update' : 'Save & Share'}
               </Button>
             )}
             <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
