@@ -22,10 +22,21 @@ const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
   return acc;
 }, {} as Record<ItemType, boolean>);
 
+const LOCAL_STORAGE_KEY = 'sensory-mapper-session';
+
 type SenseMapperProps = {
     initialData?: MapData;
     readOnly?: boolean;
     mapId?: string;
+}
+
+// Debounce function
+function useDebouncedEffect(effect: () => void, deps: React.DependencyList, delay: number) {
+    useEffect(() => {
+        const handler = setTimeout(() => effect(), delay);
+        return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [...(deps || []), delay]);
 }
 
 export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId }: SenseMapperProps) {
@@ -69,6 +80,48 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
+  // --- SESSION PERSISTENCE LOGIC ---
+  useEffect(() => {
+    if (!initialData && !readOnly) { // Only load from localStorage for new, editable sessions
+        try {
+            const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedSession) {
+                const { mapImage, imageDimensions, items, zoomLevel, panOffset } = JSON.parse(savedSession);
+                if (mapImage && imageDimensions && items) {
+                    setMapImage(mapImage);
+                    setImageDimensions(imageDimensions);
+                    setItems(items);
+                    setZoomLevel(zoomLevel || 1);
+                    setPanOffset(panOffset || { x: 0, y: 0 });
+                    toast({ title: 'Session Restored', description: 'Your previous unsaved work has been loaded.' });
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load session from localStorage:", error);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useDebouncedEffect(() => {
+    if (!readOnly && !initialData) { // Only save for new, editable sessions
+        try {
+            const sessionData = {
+                mapImage,
+                imageDimensions,
+                items,
+                zoomLevel,
+                panOffset,
+            };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionData));
+        } catch (error) {
+            console.error("Failed to save session to localStorage:", error);
+        }
+    }
+  }, [mapImage, imageDimensions, items, zoomLevel, panOffset, readOnly, initialData], 1000);
+
+
   useEffect(() => {
     setReadOnly(initialReadOnly);
     if (!initialReadOnly && mapId) {
@@ -86,6 +139,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         handleImageLoad(initialData.mapImage, false);
         setItems(initialData.items);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
   const handleImageLoad = (url: string, resetState = true) => {
@@ -101,6 +155,9 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         setHighlightedItem(null);
         setZoomLevel(1);
         setPanOffset({ x: 0, y: 0 });
+        if (!initialData) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
       }
     };
     img.onerror = () => {
@@ -638,7 +695,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     }
     
     let currentType = activeTool.type;
-    if (!currentType || SENSORY_STIMULI_TYPES.includes(currentType as SensoryType) && event.key.toLowerCase() !== 'm') {
+    if (!currentType || (SENSORY_STIMULI_TYPES.includes(currentType as ItemType) && event.key.toLowerCase() !== 'm')) {
       currentType = ALL_SENSORY_TYPES[0];
     }
 
@@ -816,6 +873,9 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
         storedMaps[id] = newEditCode;
         localStorage.setItem('senseMapperEditCodes', JSON.stringify(storedMaps));
+
+        // Clear the local session for the new map
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
 
         toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
     } catch (error: any) {
