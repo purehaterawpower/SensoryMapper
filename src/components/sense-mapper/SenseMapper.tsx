@@ -537,6 +537,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       e.preventDefault(); // Prevent browser default actions like page zoom
+      e.stopPropagation();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       setTouchStartDistance(Math.sqrt(dx * dx + dy * dy));
@@ -549,6 +550,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && touchStartDistance !== null && mapRef.current) {
       e.preventDefault();
+      e.stopPropagation();
       const rect = mapRef.current.getBoundingClientRect();
       
       const t1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
