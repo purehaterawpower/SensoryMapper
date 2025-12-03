@@ -265,7 +265,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                     accept="image/*"
                                     onChange={handleImageUpload}
                                 />
-                                <Button variant="outline" className="w-full border-dashed" onClick={() => fileInputRef.current?.click()}>
+                                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                                     <Upload className="mr-2 h-4 w-4" />
                                     Upload Photo
                                 </Button>
@@ -300,7 +300,7 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                                     accept="audio/*"
                                     onChange={handleAudioUpload}
                                 />
-                                <Button variant="outline" className="w-full border-dashed" onClick={() => audioInputRef.current?.click()}>
+                                <Button variant="outline" size="sm" onClick={() => audioInputRef.current?.click()}>
                                     <FileAudio className="mr-2 h-4 w-4" />
                                     Upload Audio
                                 </Button>
