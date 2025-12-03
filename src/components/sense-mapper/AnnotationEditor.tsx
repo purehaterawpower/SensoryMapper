@@ -242,8 +242,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
                 {/* Image Section - Hidden in readOnly if no image exists */}
                 {(!readOnly || image) && (
-                    <div className="grid gap-2">
-                        {!readOnly && <Label>Image</Label>}
+                    <div>
+                        {!readOnly && <Label className="mb-2 block">Image</Label>}
                         {image ? (
                             <div className="relative rounded-lg overflow-hidden border bg-muted">
                                 <Image src={image} alt="Annotation image" width={288} height={162} className="object-cover w-full aspect-video" />
@@ -256,20 +256,20 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                         ) : (
                             // Only show upload controls if NOT readOnly
                             !readOnly && (
-                                <>
-                                <Input
-                                    type="file"
-                                    id="image-upload"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                />
-                                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Upload Photo
-                                </Button>
-                                </>
+                                <div>
+                                    <Input
+                                        type="file"
+                                        id="image-upload"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                    />
+                                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Upload Photo
+                                    </Button>
+                                </div>
                             )
                         )}
                     </div>
@@ -277,8 +277,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
                 {/* Audio Section */}
                 {(!readOnly || audio) && (
-                    <div className="grid gap-2">
-                        {!readOnly && <Label>Audio Note</Label>}
+                    <div>
+                        {!readOnly && <Label className="mb-2 block">Audio Note</Label>}
                         {audio ? (
                             <div className="relative rounded-lg border bg-muted p-2 flex items-center gap-2">
                                 <FileAudio className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -291,20 +291,20 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                             </div>
                         ) : (
                             !readOnly && (
-                                <>
-                                <Input
-                                    type="file"
-                                    id="audio-upload"
-                                    ref={audioInputRef}
-                                    className="hidden"
-                                    accept="audio/*"
-                                    onChange={handleAudioUpload}
-                                />
-                                <Button variant="outline" size="sm" onClick={() => audioInputRef.current?.click()}>
-                                    <FileAudio className="mr-2 h-4 w-4" />
-                                    Upload Audio
-                                </Button>
-                                </>
+                                <div>
+                                    <Input
+                                        type="file"
+                                        id="audio-upload"
+                                        ref={audioInputRef}
+                                        className="hidden"
+                                        accept="audio/*"
+                                        onChange={handleAudioUpload}
+                                    />
+                                    <Button variant="outline" size="sm" onClick={() => audioInputRef.current?.click()}>
+                                        <FileAudio className="mr-2 h-4 w-4" />
+                                        Upload Audio
+                                    </Button>
+                                </div>
                             )
                         )}
                     </div>
