@@ -26,6 +26,9 @@ type SenseMapperLoaderProps = {
 export default function SenseMapperLoader({ initialData, readOnly: initialReadOnly, mapId }: SenseMapperLoaderProps) {
   const searchParams = useSearchParams();
   const editCode = searchParams.get('editCode') || undefined;
+  
+  // If initialReadOnly is explicitly passed (from server), use it.
+  // Otherwise (on client-side navigation or new maps), determine based on editCode.
   const readOnly = initialReadOnly === undefined ? !editCode : initialReadOnly;
 
   return <SenseMapper initialData={initialData} readOnly={readOnly} mapId={mapId} editCode={editCode} />;
