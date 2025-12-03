@@ -236,7 +236,7 @@ export function Sidebar({
     <aside id="sidebar" className="w-80 bg-card border-r flex flex-col h-screen">
       <TooltipProvider delayDuration={100}>
         <div className="p-4 flex flex-col gap-4 border-b">
-          <h1 className="text-xl font-bold">SenseMapper</h1>
+          <h1 className="text-xl font-bold">Sensory Mapper</h1>
           <div className="flex gap-2">
             {!readOnly && (
               <Button onClick={onShare} disabled={isSharing} variant="outline" size="sm" className="flex-1">

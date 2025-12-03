@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">SenseMapper</string>
-    <string name="title_activity_main">SenseMapper</string>
+    <string name="app_name">Sensory Mapper</string>
+    <string name="title_activity_main">Sensory Mapper</string>
     <string name="package_name">com.sensorymapper.app</string>
     <string name="custom_url_scheme">com.sensorymapper.app</string>
 </resources>

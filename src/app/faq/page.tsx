@@ -6,29 +6,29 @@ import { ArrowLeft } from 'lucide-react';
 import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'FAQ - SenseMapper',
-  description: 'Frequently Asked Questions about the SenseMapper application.',
+  title: 'FAQ - Sensory Mapper',
+  description: 'Frequently Asked Questions about the Sensory Mapper application.',
 };
 
 const EditorFAQ = () => (
   <div className="space-y-12">
     <h1 className="text-4xl font-bold text-center">
-      SensoryMapper Frequently Asked Questions
+      Sensory Mapper Frequently Asked Questions
     </h1>
 
     <section id="general">
       <h2 className="text-2xl font-semibold border-b pb-2 mb-4">General</h2>
       <div className="space-y-6">
         <div>
-            <h3 className="text-lg font-semibold">What is a sensory map?</h3>
-            <p className="text-muted-foreground">
-                A sensory map shows you the layout of a building along with important sensory details. It highlights areas that might be loud, bright, smelly, or crowded. It also shows you where to find practical facilities.
-            </p>
+          <h3 className="text-lg font-semibold">What is a sensory map?</h3>
+          <p className="text-muted-foreground">
+            A sensory map shows you the layout of a building along with important sensory details. It highlights areas that might be loud, bright, smelly, or crowded. It also shows you where to find practical facilities.
+          </p>
         </div>
         <div>
-          <h3 className="text-lg font-semibold">What is SensoryMapper?</h3>
+          <h3 className="text-lg font-semibold">What is Sensory Mapper?</h3>
           <p className="text-muted-foreground">
-            SensoryMapper is a web app that helps you create sensory maps for buildings. You can upload a floor plan and add details about sights, sounds, smells, and practical amenities. This helps people navigate spaces more comfortably.
+            Sensory Mapper is a web app that helps you create sensory maps for buildings. You can upload a floor plan and add details about sights, sounds, smells, and practical amenities. This helps people navigate spaces more comfortably.
           </p>
         </div>
         <div>
@@ -38,7 +38,7 @@ const EditorFAQ = () => (
           </p>
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Is SensoryMapper free?</h3>
+          <h3 className="text-lg font-semibold">Is Sensory Mapper free?</h3>
           <p className="text-muted-foreground">
             Yes, it is currently free.
           </p>

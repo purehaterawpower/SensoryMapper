@@ -1,4 +1,4 @@
-# SensoryMapper
+# Sensory Mapper
 
 A Next.js web application for creating and sharing accessible sensory experience maps.
 

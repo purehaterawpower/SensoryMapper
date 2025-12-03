@@ -4,7 +4,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SensoryMap",
       "type": "object",
-      "description": "Represents a sensory map created within the SenseMapper application.",
+      "description": "Represents a sensory map created within the Sensory Mapper application.",
       "properties": {
         "mapImage": {
           "type": "string",

@@ -13,7 +13,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'SenseMapper',
+  title: 'Sensory Mapper',
   description: 'A specialized web application designed to help you map specific sensory experiences onto a floor plan.',
 };
 
