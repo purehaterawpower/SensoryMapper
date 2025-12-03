@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES } from "@/lib/constants";
-import { Item, Point, Marker } from "@/lib/types";
+import { Item, Point, Marker, ItemType } from "@/lib/types";
 import { Trash2, Edit, Upload, X, FileAudio } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,25 @@ type AnnotationEditorProps = {
   readOnly?: boolean;
   panOffset: Point;
   zoomLevel: number;
+};
+
+// Helper function to generate a relevant question based on sensory type
+const getSensoryQuestion = (type: ItemType) => {
+    switch (type) {
+        case 'hearing':
+            return 'What does it sound like?';
+        case 'vision':
+            return 'What does it look like?';
+        case 'smell':
+            return 'What does it smell like?';
+        case 'touch':
+            return 'What does it feel like?';
+        case 'movement':
+        case 'space':
+            return 'What is the experience like?';
+        default:
+            return 'Describe the area.';
+    }
 };
 
 export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEditMode, readOnly, panOffset, zoomLevel }: AnnotationEditorProps) {
@@ -100,7 +120,8 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
   const showSizeSlider = isFacility && !readOnly;
   const shapeName = item.shape === 'polygon' ? 'Custom Area' : 'Area';
   
-  const placeholderText = `e.g., Describe the ${sensoryName.toLowerCase()} input. What does it feel, look, or sound like? Consider: ${sensoryDescription}`;
+  const sensoryQuestion = getSensoryQuestion(item.type);
+  const placeholderText = `e.g., ${sensoryQuestion} Consider: ${sensoryDescription}`;
 
   const handleSave = () => {
     const data: Partial<Item> = { description, imageUrl: image, audioUrl: audio };
@@ -199,6 +220,26 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
 
             {/* CONTENT SECTION */}
             <div className="grid gap-4">
+                
+                {/* Description Section */}
+                <div className="grid gap-2">
+                    {!readOnly && <Label htmlFor="description">Description</Label>}
+                    
+                    {readOnly ? (
+                        <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
+                        </div>
+                    ) : (
+                        <Textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="min-h-[100px] resize-none"
+                            placeholder={placeholderText}
+                        />
+                    )}
+                </div>
+
                 {/* Image Section - Hidden in readOnly if no image exists */}
                 {(!readOnly || image) && (
                     <div className="grid gap-2">
@@ -268,25 +309,6 @@ export function AnnotationEditor({ item, onClose, onSave, onDelete, onToggleEdit
                         )}
                     </div>
                 )}
-
-                {/* Description Section */}
-                <div className="grid gap-2">
-                    {!readOnly && <Label htmlFor="description">Description</Label>}
-                    
-                    {readOnly ? (
-                        <div className="text-sm leading-relaxed text-foreground/90">
-                            {description || <span className="text-muted-foreground italic text-xs">No additional details provided.</span>}
-                        </div>
-                    ) : (
-                        <Textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="min-h-[100px] resize-none"
-                            placeholder={placeholderText}
-                        />
-                    )}
-                </div>
 
                 {/* Sensory Intensity - Meter vs Slider */}
                 {showIntensitySlider && (
