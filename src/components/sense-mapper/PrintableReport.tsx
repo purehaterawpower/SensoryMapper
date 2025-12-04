@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Item, Marker, PrintOrientation, Shape } from '@/lib/types';
@@ -64,7 +65,7 @@ const MapRenderer = ({
           <Icon className="text-white" style={{width: iconSize, height: iconSize}}/>
            <div 
             className="absolute -top-1 -right-1 bg-background text-foreground rounded-full flex items-center justify-center font-bold border"
-            style={{ width: numberSize, height: numberSize, fontSize: numberSize * 0.7 }}
+            style={{ width: numberSize, height: numberSize, fontSize: numberSize * 0.7, color: 'black', background: 'white' }}
           >
             {marker.number}
           </div>
@@ -74,7 +75,6 @@ const MapRenderer = ({
   };
 
   const renderShape = (shape: Shape & { number: number }) => {
-    const { icon: Icon } = ALL_SENSORY_DATA[shape.type];
     const color = shape.color || ALL_SENSORY_DATA[shape.type].color;
     const fill = color;
 
@@ -89,13 +89,7 @@ const MapRenderer = ({
       center = { x: xSum / shape.points.length, y: ySum / shape.points.length };
     }
 
-    const iconSize = 20 * globalScale;
     const textNumberSize = 18 * globalScale;
-    const spacing = 4 * globalScale;
-    const totalWidth = iconSize + spacing + textNumberSize;
-    const iconX = center.x - totalWidth / 2;
-    const numberX = iconX + iconSize + spacing;
-
 
     return (
       <g key={shape.id}>
@@ -131,13 +125,10 @@ const MapRenderer = ({
             strokeWidth={2}
           />
         )}
-        <foreignObject x={iconX} y={center.y - iconSize / 2} width={iconSize} height={iconSize}>
-            <Icon className="w-full h-full" fill="white" stroke="black" strokeWidth="0.5" />
-        </foreignObject>
         <text
-            x={numberX}
+            x={center.x}
             y={center.y}
-            textAnchor="start"
+            textAnchor="middle"
             dominantBaseline="central"
             fill="white"
             stroke="black"
@@ -255,7 +246,7 @@ export function PrintableReport({
                         {isSensoryArea && item.intensity !== undefined && (
                             <div className='flex items-center gap-2 mt-2'>
                                 <span className="text-xs text-slate-600">Level:</span>
-                                <Progress value={item.intensity} className="h-2 w-24" style={{ '--primary': item.color } as React.CSSProperties} />
+                                <Progress value={item.intensity} className="h-2 w-24" indicatorClassName="bg-[--primary]" style={{ '--primary': item.color } as React.CSSProperties} />
                                 <span className="text-xs text-slate-600 w-16">
                                     {item.intensity < 33 ? 'Low' : item.intensity < 66 ? 'Medium' : 'High'}
                                 </span>
