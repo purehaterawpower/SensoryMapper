@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SENSORY_STIMULI_TYPES, PRACTICAL_AMENITY_TYPES, ALL_SENSORY_DATA } from "@/lib/constants";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { FileDown, Loader2, Save, Share2, HelpCircle } from "lucide-react";
+import { FileDown, Loader2, Save, Share2, HelpCircle, FilePlus2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -17,6 +18,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 type SidebarProps = {
   activeTool: ActiveTool;
@@ -26,6 +39,7 @@ type SidebarProps = {
   onExportPDF: () => void;
   isExporting: boolean;
   onSave: () => void;
+  onNewMap: () => void;
   isSaving: boolean;
   printOrientation: PrintOrientation;
   setPrintOrientation: (orientation: PrintOrientation) => void;
@@ -36,6 +50,7 @@ type SidebarProps = {
   showNumberedIcons: boolean;
   setShowNumberedIcons: (show: boolean) => void;
   isExistingMap: boolean;
+  hasUnsavedChanges: boolean;
 };
 
 export function Sidebar({ 
@@ -45,7 +60,8 @@ export function Sidebar({
   onLayerVisibilityChange, 
   onExportPDF, 
   isExporting, 
-  onSave, 
+  onSave,
+  onNewMap,
   isSaving, 
   printOrientation, 
   setPrintOrientation,
@@ -55,7 +71,8 @@ export function Sidebar({
   items,
   showNumberedIcons,
   setShowNumberedIcons,
-  isExistingMap
+  isExistingMap,
+  hasUnsavedChanges,
 }: SidebarProps) {
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false);
   const pathname = usePathname();
@@ -239,16 +256,38 @@ export function Sidebar({
       <TooltipProvider delayDuration={100}>
         <div className="p-4 flex flex-col gap-4 border-b">
           <h1 className="text-xl font-bold">Sensory Mapper</h1>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {!readOnly && (
-              <Button onClick={onSave} disabled={isSaving} variant="outline" size="sm" className="flex-1">
-                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  {isExistingMap ? 'Save & Update' : 'Save & Share'}
-              </Button>
+              <>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="col-span-1" disabled={!hasUnsavedChanges}>
+                      <FilePlus2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Start a New Map?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will clear your current unsaved map. Are you sure you want to continue?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={onNewMap}>Start New Map</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Button onClick={onSave} disabled={isSaving} variant="outline" size="sm" className="col-span-3">
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isExistingMap ? 'Save & Update' : 'Save & Share'}
+                </Button>
+              </>
             )}
             <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className={cn("flex-1", readOnly && "col-span-3")}>
                   <FileDown className="mr-2 h-4 w-4" />
                   Export
                 </Button>

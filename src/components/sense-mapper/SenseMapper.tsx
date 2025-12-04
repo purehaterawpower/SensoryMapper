@@ -140,6 +140,26 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
+  const handleNewMap = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setMapImage(null);
+    setImageDimensions(null);
+    setItems([]);
+    setSelectedItem(null);
+    setEditingItemId(null);
+    setHighlightedItem(null);
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+    setMapId(undefined);
+    setEditCode(undefined);
+    setActiveTool({ tool: 'select' });
+    // Redirect to home to ensure a clean URL, especially if on a shared map page
+    if (window.location.pathname !== '/') {
+        window.history.pushState(null, '', '/');
+    }
+    toast({ title: 'New Map Started', description: 'Your previous session has been cleared.' });
+  }
+
   const handleImageLoad = (url: string, resetState = true) => {
     const img = new Image();
     img.src = url;
@@ -147,17 +167,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
       if (resetState) {
-        setItems([]);
-        setSelectedItem(null);
-        setEditingItemId(null);
-        setHighlightedItem(null);
-        setZoomLevel(1);
-        setPanOffset({ x: 0, y: 0 });
-        setMapId(undefined);
-        setEditCode(undefined);
-        if (!initialData) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-        }
+        handleNewMap();
       }
     };
     img.onerror = () => {
@@ -171,7 +181,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          handleImageLoad(e.target.result as string);
+          handleImageLoad(e.target.result as string, true);
           toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
         }
       };
@@ -931,6 +941,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         onExportPDF={handleExportPDF}
         isExporting={isPrinting}
         onSave={handleSave}
+        onNewMap={handleNewMap}
         isSaving={isSaving}
         readOnly={readOnly}
         printOrientation={printOrientation}
@@ -941,6 +952,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         showNumberedIcons={showNumberedIcons}
         setShowNumberedIcons={setShowNumberedIcons}
         isExistingMap={!!mapId}
+        hasUnsavedChanges={!!mapImage}
       />
       <main className="flex-1 relative flex flex-col">
         {!readOnly && activeTool.tool === 'shape' && (
