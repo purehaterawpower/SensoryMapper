@@ -18,6 +18,8 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, edit
     
     const serializableData: any = { ...data };
     if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
+        // Firestore Timestamps are not serializable from Server to Client Components.
+        // Convert to a serializable format or null if not needed on the client.
         serializableData.createdAt = null;
     }
     
