@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { FileDown, Loader2, Save, Share2, HelpCircle, FilePlus2 } from "lucide-react";
+import { FileDown, Loader2, Save, HelpCircle, FilePlus2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -256,13 +256,14 @@ export function Sidebar({
       <TooltipProvider delayDuration={100}>
         <div className="p-4 flex flex-col gap-4 border-b">
           <h1 className="text-xl font-bold">Sensory Mapper</h1>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {!readOnly && (
               <>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="col-span-1" disabled={!hasUnsavedChanges}>
-                      <FilePlus2 className="h-4 w-4" />
+                    <Button variant="outline" size="sm" disabled={!hasUnsavedChanges}>
+                      <FilePlus2 className="mr-2 h-4 w-4" />
+                      New
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -279,7 +280,7 @@ export function Sidebar({
                   </AlertDialogContent>
                 </AlertDialog>
 
-                <Button onClick={onSave} disabled={isSaving} variant="outline" size="sm" className="col-span-3">
+                <Button onClick={onSave} disabled={isSaving} variant="outline" size="sm">
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     {isExistingMap ? 'Save & Update' : 'Save & Share'}
                 </Button>
@@ -287,7 +288,7 @@ export function Sidebar({
             )}
             <Popover open={isExportPopoverOpen} onOpenChange={setIsExportPopoverOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn("flex-1", readOnly && "col-span-3")}>
+                <Button variant="outline" size="sm" className={cn("flex-1", readOnly && "col-span-full")}>
                   <FileDown className="mr-2 h-4 w-4" />
                   Export
                 </Button>
@@ -341,9 +342,9 @@ export function Sidebar({
                 </div>
               </PopoverContent>
             </Popover>
-            <Button asChild variant="outline" size="icon" className="h-9 w-9">
+            <Button asChild variant="outline" size="sm" className="h-9">
               <Link href={faqLink} title="Frequently Asked Questions">
-                <HelpCircle className="h-4 w-4" />
+                <HelpCircle className="mr-2 h-4 w-4" /> Help
               </Link>
             </Button>
           </div>
@@ -388,7 +389,7 @@ export function Sidebar({
                   <Separator />
                   {renderNumberedItems()}
               </>
-          )}
+           )}
         </div>
       </TooltipProvider>
     </aside>

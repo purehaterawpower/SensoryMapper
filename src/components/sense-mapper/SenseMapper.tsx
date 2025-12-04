@@ -142,22 +142,8 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
 
   const handleNewMap = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    setMapImage(null);
-    setImageDimensions(null);
-    setItems([]);
-    setSelectedItem(null);
-    setEditingItemId(null);
-    setHighlightedItem(null);
-    setZoomLevel(1);
-    setPanOffset({ x: 0, y: 0 });
-    setMapId(undefined);
-    setEditCode(undefined);
-    setActiveTool({ tool: 'select' });
-    // Redirect to home to ensure a clean URL, especially if on a shared map page
-    if (window.location.pathname !== '/') {
-        window.history.pushState(null, '', '/');
-    }
-    toast({ title: 'New Map Started', description: 'Your previous session has been cleared.' });
+    // This will cause the page to reload to the base URL, giving a clean slate.
+    window.location.href = '/';
   }
 
   const handleImageLoad = (url: string, resetState = true) => {
@@ -167,7 +153,15 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
       if (resetState) {
-        handleNewMap();
+        setItems([]);
+        setSelectedItem(null);
+        setEditingItemId(null);
+        setHighlightedItem(null);
+        setZoomLevel(1);
+        setPanOffset({ x: 0, y: 0 });
+        setMapId(undefined);
+        setEditCode(undefined);
+        setActiveTool({ tool: 'select' });
       }
     };
     img.onerror = () => {
