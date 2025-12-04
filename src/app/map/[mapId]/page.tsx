@@ -1,10 +1,9 @@
+
 import SenseMapperLoader from '@/components/sense-mapper/SenseMapperLoader';
 import { initializeFirebase } from '@/firebase/server';
 import { doc, getDoc } from 'firebase/firestore';
 import { MapData } from '@/lib/types';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
-import { cookies } from 'next/headers';
 
 async function getMapData(mapId: string): Promise<{mapData: MapData | null, editCode?: string}> {
     const { firestore } = await initializeFirebase();
