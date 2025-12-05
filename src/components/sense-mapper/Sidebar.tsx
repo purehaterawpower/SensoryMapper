@@ -337,7 +337,7 @@ export function Sidebar({
                   </div>
                   <Button onClick={handleExportClick} disabled={isExporting} className="w-full">
                     {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Print to PDF
+                    Export to PDF
                   </Button>
                 </div>
               </PopoverContent>
