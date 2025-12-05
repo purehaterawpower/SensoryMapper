@@ -159,8 +159,6 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         setHighlightedItem(null);
         setZoomLevel(1);
         setPanOffset({ x: 0, y: 0 });
-        setMapId(undefined);
-        setEditCode(undefined);
         setActiveTool({ tool: 'select' });
       }
     };
