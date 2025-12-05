@@ -1,4 +1,5 @@
 
+
 import SenseMapperLoader from '@/components/sense-mapper/SenseMapperLoader';
 import { initializeFirebase } from '@/firebase/server';
 import { doc, getDoc } from 'firebase/firestore';
@@ -16,29 +17,30 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, edit
 
     const data = mapSnap.data();
     
+    // Create a serializable clone of the data
     const serializableData: any = { ...data };
+
+    // Firestore Timestamps are not serializable from Server to Client Components.
+    // Convert to null as the client doesn't use it. This prevents render crashes.
     if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
-        // Firestore Timestamps are not serializable from Server to Client Components.
-        // Convert to a serializable format or null if not needed on the client.
         serializableData.createdAt = null;
     }
     
     // The editCode is sensitive and should only be returned if it's going to be used securely.
     // In this case, it's passed to a server component that decides the readOnly state.
     const editCode = serializableData.editCode;
-    // We don't delete the editCode from the data passed to the client here.
-    // The loader will handle it.
 
     return { mapData: serializableData as MapData, editCode };
 }
 
 type Props = {
-  params: { mapId: string };
+  params: Promise<{ mapId: string }>;
   searchParams: { editCode?: string };
 }
 
 export default async function SharedMapPage(props: Props) {
-    const { mapId } = props.params;
+    // CRITICAL: Await the params promise to get the mapId
+    const { mapId } = await props.params;
     const { editCode: queryEditCode } = props.searchParams;
 
     const { mapData, editCode: correctEditCode } = await getMapData(mapId);
@@ -47,14 +49,14 @@ export default async function SharedMapPage(props: Props) {
         notFound();
     }
     
-    // Determine if the user has editing rights
+    // Determine if the user has editing rights by comparing the query param with the code from the DB
     const isEditing = !!(queryEditCode && correctEditCode && queryEditCode === correctEditCode);
     const readOnly = !isEditing;
     
-    // We only pass the editCode to the client if it's correct.
+    // Only pass the editCode to the client if editing is allowed.
     const editCodeForClient = isEditing ? queryEditCode : undefined;
 
-    // Remove the edit code from the initial data passed to the client if not editing.
+    // Defensively remove the edit code from the initial data if the user is in read-only mode.
     if(readOnly && mapData) {
         delete mapData.editCode;
     }
