@@ -32,19 +32,19 @@ type SenseMapperProps = {
 }
 
 export function SenseMapper({ 
-    initialData: serverInitialData, 
+    initialData,
     readOnly: serverReadOnly, 
     mapId: serverMapId, 
     editCode: serverEditCode 
 }: SenseMapperProps) {
   
   // Component's internal state
-  const [items, setItems] = useState<Item[]>([]);
-  const [mapImage, setMapImage] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
-  const [mapId, setMapId] = useState<string | undefined>(undefined);
-  const [editCode, setEditCode] = useState<string | undefined>(undefined);
-  const [readOnly, setReadOnly] = useState(false);
+  const [items, setItems] = useState<Item[]>(initialData?.items || []);
+  const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
+  const [mapId, setMapId] = useState<string | undefined>(serverMapId || undefined);
+  const [editCode, setEditCode] = useState<string | undefined>(serverEditCode || undefined);
+  const [readOnly, setReadOnly] = useState(serverReadOnly === true);
   
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
@@ -83,13 +83,11 @@ export function SenseMapper({
   
   // --- STATE INITIALIZATION AND SYNCHRONIZATION ---
   useEffect(() => {
-    // This is the primary effect for keeping the component's state in sync with server props.
-    // It runs whenever server-provided data changes.
-
+    // This effect runs only on the client, and only on the root page ('/').
+    // Its job is to load a previous unsaved session from local storage.
     const isNewSession = !serverMapId && !serverReadOnly;
     
     if (isNewSession) {
-      // We are on the root page ('/'), load from local storage or start fresh.
       try {
         const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedSession) {
@@ -100,37 +98,19 @@ export function SenseMapper({
           setZoomLevel(zoomLevel || 1);
           setPanOffset(panOffset || { x: 0, y: 0 });
           toast({ title: 'Session Restored', description: 'Your previous unsaved work has been loaded.' });
-        } else {
-           // Explicitly reset state for a clean new map
-           setItems([]);
-           setMapImage(null);
-           setImageDimensions(null);
-           setMapId(undefined);
-           setEditCode(undefined);
-           setZoomLevel(1);
-           setPanOffset({ x: 0, y: 0 });
-           setReadOnly(false);
         }
       } catch (error) {
         console.error("Failed to load session from localStorage:", error);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
-    } else if (serverInitialData) {
-        // We are on a saved map page ('/map/[mapId]') and have data from the server.
-        // Forcefully update the component state to match server props.
-        setMapImage(serverInitialData.mapImage);
-        setImageDimensions(serverInitialData.imageDimensions);
-        setItems(serverInitialData.items);
-        setMapId(serverMapId || undefined);
-        setEditCode(serverEditCode || undefined);
-        setReadOnly(serverReadOnly || false);
-        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear any old session data
     }
-  }, [serverInitialData, serverMapId, serverEditCode, serverReadOnly]);
+  }, [serverMapId, serverReadOnly]); // Only depends on server props to run once.
+
 
   // Debounced effect for saving to local storage on new maps
   useEffect(() => {
-    if (!readOnly && !mapId) { // Only save for new, unsaved sessions
+    // Only save to localStorage if we are on a new, unsaved map (no mapId)
+    if (!readOnly && !mapId) { 
       const handler = setTimeout(() => {
         try {
           const sessionData = { mapImage, imageDimensions, items, zoomLevel, panOffset };
@@ -882,10 +862,9 @@ export function SenseMapper({
 
             localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear session data
 
-            // Redirect to the new editable map URL
-            window.history.replaceState(null, '', `/map/${id}?editCode=${newEditCode}`);
+            // Force a full page navigation to the new editable map URL
+            window.location.href = `${url}?editCode=${newEditCode}`;
 
-            toast({ title: 'Link Ready!', description: 'Your map has been saved and is ready to share.' });
         }
     } catch (error: any) {
         console.error("Saving failed:", error);

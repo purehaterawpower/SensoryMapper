@@ -4,6 +4,7 @@ import { initializeFirebase } from '@/firebase/server';
 import { doc, getDoc } from 'firebase/firestore';
 import { MapData } from '@/lib/types';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 
 async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEditCode?: string}> {
     const { firestore } = await initializeFirebase();
@@ -27,17 +28,19 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEd
     // The edit code is part of the document, return it separately
     const dbEditCode = serializableData.editCode;
 
+    // Do not send the edit code to the client as part of the main data blob
+    delete serializableData.editCode;
+
     return { mapData: serializableData as MapData, dbEditCode };
 }
 
 type Props = {
-  params: Promise<{ mapId: string }>;
+  params: { mapId: string };
   searchParams: { editCode?: string };
 }
 
 export default async function SharedMapPage(props: Props) {
-    // Await params to get the mapId
-    const { mapId } = await props.params;
+    const { mapId } = props.params;
     const { editCode: queryEditCode } = props.searchParams;
 
     const { mapData, dbEditCode } = await getMapData(mapId);
@@ -52,11 +55,6 @@ export default async function SharedMapPage(props: Props) {
     
     // Pass the editCode to the client only if it's in edit mode.
     const editCodeForClient = isEditing ? queryEditCode : undefined;
-
-    // Defensively remove the edit code from the initial data if the user is in read-only mode.
-    if(readOnly && mapData.editCode) {
-        delete mapData.editCode;
-    }
     
     return (
         <SenseMapperLoader 
