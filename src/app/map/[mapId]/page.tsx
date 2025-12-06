@@ -35,13 +35,13 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEd
 }
 
 type Props = {
-  params: { mapId: string };
-  searchParams: { editCode?: string };
+  params: Promise<{ mapId: string }>;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default async function SharedMapPage(props: Props) {
-    const { mapId } = props.params;
-    const { editCode: queryEditCode } = props.searchParams;
+    const { mapId } = await props.params;
+    const queryEditCode = props.searchParams?.editCode as string | undefined;
 
     const { mapData, dbEditCode } = await getMapData(mapId);
 
