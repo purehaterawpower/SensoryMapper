@@ -40,13 +40,12 @@ function useDebouncedEffect(effect: () => void, deps: React.DependencyList, dela
     }, [...(deps || []), delay]);
 }
 
-export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId: initialMapId, editCode: initialEditCode }: SenseMapperProps) {
+export function SenseMapper({ initialData, readOnly = false, mapId: initialMapId, editCode: initialEditCode }: SenseMapperProps) {
   const [items, setItems] = useState<Item[]>(initialData?.items || []);
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [highlightedItem, setHighlightedItem] = useState<Item | null>(null);
-  const [readOnly, setReadOnly] = useState(initialReadOnly);
   
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -86,7 +85,8 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   
   // --- SESSION PERSISTENCE LOGIC ---
   useEffect(() => {
-    if (!initialData && !readOnly) { // Only load from localStorage for new, editable sessions
+    // Only load from localStorage for new, editable sessions (no initialData and not readonly)
+    if (!initialData && !readOnly) {
         try {
             const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (savedSession) {
@@ -127,22 +127,18 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
 
 
   useEffect(() => {
-    setReadOnly(initialReadOnly);
-    setMapId(initialMapId);
-    setEditCode(initialEditCode);
-  }, [initialReadOnly, initialMapId, initialEditCode]);
+      setMapId(initialMapId);
+      setEditCode(initialEditCode);
+      if (initialData) {
+          setMapImage(initialData.mapImage);
+          setImageDimensions(initialData.imageDimensions);
+          setItems(initialData.items);
+      }
+  }, [initialData, initialMapId, initialEditCode, readOnly]);
 
-  useEffect(() => {
-    if (initialData) {
-        handleImageLoad(initialData.mapImage, false);
-        setItems(initialData.items);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
 
   const handleNewMap = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    // This will cause the page to reload to the base URL, giving a clean slate.
     window.location.href = '/';
   }
 

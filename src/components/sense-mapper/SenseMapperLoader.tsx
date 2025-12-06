@@ -1,3 +1,4 @@
+
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -24,7 +25,5 @@ type SenseMapperLoaderProps = {
 }
 
 export default function SenseMapperLoader({ initialData, readOnly, mapId, editCode }: SenseMapperLoaderProps) {
-  // The readOnly prop is now definitively determined by the server component (page.tsx).
-  // The editCode is also passed down if editing is allowed.
   return <SenseMapper initialData={initialData} readOnly={readOnly} mapId={mapId} editCode={editCode} />;
 }
