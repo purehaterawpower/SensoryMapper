@@ -167,24 +167,24 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     };
   };
 
-  const handleMapUpload = async (file: File) => {
+  const handleMapUpload = (file: File) => {
     if (readOnly) return;
     if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          handleImageLoad(e.target.result as string, true);
-          toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
-        }
-      };
-      reader.onerror = () => {
-        toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
-      };
-      reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                handleImageLoad(e.target.result as string);
+                toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
+            }
+        };
+        reader.onerror = () => {
+            toast({ variant: "destructive", title: "Error", description: "Failed to read the map file." });
+        };
+        reader.readAsDataURL(file);
     } else {
-      toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
+        toast({ variant: "destructive", title: "Invalid File", description: "Please upload an image file (PNG, JPG)." });
     }
-  };
+};
 
   const handleLayerVisibilityChange = (layer: ItemType, visible: boolean) => {
     setVisibleLayers(prev => ({ ...prev, [layer]: visible }));
