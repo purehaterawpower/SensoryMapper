@@ -38,9 +38,10 @@ export function SenseMapper({
     editCode: initialEditCode 
 }: SenseMapperProps) {
   
-  const [items, setItems] = useState<Item[]>([]);
-  const [mapImage, setMapImage] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
+  // State initialization now directly uses props or defaults for a new session.
+  const [items, setItems] = useState<Item[]>(initialData?.items || []);
+  const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
   const [mapId, setMapId] = useState<string | undefined>(initialMapId || undefined);
   const [editCode, setEditCode] = useState<string | undefined>(initialEditCode || undefined);
   const [readOnly, setReadOnly] = useState(initialReadOnly === true);
@@ -77,9 +78,9 @@ export function SenseMapper({
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
+  // This effect handles loading from localStorage for a NEW session only.
   useEffect(() => {
     const isNewSession = !initialMapId;
-    
     if (isNewSession) {
       try {
         const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -96,15 +97,8 @@ export function SenseMapper({
         console.error("Failed to load session from localStorage:", error);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
-    } else if (initialData) {
-        setItems(initialData.items || []);
-        setMapImage(initialData.mapImage || null);
-        setImageDimensions(initialData.imageDimensions || null);
-        setMapId(initialMapId || undefined);
-        setEditCode(initialEditCode || undefined);
-        setReadOnly(initialReadOnly === true);
     }
-  }, [initialData, initialMapId, initialEditCode, initialReadOnly]);
+  }, [initialMapId]); // Only runs once when the component mounts for a new session.
 
 
   useEffect(() => {
@@ -823,11 +817,18 @@ export function SenseMapper({
             }
             
             const url = `${window.location.origin}/map/${id}`;
-            setShareUrl(url); 
+            const editUrl = `${url}?editCode=${newEditCode}`;
             
-            localStorage.removeItem(LOCAL_STORAGE_KEY); 
+            // Update the state to show the dialog
+            setShareUrl(url); 
+            setMapId(id);
+            setEditCode(newEditCode);
+            
+            // Update the URL without reloading the page
+            window.history.pushState({}, '', editUrl);
+            setReadOnly(false); // Ensure we are in edit mode
 
-            window.location.href = `${url}?editCode=${newEditCode}`;
+            localStorage.removeItem(LOCAL_STORAGE_KEY); 
         }
     } catch (error: any) {
         console.error("Saving failed:", error);
