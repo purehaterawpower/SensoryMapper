@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { MapData } from '@/lib/types';
 import { notFound } from 'next/navigation';
 
-async function getMapData(mapId: string): Promise<{mapData: MapData | null, editCode?: string}> {
+async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEditCode?: string}> {
     const { firestore } = await initializeFirebase();
     const mapRef = doc(firestore, 'sensoryMaps', mapId);
     const mapSnap = await getDoc(mapRef);
@@ -17,45 +17,36 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, edit
 
     const data = mapSnap.data();
     
-    // Create a serializable clone of the data
     const serializableData: any = { ...data };
 
-    // Firestore Timestamps are not serializable from Server to Client Components.
-    // Convert to null as the client doesn't use it. This prevents render crashes.
     if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
         serializableData.createdAt = null;
     }
     
-    // The editCode is sensitive and should only be returned if it's going to be used securely.
-    // In this case, it's passed to a server component that decides the readOnly state.
-    const editCode = serializableData.editCode;
+    const dbEditCode = serializableData.editCode;
 
-    return { mapData: serializableData as MapData, editCode };
+    return { mapData: serializableData as MapData, dbEditCode };
 }
 
 type Props = {
-  params: Promise<{ mapId: string }>;
+  params: { mapId: string };
   searchParams: { editCode?: string };
 }
 
 export default async function SharedMapPage(props: Props) {
-    // CRITICAL: Await the params promise to get the mapId
-    const { mapId } = await props.params;
+    const { mapId } = props.params;
     const { editCode: queryEditCode } = props.searchParams;
 
-    const { mapData, editCode: correctEditCode } = await getMapData(mapId);
+    const { mapData, dbEditCode } = await getMapData(mapId);
 
     if (!mapData) {
         notFound();
     }
     
-    // Determine if the user has editing rights by comparing the query param with the code from the DB
-    const isEditing = !!(queryEditCode && correctEditCode && queryEditCode === correctEditCode);
+    // Determine if the user has editing rights.
+    const isEditing = !!(queryEditCode && dbEditCode && queryEditCode === dbEditCode);
     const readOnly = !isEditing;
     
-    // Only pass the editCode to the client if editing is allowed.
-    const editCodeForClient = isEditing ? queryEditCode : undefined;
-
     // Defensively remove the edit code from the initial data if the user is in read-only mode.
     if(readOnly && mapData) {
         delete mapData.editCode;
@@ -66,7 +57,7 @@ export default async function SharedMapPage(props: Props) {
             initialData={mapData} 
             readOnly={readOnly} 
             mapId={mapId} 
-            editCode={editCodeForClient}
+            editCode={isEditing ? queryEditCode : undefined}
         />
     );
 }
