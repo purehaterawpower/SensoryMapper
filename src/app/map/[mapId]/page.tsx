@@ -31,13 +31,14 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEd
 }
 
 type Props = {
-  params: { mapId: string };
+  params: Promise<{ mapId: string }>;
   searchParams: { editCode?: string };
 }
 
-export default async function SharedMapPage({ params, searchParams }: Props) {
-    const { mapId } = params;
-    const { editCode: queryEditCode } = searchParams;
+export default async function SharedMapPage(props: Props) {
+    // Await params to get the mapId
+    const { mapId } = await props.params;
+    const { editCode: queryEditCode } = props.searchParams;
 
     const { mapData, dbEditCode } = await getMapData(mapId);
 
