@@ -5,7 +5,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MapArea } from './MapArea';
 import { AnnotationEditor } from './AnnotationEditor';
-import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, RectangleShape, CircleShape, PolygonShape, PrintOrientation, DrawingShape } from '@/lib/types';
+import { Item, Shape, Point, ActiveTool, ItemType, Marker, MapData, DrawingShape, PrintOrientation } from '@/lib/types';
 import { ALL_SENSORY_TYPES, ALL_SENSORY_DATA, PRACTICAL_AMENITY_TYPES, SENSORY_STIMULI_TYPES } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { PrintableReport } from './PrintableReport';
@@ -25,23 +25,27 @@ const initialLayerVisibility = ALL_SENSORY_TYPES.reduce((acc, layer) => {
 const LOCAL_STORAGE_KEY = 'sensory-mapper-session';
 
 type SenseMapperProps = {
-    initialData?: MapData;
+    initialData?: MapData | null;
     readOnly?: boolean;
-    mapId?: string;
-    editCode?: string;
+    mapId?: string | null;
+    editCode?: string | null;
 }
 
-// Debounce function
-function useDebouncedEffect(effect: () => void, deps: React.DependencyList, delay: number) {
-    useEffect(() => {
-        const handler = setTimeout(() => effect(), delay);
-        return () => clearTimeout(handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [...(deps || []), delay]);
-}
-
-export function SenseMapper({ initialData, readOnly: initialReadOnly = false, mapId: initialMapId, editCode: initialEditCode }: SenseMapperProps) {
+export function SenseMapper({ 
+    initialData: serverInitialData, 
+    readOnly: serverReadOnly, 
+    mapId: serverMapId, 
+    editCode: serverEditCode 
+}: SenseMapperProps) {
+  
+  // Component's internal state
   const [items, setItems] = useState<Item[]>([]);
+  const [mapImage, setMapImage] = useState<string | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
+  const [mapId, setMapId] = useState<string | undefined>(undefined);
+  const [editCode, setEditCode] = useState<string | undefined>(undefined);
+  const [readOnly, setReadOnly] = useState(false);
+  
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -66,17 +70,10 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const [panStart, setPanStart] = useState<Point | null>(null);
   const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null);
 
-  const [mapImage, setMapImage] = useState<string | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
-  
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   
-  const [mapId, setMapId] = useState<string | undefined>(undefined);
-  const [editCode, setEditCode] = useState<string | undefined>(undefined);
-  const [readOnly, setReadOnly] = useState(false);
-
   const [printOrientation, setPrintOrientation] = useState<PrintOrientation>('portrait');
   const [exportIconScale, setExportIconScale] = useState(100);
   const [showNumberedIcons, setShowNumberedIcons] = useState(false);
@@ -84,63 +81,67 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // --- SESSION PERSISTENCE & STATE INITIALIZATION ---
+  // --- STATE INITIALIZATION AND SYNCHRONIZATION ---
   useEffect(() => {
-    // This effect is the single source of truth for initializing and updating component state from props.
-    // It runs whenever the key props from the server change.
+    // This is the primary effect for keeping the component's state in sync with server props.
+    // It runs whenever server-provided data changes.
+
+    const isNewSession = !serverMapId && !serverReadOnly;
     
-    // Set read-only mode from initial prop
-    setReadOnly(initialReadOnly);
-
-    if (initialMapId && initialData) {
-        // We are on a saved map page (/map/[mapId])
-        setMapId(initialMapId);
-        setEditCode(initialEditCode);
-        setMapImage(initialData.mapImage);
-        setImageDimensions(initialData.imageDimensions);
-        setItems(initialData.items);
+    if (isNewSession) {
+      // We are on the root page ('/'), load from local storage or start fresh.
+      try {
+        const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedSession) {
+          const { mapImage, imageDimensions, items, zoomLevel, panOffset } = JSON.parse(savedSession);
+          setMapImage(mapImage || null);
+          setImageDimensions(imageDimensions || null);
+          setItems(items || []);
+          setZoomLevel(zoomLevel || 1);
+          setPanOffset(panOffset || { x: 0, y: 0 });
+          toast({ title: 'Session Restored', description: 'Your previous unsaved work has been loaded.' });
+        } else {
+           // Explicitly reset state for a clean new map
+           setItems([]);
+           setMapImage(null);
+           setImageDimensions(null);
+           setMapId(undefined);
+           setEditCode(undefined);
+           setZoomLevel(1);
+           setPanOffset({ x: 0, y: 0 });
+           setReadOnly(false);
+        }
+      } catch (error) {
+        console.error("Failed to load session from localStorage:", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
+    } else if (serverInitialData) {
+        // We are on a saved map page ('/map/[mapId]') and have data from the server.
+        // Forcefully update the component state to match server props.
+        setMapImage(serverInitialData.mapImage);
+        setImageDimensions(serverInitialData.imageDimensions);
+        setItems(serverInitialData.items);
+        setMapId(serverMapId || undefined);
+        setEditCode(serverEditCode || undefined);
+        setReadOnly(serverReadOnly || false);
         localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear any old session data
-    } else if (!initialReadOnly) {
-        // This is a new, unsaved map session (on the root '/' page)
-        try {
-            const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (savedSession) {
-                const { mapImage, imageDimensions, items, zoomLevel, panOffset } = JSON.parse(savedSession);
-                setMapImage(mapImage || null);
-                setImageDimensions(imageDimensions || null);
-                setItems(items || []);
-                setZoomLevel(zoomLevel || 1);
-                setPanOffset(panOffset || { x: 0, y: 0 });
-                toast({ title: 'Session Restored', description: 'Your previous unsaved work has been loaded.' });
-            } else {
-                 // Explicitly reset state for a clean new map
-                 setItems([]);
-                 setMapImage(null);
-                 setImageDimensions(null);
-                 setMapId(undefined);
-                 setEditCode(undefined);
-                 setZoomLevel(1);
-                 setPanOffset({x:0, y:0});
-            }
-        } catch (error) {
-            console.error("Failed to load session from localStorage:", error);
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-        }
     }
-}, [initialData, initialMapId, initialEditCode, initialReadOnly]);
+  }, [serverInitialData, serverMapId, serverEditCode, serverReadOnly]);
 
-
-  useDebouncedEffect(() => {
-    // This effect handles saving the current session to localStorage for unsaved maps.
+  // Debounced effect for saving to local storage on new maps
+  useEffect(() => {
     if (!readOnly && !mapId) { // Only save for new, unsaved sessions
+      const handler = setTimeout(() => {
         try {
-            const sessionData = { mapImage, imageDimensions, items, zoomLevel, panOffset };
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionData));
+          const sessionData = { mapImage, imageDimensions, items, zoomLevel, panOffset };
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionData));
         } catch (error) {
-            console.error("Failed to save session to localStorage:", error);
+          console.error("Failed to save session to localStorage:", error);
         }
+      }, 1000);
+      return () => clearTimeout(handler);
     }
-  }, [mapImage, imageDimensions, items, zoomLevel, panOffset, readOnly, mapId], 1000);
+  }, [mapImage, imageDimensions, items, zoomLevel, panOffset, readOnly, mapId]);
 
 
   const handleNewMap = () => {
@@ -148,21 +149,19 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     window.location.href = '/';
   }
 
-  const handleImageLoad = (url: string, resetState = true) => {
+  const handleImageLoad = (url: string) => {
     const img = new Image();
     img.src = url;
     img.onload = () => {
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
-      if (resetState) {
-        setItems([]);
-        setSelectedItem(null);
-        setEditingItemId(null);
-        setHighlightedItem(null);
-        setZoomLevel(1);
-        setPanOffset({ x: 0, y: 0 });
-        setActiveTool({ tool: 'select' });
-      }
+      setItems([]); // Clear items when new map is loaded
+      setSelectedItem(null);
+      setEditingItemId(null);
+      setHighlightedItem(null);
+      setZoomLevel(1);
+      setPanOffset({ x: 0, y: 0 });
+      setActiveTool({ tool: 'select' });
     };
     img.onerror = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to load image for map." });
@@ -175,7 +174,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         const reader = new FileReader();
         reader.onload = (e) => {
             if (e.target?.result) {
-                handleImageLoad(e.target.result as string, true);
+                handleImageLoad(e.target.result as string);
                 toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
             }
         };
@@ -300,7 +299,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       if (handleId) {
         const handleIndex = parseInt(handleId, 10);
         const item = items.find(i => i.id === editingItemId) as Shape;
-        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as PolygonShape).points || {x: 0, y: 0} });
+        setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as any).points || {x: 0, y: 0} });
         return;
       }
       // Dragging the center of a shape
@@ -349,7 +348,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
       if(item.shape === 'marker') itemStartPos = { x: item.x, y: item.y };
       else if (item.shape === 'rectangle') itemStartPos = { x: item.x, y: item.y };
       else if (item.shape === 'circle') itemStartPos = { x: item.cx, y: item.cy };
-      else if (item.shape === 'polygon') itemStartPos = (item as PolygonShape).points;
+      else if (item.shape === 'polygon') itemStartPos = (item as any).points;
       
       setDraggingItem({ id: itemId, type: 'item', startPos: coords, itemStartPos });
       return;
@@ -399,7 +398,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
                     updatedItem.cx = draggingItem.itemStartPos.x + dx;
                     updatedItem.cy = draggingItem.itemStartPos.y + dy;
                 } else if (updatedItem.shape === 'polygon' && Array.isArray(draggingItem.itemStartPos)) {
-                    updatedItem.points = draggingItem.itemStartPos.map(p => ({
+                    (updatedItem as any).points = draggingItem.itemStartPos.map((p: Point) => ({
                         x: p.x + dx,
                         y: p.y + dy
                     }));
@@ -661,11 +660,6 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
     const updatedItem = items.find(i => i.id === itemId); // This will use the old items state, needs a fix
     if (updatedItem) setHighlightedItem({ ...updatedItem, ...data });
     toast({ title: "Saved!", description: "Your annotation has been saved." });
-  };
-  
-  const handleLiveAnnotationUpdate = (itemId: string, data: Partial<Item>) => {
-    if (readOnly) return;
-    setItems(items.map(i => (i.id === itemId ? { ...i, ...data } : i)));
   };
 
   const handleDeleteItem = (itemId: string) => {
