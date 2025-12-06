@@ -33,37 +33,33 @@ type SenseMapperProps = {
 
 export function SenseMapper({ 
     initialData,
-    readOnly: serverReadOnly, 
-    mapId: serverMapId, 
-    editCode: serverEditCode 
+    readOnly: initialReadOnly, 
+    mapId: initialMapId, 
+    editCode: initialEditCode 
 }: SenseMapperProps) {
   
-  // Component's internal state
-  const [items, setItems] = useState<Item[]>(initialData?.items || []);
-  const [mapImage, setMapImage] = useState<string | null>(initialData?.mapImage || null);
-  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(initialData?.imageDimensions || null);
-  const [mapId, setMapId] = useState<string | undefined>(serverMapId || undefined);
-  const [editCode, setEditCode] = useState<string | undefined>(serverEditCode || undefined);
-  const [readOnly, setReadOnly] = useState(serverReadOnly === true);
+  const [items, setItems] = useState<Item[]>([]);
+  const [mapImage, setMapImage] = useState<string | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null);
+  const [mapId, setMapId] = useState<string | undefined>(initialMapId || undefined);
+  const [editCode, setEditCode] = useState<string | undefined>(initialEditCode || undefined);
+  const [readOnly, setReadOnly] = useState(initialReadOnly === true);
   
   const [visibleLayers, setVisibleLayers] = useState<Record<ItemType, boolean>>(initialLayerVisibility);
   const [activeTool, setActiveTool] = useState<ActiveTool>({ tool: 'select' });
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [highlightedItem, setHighlightedItem] = useState<Item | null>(null);
   
-  // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingShape, setDrawingShape] = useState<any>(null);
   const [startCoords, setStartCoords] = useState<Point | null>(null);
   const [cursorPos, setCursorPos] = useState<Point>({ x: 0, y: 0 });
   const [showPolygonTooltip, setShowPolygonTooltip] = useState(false);
 
-  // Editing state
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'item' | 'handle', handleIndex?: number; startPos: Point, itemStartPos: Point | Point[] } | null>(null);
   const [didDrag, setDidDrag] = useState(false);
 
-  // Viewport state
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState<Point>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -81,11 +77,8 @@ export function SenseMapper({
   const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // --- STATE INITIALIZATION AND SYNCHRONIZATION ---
   useEffect(() => {
-    // This effect runs only on the client, and only on the root page ('/').
-    // Its job is to load a previous unsaved session from local storage.
-    const isNewSession = !serverMapId && !serverReadOnly;
+    const isNewSession = !initialMapId;
     
     if (isNewSession) {
       try {
@@ -103,13 +96,18 @@ export function SenseMapper({
         console.error("Failed to load session from localStorage:", error);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
+    } else if (initialData) {
+        setItems(initialData.items || []);
+        setMapImage(initialData.mapImage || null);
+        setImageDimensions(initialData.imageDimensions || null);
+        setMapId(initialMapId || undefined);
+        setEditCode(initialEditCode || undefined);
+        setReadOnly(initialReadOnly === true);
     }
-  }, [serverMapId, serverReadOnly]); // Only depends on server props to run once.
+  }, [initialData, initialMapId, initialEditCode, initialReadOnly]);
 
 
-  // Debounced effect for saving to local storage on new maps
   useEffect(() => {
-    // Only save to localStorage if we are on a new, unsaved map (no mapId)
     if (!readOnly && !mapId) { 
       const handler = setTimeout(() => {
         try {
@@ -135,7 +133,7 @@ export function SenseMapper({
     img.onload = () => {
       setImageDimensions({ width: img.width, height: img.height });
       setMapImage(url);
-      setItems([]); // Clear items when new map is loaded
+      setItems([]);
       setSelectedItem(null);
       setEditingItemId(null);
       setHighlightedItem(null);
@@ -258,9 +256,8 @@ export function SenseMapper({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 || e.button === 1) return; // Ignore right and middle mouse button
+    if (e.button === 2 || e.button === 1) return; 
     
-    // In readOnly mode, all mouse down does is pan
     if (readOnly) {
         setIsPanning(true);
         setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
@@ -273,7 +270,6 @@ export function SenseMapper({
     const coords = getMapCoordinates(e);
     const target = e.target as SVGElement;
     
-    // Logic for interacting with edit handles
     if (editingItemId) {
       const handleId = target.dataset.handleId;
       if (handleId) {
@@ -282,7 +278,6 @@ export function SenseMapper({
         setDraggingItem({ id: editingItemId, type: 'handle', handleIndex, startPos: coords, itemStartPos: (item as any).points || {x: 0, y: 0} });
         return;
       }
-      // Dragging the center of a shape
       if (target.dataset.itemType === 'shape-center' && target.dataset.itemId === editingItemId) {
         const item = items.find(i => i.id === editingItemId) as Shape;
         let itemStartPos: Point | Point[] = { x: 0, y: 0 };
@@ -295,14 +290,13 @@ export function SenseMapper({
       }
     }
 
-    // Logic for drawing tools
     if (activeTool.tool === 'marker' || activeTool.tool === 'shape') {
         
         if (activeTool.tool === 'shape' && activeTool.shape === 'polygon') {
-            if (!isDrawing) { // First click for a new polygon
+            if (!isDrawing) { 
                 setIsDrawing(true);
                 setDrawingShape({ shape: 'polygon', points: [coords] });
-            } else if (drawingShape) { // Subsequent clicks for the same polygon
+            } else if (drawingShape) { 
                 const firstPoint = drawingShape.points[0];
                 const dist = Math.hypot(coords.x - firstPoint.x, coords.y - firstPoint.y);
                 const clickRadius = 10 / zoomLevel;
@@ -313,14 +307,13 @@ export function SenseMapper({
                     setDrawingShape((prev: any) => ({ ...prev, points: [...prev.points, coords] }));
                 }
             }
-        } else { // For markers, rectangles, and circles
+        } else { 
             setIsDrawing(true);
             setStartCoords(coords);
         }
         return;
     }
     
-    // Logic for the select tool
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     if (itemId && activeTool.tool === 'select') {
       const item = items.find(i => i.id === itemId)!;
@@ -334,7 +327,6 @@ export function SenseMapper({
       return;
     }
         
-    // If not interacting with an item, start panning
     if (activeTool.tool === 'select' && !itemId) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
@@ -425,7 +417,6 @@ export function SenseMapper({
   }, [isPanning, panStart, readOnly, draggingItem, isDrawing, startCoords, activeTool, items, drawingShape, zoomLevel, getMapCoordinates, handleHandleDrag]);
   
   const handleMouseUp = useCallback((e: React.MouseEvent | MouseEvent) => {
-    // Shared read-only logic
     if (readOnly) {
         setIsPanning(false);
         setPanStart(null);
@@ -447,14 +438,12 @@ export function SenseMapper({
         return;
     }
 
-    // Editable mode logic from here
     if (draggingItem) {
         setDraggingItem(null);
     }
 
     const coords = getMapCoordinates(e);
 
-    // Create marker on simple click (no drag)
     if (isDrawing && activeTool.tool === 'marker' && activeTool.type && !didDrag) {
       const isFacility = PRACTICAL_AMENITY_TYPES.some(t => t === activeTool.type);
       const newMarker: Marker = {
@@ -474,7 +463,6 @@ export function SenseMapper({
       setActiveTool({ tool: 'select' });
     }
     
-    // Create shape on drag
     if (isDrawing && activeTool.shape !== 'polygon' && didDrag && activeTool.type) {
         const shapeType = activeTool.type;
         const newShape: Shape = {
@@ -497,7 +485,6 @@ export function SenseMapper({
         setActiveTool({ tool: 'select' });
     }
 
-    // Reset drawing state for non-polygon tools
     if (isDrawing && activeTool.shape !== 'polygon') {
       setIsDrawing(false);
       setDrawingShape(null);
@@ -509,7 +496,6 @@ export function SenseMapper({
       setPanStart(null);
     }
     
-    // Handle item selection on click (no drag)
     if (!didDrag && activeTool.tool === 'select') {
         const target = e.target as HTMLElement;
         const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
@@ -520,14 +506,12 @@ export function SenseMapper({
             setHighlightedItem(item);
           }
         } else {
-          // Clicked on empty space
           setHighlightedItem(null);
           setSelectedItem(null);
           setEditingItemId(null);
         }
       }
     
-    // Reset didDrag state after a short delay
     setTimeout(() => setDidDrag(false), 0);
   }, [readOnly, didDrag, draggingItem, isDrawing, activeTool, items, drawingShape, isPanning, getMapCoordinates]);
 
@@ -536,7 +520,6 @@ export function SenseMapper({
     const itemId = target.closest('[data-item-id]')?.getAttribute('data-item-id');
     const item = items.find(i => i.id === itemId);
 
-    // In read-only mode, double click should open the annotation editor
     if (readOnly) {
       if (item) {
         setSelectedItem(item);
@@ -545,13 +528,11 @@ export function SenseMapper({
       return;
     }
 
-    // In edit mode, double click finishes a polygon
     if (activeTool.tool === 'shape' && activeTool.shape === 'polygon' && isDrawing) {
       finishDrawingPolygon();
       return;
     }
 
-    // In edit mode, double click on an item toggles its edit state
     if (item && item.shape !== 'marker') {
         handleToggleEditMode(item.id);
     }
@@ -572,11 +553,10 @@ export function SenseMapper({
     }
   };
 
-  // --- Touch Event Handlers for Pinch-to-Zoom ---
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      e.preventDefault(); // Prevent browser default actions like page zoom
+      e.preventDefault(); 
       e.stopPropagation();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -600,20 +580,17 @@ export function SenseMapper({
       const scaleAmount = currentDist / touchStartDistance;
       const newZoom = Math.min(Math.max(0.1, zoomLevel * scaleAmount), 10);
 
-      // Get midpoint of touch
       const midPointScreen = { x: (t1.x + t2.x) / 2, y: (t1.y + t2.y) / 2 };
 
-      // Get world coordinates of the midpoint
       const worldX = (midPointScreen.x - rect.left - panOffset.x) / zoomLevel;
       const worldY = (midPointScreen.y - rect.top - panOffset.y) / zoomLevel;
       
-      // Calculate new pan offset to keep the world point under the screen midpoint
       const newPanX = midPointScreen.x - rect.left - worldX * newZoom;
       const newPanY = midPointScreen.y - rect.top - worldY * newZoom;
 
       setZoomLevel(newZoom);
       setPanOffset({ x: newPanX, y: newPanY });
-      setTouchStartDistance(currentDist); // Update for continuous zoom
+      setTouchStartDistance(currentDist); 
 
     } else if (e.touches.length === 1 && isPanning && panStart) {
       const newX = e.touches[0].clientX - panStart.x;
@@ -637,7 +614,7 @@ export function SenseMapper({
     setItems(items.map(i => i.id === itemId ? { ...i, ...data } : i));
     setSelectedItem(null);
     setEditingItemId(null);
-    const updatedItem = items.find(i => i.id === itemId); // This will use the old items state, needs a fix
+    const updatedItem = items.find(i => i.id === itemId); 
     if (updatedItem) setHighlightedItem({ ...updatedItem, ...data });
     toast({ title: "Saved!", description: "Your annotation has been saved." });
   };
@@ -813,7 +790,6 @@ export function SenseMapper({
         setIsPrinting(false);
       };
 
-      // A small timeout to allow the printable content to render
       const timer = setTimeout(print, 100);
       
       window.addEventListener('afterprint', handleAfterPrint);
@@ -835,36 +811,23 @@ export function SenseMapper({
         const mapData: MapData = { mapImage, imageDimensions, items };
         
         if (mapId && editCode) {
-            // This is an existing map, so update it.
             const { id, error } = await updateMap(mapId, mapData, editCode);
             if (error || !id) {
                 throw new Error(error || 'Failed to update map.');
             }
             toast({ title: 'Map Updated!', description: 'Your changes have been saved.' });
         } else {
-            // This is a new map, so create it.
             const { id, editCode: newEditCode, error } = await createMap(mapData);
             if (error || !id || !newEditCode) {
                 throw new Error(error || 'Failed to save map and get ID.');
             }
             
-            // This is now a saved map, so update state
-            setMapId(id);
-            setEditCode(newEditCode);
-
             const url = `${window.location.origin}/map/${id}`;
-            setShareUrl(url); // Show the share dialog
+            setShareUrl(url); 
+            
+            localStorage.removeItem(LOCAL_STORAGE_KEY); 
 
-            // Store the edit code so the user can edit later
-            const storedMaps = JSON.parse(localStorage.getItem('senseMapperEditCodes') || '{}');
-            storedMaps[id] = newEditCode;
-            localStorage.setItem('senseMapperEditCodes', JSON.stringify(storedMaps));
-
-            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear session data
-
-            // Force a full page navigation to the new editable map URL
             window.location.href = `${url}?editCode=${newEditCode}`;
-
         }
     } catch (error: any) {
         console.error("Saving failed:", error);

@@ -1,10 +1,10 @@
 
+
 import SenseMapperLoader from '@/components/sense-mapper/SenseMapperLoader';
 import { initializeFirebase } from '@/firebase/server';
 import { doc, getDoc } from 'firebase/firestore';
 import { MapData } from '@/lib/types';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
 
 async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEditCode?: string}> {
     const { firestore } = await initializeFirebase();
@@ -19,16 +19,13 @@ async function getMapData(mapId: string): Promise<{mapData: MapData | null, dbEd
     
     const serializableData: any = { ...data };
 
-    // Firestore Timestamps are not serializable and will cause errors when passing from
-    // Server Components to Client Components. We can nullify it here as the client doesn't use it.
     if (serializableData.createdAt && typeof serializableData.createdAt.toDate === 'function') {
         serializableData.createdAt = null;
     }
     
-    // The edit code is part of the document, return it separately
     const dbEditCode = serializableData.editCode;
-
-    // Do not send the edit code to the client as part of the main data blob
+    // Do not send the edit code to the client as part of the main data blob in read-only mode
+    // It will be passed as a separate prop in edit mode
     delete serializableData.editCode;
 
     return { mapData: serializableData as MapData, dbEditCode };
