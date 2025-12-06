@@ -173,7 +173,7 @@ export function SenseMapper({ initialData, readOnly: initialReadOnly = false, ma
         const reader = new FileReader();
         reader.onload = (e) => {
             if (e.target?.result) {
-                handleImageLoad(e.target.result as string);
+                handleImageLoad(e.target.result as string, true);
                 toast({ title: "Map Uploaded", description: "You can now add markers and shapes to your new map." });
             }
         };
